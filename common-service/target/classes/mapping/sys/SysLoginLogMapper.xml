@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.common.core.dao.sys.SysLoginLogDao">
+
+    <sql id="Base_Column_List">
+        `id`,`code`,`userId`,`username`,
+        `loginDevice`,`logoutDevice`,`loginCity`,`logoutCity`,`loginIp`,`logoutIp`,`gmtLogin`,`gmtLogout`,
+        `remark`,`createBy`,`gmtCreate`,`modifiedBy`,`gmtModified`,`deleted`
+    </sql>
+
+    <select id="getById" resultType="com.reyco.dasbx.common.core.model.domain.sys.SysLoginLog">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_login_log where id = #{roleId}
+    </select>
+    
+    <select id="getByCode" resultType="com.reyco.dasbx.common.core.model.domain.sys.SysLoginLog">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_login_log where code = #{code}
+    </select>
+    
+    <select id="listByUserId" resultType="com.reyco.dasbx.common.core.model.domain.sys.SysLoginLog">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_login_log where id = #{userId}
+    </select>
+
+    <select id="list" resultType="com.reyco.dasbx.common.core.model.domain.sys.SysLoginLog">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_login_log
+        <where>
+            `deleted`= 0
+            <if test="userId != null">
+                and `userId`=#{userId}
+            </if>
+            <if test="username != null and username != ''">
+                and `username` like #{username}"%"
+            </if>
+            <if test="startLoginTime != null">
+                and `gmtLogin` <![CDATA[>=]]> #{startLoginTime}
+            </if>
+            <if test="endLoginTime != null">
+                and `gmtLogin` <![CDATA[<=]]> #{endLoginTime}
+            </if>
+             <if test="startLogoutTime != null">
+                and `gmtLogout` <![CDATA[>=]]> #{startLogoutTime}
+            </if>
+            <if test="endLogoutTime != null">
+                and `gmtLogout` <![CDATA[<=]]> #{endLogoutTime}
+            </if>
+        </where>
+        order by `gmtCreate` desc
+    </select>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_login_log(`code`,`userId`,`username`,`loginDevice`,`loginCity`,`loginIp`,`gmtLogin`,`remark`,`createBy`,`gmtCreate`,`modifiedBy`,`gmtModified`)
+        values (#{code},#{userId},#{username},#{loginDevice},#{loginCity},#{loginIp},#{gmtLogin},#{remark},#{createBy},#{gmtCreate}, #{modifiedBy}, #{gmtModified})
+    </insert>
+    
+    <update id="updateLogin">
+    	update sys_login_log set 
+    	loginDevice=#{loginDevice},loginCity=#{loginCity},loginIp=#{loginIp},gmtLogin=#{gmtLogin},
+    	modifiedBy=#{modifiedBy},gmtModified=#{gmtModified} 
+    	where id=#{id}
+    </update>
+    
+    <update id="updateLogout">
+    	update sys_login_log set 
+    	logoutDevice=#{logoutDevice},logoutCity=#{logoutCity},logoutIp=#{logoutIp},gmtLogout=#{gmtLogout},
+    	modifiedBy=#{modifiedBy},gmtModified=#{gmtModified} 
+    	where id=#{id}
+    </update>
+    
+</mapper>

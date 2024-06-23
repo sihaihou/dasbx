@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.common.core.dao.sys.MaleNameDao">
+
+	<select id="getById" resultType="com.reyco.dasbx.model.domain.Name">
+        select * from sys_male_name where id=#{id}
+    </select>
+    
+	<select id="getCount" resultType="int">
+        select count(1) from sys_male_name
+    </select>
+
+</mapper>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.open.core.dao.DeveloperDao">
+
+	<sql id="Base_Column_List">
+		`id`,`type`,`name`,`provinceId`,`cityId`,`address`,`director`,`phone`,`email`,`idcard`,`faceUri`,`state`,
+		`remark`,`gmtCreate`,`createBy`,`gmtModified`,`modifiedBy`,`deleted`
+	</sql>
+	<select id="getById"
+		resultType="com.reyco.dasbx.open.core.model.domain.Developer">
+		select
+		<include refid="Base_Column_List" />
+		from open_developer where `id` = #{id}
+	</select>
+	
+	<select id="list" resultType="com.reyco.dasbx.open.core.model.domain.Developer">
+        select * from open_developer
+        <where>
+			deleted=0
+			<if test="type != null">
+				and type=#{type}
+			</if>
+			<if test="state != null">
+				and `state`=#{state}
+			</if>
+			<if test="name != null and name!=''">
+				and `name`=#{name}
+			</if>
+		</where> 
+		order by gmtCreate asc
+    </select>
+
+	<!-- 新增类别 -->
+	<insert id="insert">
+		insert into open_developer
+		(type,name,provinceId,cityId,address,director,phone,email,idcard,faceUri,gmtCreate,createBy,gmtModified,modifiedBy)
+		values(#{type},#{name},#{provinceId},#{cityId},#{address},#{director},#{phone},#{email},#{idcard},#{faceUri},
+		#{gmtCreate},#{createBy},#{gmtModified},#{modifiedBy})
+		<selectKey resultType="long" keyProperty="id" order="AFTER">
+			select
+			@@identity
+		</selectKey>
+	</insert>
+
+	<!-- 编辑 -->
+	<update id="update">
+		update open_developer
+		<set>
+			<if test="name != null and name != ''">
+				name = #{name},
+			</if>
+			<if test="provinceId != null">
+				provinceId = #{provinceId},
+			</if>
+			<if test="cityId != null">
+				cityId = #{cityId},
+			</if>
+			<if test="address != null and address !=''">
+				`address` = #{address},
+			</if>
+			<if test="director != null and director !=''">
+				`director` = #{director},
+			</if>
+			<if test="phone != null and phone !=''">
+				`phone` = #{phone},
+			</if>
+			<if test="email != null and email !=''">
+				`email` = #{email},
+			</if>
+			<if test="idcard != null and idcard !=''">
+				`idcard` = #{idcard},
+			</if>
+			<if test="faceUri != null and faceUri !=''">
+				`faceUri` = #{faceUri},
+			</if>
+			`state`=0,gmtModified=now(),modifiedBy=#{modifiedBy}
+		</set>
+		where id = #{id}
+	</update>
+
+	<!-- 编辑 -->
+	<update id="review">
+		update open_developer set `state`=#{state},gmtModified=now(),modifiedBy=#{modifiedBy} where id=#{id}
+	</update>
+</mapper>

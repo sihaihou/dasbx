@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.common.core.dao.sys.SysLogDao">
+
+    <sql id="Base_Column_List">
+        `id`,`code`,`service`,`type`,`name`,`path`,`method`,`params`,`times`,`gmtRequest`,`gmtResponse`,`success`,
+        `remark`,`createBy`,`gmtCreate`,`modifiedBy`,`gmtModified`,`deleted`
+    </sql>
+
+    <select id="getById" resultType="com.reyco.dasbx.model.domain.SysLog">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_log where id = #{Id}
+    </select>
+    
+    <select id="listByCode" resultType="com.reyco.dasbx.model.domain.SysLog">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_log where code = #{code}
+        order by `gmtRequest` desc
+    </select>
+
+    <select id="list" resultType="com.reyco.dasbx.model.domain.SysLog">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_log
+        <where>
+            `deleted`= 0
+            <if test="name != null and name!=''">
+                and `name` like "%"#{name}"%"
+            </if>
+            <if test="code != null">
+                and `code`=#{code}
+            </if>
+            <if test="userId != null and userId != ''">
+                and `userId`=#{userId}
+            </if>
+            <if test="startGmtRequest != null">
+                and `gmtRequest` <![CDATA[>=]]> #{startGmtRequest}
+            </if>
+            <if test="endGmtRequest != null">
+                and `gmtRequest` <![CDATA[<=]]> #{endGmtRequest}
+            </if>
+        </where>
+        order by `gmtRequest` desc
+    </select>
+    
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_log(`code`,`userId`,`service`,`type`,`name`,`path`,`method`,`params`,`times`,`gmtRequest`,`gmtResponse`,`success`,`remark`,`createBy`,`gmtCreate`,`modifiedBy`,`gmtModified`)
+        values (#{code},#{userId},#{service},#{type},#{name},#{path},#{method},#{params},#{times},#{gmtRequest},#{gmtResponse},#{success},#{remark},#{createBy},#{gmtCreate}, #{modifiedBy}, #{gmtModified})
+    </insert>
+    
+    <update id="updateByCode">
+    	update sys_log set userId=#{userId},`gmtModified`=#{gmtModified},`modifiedBy`=#{modifiedBy} where code=#{code}
+    </update>
+</mapper>

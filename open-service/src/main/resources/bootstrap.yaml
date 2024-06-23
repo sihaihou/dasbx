@@ -1,0 +1,9 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application: 
+    name: open-service
+  profiles:
+    active: dev   
+  resources:
+    static-locations: classpath:/static/

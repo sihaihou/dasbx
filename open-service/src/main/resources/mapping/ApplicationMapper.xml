@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.open.core.dao.ApplicationDao">
+
+	<sql id="Base_Column_List">
+		`id`,`name`,`firstCategoryId`,`secondCategoryId`,`domainUri`,`logoUri`,`introduction`,`organizer`,`filingNumber`,
+		`clientId`,`clientSecret`,`redirectUri`,`accounts`,`status`,
+		`remark`,`createBy`,`gmtCreate`,`modifiedBy`,`gmtModified`,`deleted`
+	</sql>
+
+	<sql id="Base_simple_Column_List">
+		`id`,`firstCategoryId`,`secondCategoryId`,`name`,`domainUri`,`logoUri`,`introduction`,`organizer`,`filingNumber`
+	</sql>
+
+	<sql id="Base_main_Column_List">
+		`id`,`name`,`firstCategoryId`,`secondCategoryId`,`logoUri`,`clientId`,`clientSecret`,`redirectUri`,`accounts`,`status`
+	</sql>
+
+	<!-- 根据id查询 -->
+	<select id="getById"
+		resultType="com.reyco.dasbx.open.core.model.domain.Application">
+		select
+		<include refid="Base_Column_List" />
+		from open_application
+		where id = #{id}
+	</select>
+
+	<select id="getByClientId"
+		resultType="com.reyco.dasbx.open.core.model.domain.Application">
+		select
+		<include refid="Base_Column_List" />
+		from open_application
+		where `clientId` = #{clientId}
+	</select>
+
+	<!-- 分页列表 -->
+	<select id="list"
+		resultType="com.reyco.dasbx.open.core.model.domain.Application">
+		select
+			a.id,a.clientId,a.clientSecret,a.redirectUri,a.name,
+			a.status,a.`remark`,a.gmtCreate,a.gmtModified
+		from `open_application` a
+		LEFT JOIN `open-developer-application` b on a.id=b.applicationId
+		where a.deleted=0 and b.developerId = #{developerId}
+		order by a.gmtCreate desc
+	</select>
+
+	<!-- 新增类别 -->
+	<insert id="insert">
+		insert into open_application
+			(name,firstCategoryId,secondCategoryId,logoUri,introduction,clientId,clientSecret,gmtCreate,createBy,gmtModified,modifiedBy)
+		values
+			(#{name},#{firstCategoryId},#{secondCategoryId},#{logoUri},#{introduction},#{clientId},#{clientSecret},now(),#{createBy},now(),#{modifiedBy})
+		<selectKey resultType="long" keyProperty="id" order="AFTER">
+			select @@identity
+		</selectKey>
+	</insert>
+	
+	<!-- 完善资料 -->
+	<update id="improveApplication">
+		update 
+			open_application
+		set
+			domainUri=#{domainUri},organizer=#{organizer},filingNumber=#{filingNumber},redirectUri=#{redirectUri},logoUri=#{logoUri},
+			status = 0,gmtModified=now(),modifiedBy=#{modifiedBy}
+		where 
+			id = #{id}
+	</update>
+
+	<!-- 编辑 -->
+	<update id="update">
+		update open_application
+		<set>
+			<if test="name != null and name != ''">
+				name = #{name},
+			</if>
+			<if test="firstCategoryId != null and firstCategoryId != ''">
+				firstCategoryId = #{firstCategoryId},
+			</if>
+			<if test="secondCategoryId != null and secondCategoryId != ''">
+				secondCategoryId = #{secondCategoryId},
+			</if>
+			<if test="domainUri != null and domainUri != ''">
+				domainUri = #{domainUri},
+			</if>
+			<if test="logoUri != null and logoUri != ''">
+				logoUri = #{logoUri},
+			</if>
+			<if test="introduction != null and introduction != ''">
+				introduction = #{introduction},
+			</if>
+			<if test="organizer != null and introduction != ''">
+				organizer = #{organizer},
+			</if>
+			<if test="filingNumber != null and filingNumber != ''">
+				filingNumber = #{filingNumber},
+			</if>
+			<if test="redirectUri != null and redirectUri != ''">
+				redirectUri = #{redirectUri},
+			</if>
+			<if test="accounts != null and accounts != ''">
+				accounts = #{accounts},
+			</if>
+			<if test="remark != null and remark !=''">
+				`remark` = #{remark},
+			</if>
+			status = 0,gmtModified=now(),modifiedBy=#{modifiedBy}
+		</set>
+		where id = #{id}
+	</update>
+	
+	<!-- 编辑基本信息 -->
+	<update id="updateSimpleInfo">
+		update 
+			open_application 
+		set 
+			name=#{name},firstCategoryId = #{firstCategoryId},secondCategoryId = #{secondCategoryId},logoUri=#{logoUri},
+			introduction=#{introduction},accounts=#{accounts},status = 0,gmtModified=now(),modifiedBy=#{modifiedBy}
+		where 
+			id = #{id}
+	</update>
+	
+	<!-- 编辑主要信息 -->
+	<update id="updateMainInfo">
+		update 
+			open_application
+		set
+			domainUri=#{domainUri},organizer=#{organizer},filingNumber=#{filingNumber},redirectUri=#{redirectUri},
+			status = 0,gmtModified=now(),modifiedBy=#{modifiedBy}
+		where 
+			id = #{id}
+	</update>
+	
+	<!-- 审核 -->
+	<update id="reviewApplication">
+		update open_application set status=#{status},gmtModified=now(),modifiedBy=#{modifiedBy} where id = #{id}
+	</update>
+	
+	<!-- 删除 -->
+	<update id="deleteApplication">
+		update open_application set deleted=1,gmtModified=now(),modifiedBy=#{modifiedBy} where id=#{id}
+	</update>
+	
+</mapper>

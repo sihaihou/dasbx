@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.open.core.dao.DeveloperApplicationDao">
+
+	<insert id="insert">
+		insert into `open-developer-application`
+			(developerId,applicationId)
+		values
+			(#{developerId},#{applicationId})
+		<selectKey resultType="long" keyProperty="id" order="AFTER">
+			select @@identity
+		</selectKey>
+	</insert>
+</mapper>

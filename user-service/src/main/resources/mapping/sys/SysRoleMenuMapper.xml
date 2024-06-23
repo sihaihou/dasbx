@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.user.core.dao.sys.SysRoleMenuDao">
+
+    <!-- 删除角色与菜单关系 -->
+    <delete id="delete" parameterType="java.lang.Long">
+        delete from sys_role_menu where roleId = #{roleId}
+    </delete>
+
+    <!-- 保存角色与菜单关系 -->
+    <insert id="save" parameterType="map">
+        insert into sys_role_menu
+        (`roleId`,`menuId`)
+        values
+        <foreach collection="menuIdList" item="item" index="index" separator=",">
+            (#{roleId},#{item})
+        </foreach>
+    </insert>
+
+    <!--根据角色Id，获取菜单Id列表(删除角色与菜单关系前查询)-->
+    <select id="queryMenuIdsByRoleId" resultType="java.lang.Long">
+        select menuId from sys_role_menu where roleId = #{roleId}
+    </select>
+    
+    <!--根据角色id，获取菜单列表(用户详情角色时查询) -->
+	<select id="queryMenusByRoleId" resultType="com.reyco.dasbx.user.core.model.dto.sys.SysMenuDto">
+		select m.id,m.parentId
+		FROM sys_menu m 
+		inner JOIN sys_role_menu rm on m.id=rm.menuId
+		WHERE m.deleted=0 and rm.roleId=#{roleId}
+	</select>
+	
+	<!--根据menuId获取角色名称列表 （删除菜单时提示查询）-->
+    <select id="queryRoleNamesByMenuId" resultType="java.lang.String">
+        select r.name
+        from sys_role r 
+        inner join sys_role_menu rm on r.id=rm.roleId
+        where r.deleted=0 and rm.menuId=#{menuId}
+    </select>
+
+</mapper>

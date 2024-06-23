@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.common.core.dao.sys.SysEsErrorDao">
+
+    <sql id="Base_Column_List">
+        `id`,`index`,`type`,`primaryKey`,`failureMessage`,`processed`,
+        `remark`,`createBy`,`gmtCreate`,`modifiedBy`,`gmtModified`,`deleted`
+    </sql>
+
+    <select id="getById" resultType="com.reyco.dasbx.model.domain.SysEsError">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_es_error where id = #{id}
+    </select>
+    
+    <select id="listByIndex" resultType="com.reyco.dasbx.model.domain.SysEsError">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_es_error where `index` = #{index}
+    </select>
+
+    <select id="list" resultType="com.reyco.dasbx.model.domain.SysEsError">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_es_error
+        <where>
+            `deleted`= 0
+            <if test="index != null and index != ''">
+                and `index`=#{index}
+            </if>
+            <if test="type != null and type != ''">
+                and `type`=#{type}
+            </if>
+            <if test="processed != null">
+                and `processed`=#{processed}
+            </if>
+        </where>
+        order by `gmtCreate` desc
+    </select>
+
+    <insert id="batchInsert">
+        insert into sys_es_error(`index`,`type`,`primaryKey`,`failureMessage`,`createBy`,`gmtCreate`,`modifiedBy`,`gmtModified`)
+        VALUES
+         	(#{index},#{type},#{primaryKey},#{failureMessage},#{createBy},#{gmtCreate},#{modifiedBy},#{gmtModified})
+    </insert>
+   <!--  <insert id="batchInsert">
+        insert into sys_es_error(`index`,`type`,`primaryKey`,`failureMessage`,`processed`,`createBy`,`gmtCreate`,`modifiedBy`,`gmtModified`)
+        VALUES
+         <foreach collection="list" item="item" separator=",">
+         	(#{item.index},#{item.type},#{item.primaryKey},#{item.failureMessage},#{item.processed},#{item.createBy},#{item.gmtCreate},#{item.modifiedBy},#{item.gmtModified})
+        </foreach>
+    </insert> -->
+    
+    <update id="processe">
+    	update sys_es_error set processed=#{processed},modifiedBy=#{modifiedBy},gmtModified=#{gmtModified} where id=#{id}
+    </update>
+    
+</mapper>

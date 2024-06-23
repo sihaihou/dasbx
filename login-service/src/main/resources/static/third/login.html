@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="../images/logo.png">
+<title>Dasbx</title>
+<style type="text/css">
+.body {
+  width: 100%;
+  height: 100%;
+}
+/*  头部的内容 */
+.lay_top {
+  height: 50px;
+  overflow: hidden;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.lay_top_inner {
+  width: 688px;
+  max-width: 688px;
+  min-width: 305px;
+  margin: 0 auto;
+  width: auto !important;
+}
+
+.lay_top_inner_logo {
+  width: 66px;
+  height: 50px;
+  margin-left: 21px;
+  background-image: url(../images/logo.png);
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+/*  中间的内容 */
+.lay_body {
+  margin: 0 auto;
+  width: 688px;
+}
+
+.lay_body_login {
+  width: 433px;
+  float: left;
+  text-align: center;
+  color: #000;
+}
+
+.tips {
+  position: relative;
+  margin: 0 auto 26px;
+  z-index: 11;
+  font-size: 12px;
+  line-height: 16px;
+  color: #000;
+}
+
+.title {
+  font-size: 20px;
+  line-height: 28px;
+  color: #000;
+  margin: 26px 0 6px;
+}
+/** */
+.login_form {
+  position: relative;
+  width: 250px;
+  margin: 0 auto;
+  font-size: 14px;
+}
+
+.form {
+  margin: 0 auto;
+  width: 250px;
+  padding-bottom: 10px;
+}
+.input {
+  width: 250px;
+  height: 48px;
+}
+.message{
+  height: 10px;
+  font-size: 8px;
+  text-align: left;
+  color: red;
+}
+.displayNoneClass{
+  display:none;
+}
+.displayBlockClass{
+  display:block;
+}
+.warn-icon{
+  width: 15px;
+  height:15px;
+}
+.warn-icon img{
+  width: 15px;
+  height:15px;
+}
+.username {
+  width: 233px;
+  height: 38px;
+  border-radius: 4px;
+  padding: 0 10px 0 10px;
+  border: 1px solid #ccc;
+}
+.submit {
+  width: 250px;
+  height: 38px;
+  position: relative;
+  text-align: center;
+  font-size: 15px;
+  color: #fff;
+  line-height: 38px;
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #09f;
+  cursor: pointer;
+}
+
+.guanjia {
+  margin-bottom: 50px;
+}
+/** */
+.page_accredit {
+  width: 227px;
+  height: 300px;
+  margin-top: 92px;
+  border-left: 1px solid #f5f5f5;
+  font-size: 12px;
+  float: right;
+}
+
+.lay_main {
+  width: 100% !important;
+  margin: 0;
+  margin-left: 32px;
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+}
+
+.lay_main_top1 {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.accreditInput {
+  display: inline-block;
+  width: 16px;
+  border-radius: 13px;
+  border: 1px solid #ccc;
+  background-size: contain;
+}
+.guanjia {
+  width: 250px;
+  margin: 0 auto;
+}
+.guanjiaInfo {
+  display: flex;
+  position: relative;
+}
+.guanjiaInfo div {
+  margin-top: 20px;
+  margin: 10px 12px;
+  font-size: 12px;
+}
+.guanjiaInfo .guanjiaInfo_login{
+	margin: 10px 10px 10px 0px;
+}
+.guanjiaInfo .guanjiaInfo_apply{
+	margin: 10px 0px 10px 10px;
+}
+
+.guanjiaInfo a {
+  text-decoration: none;
+  color: #000;
+}
+.guanjiaInfo a:hover,
+.guanjiaInfo a:visited,
+.guanjiaInfo a:link,
+.guanjiaInfo a:active {
+  color: #000;
+}
+.page_accredit a {
+  text-decoration: none;
+  color: #2e77e5;
+}
+.page_accredit a:hover,
+.page_accredit a:visited,
+.page_accredit a:link,
+.page_accredit a:active {
+  color: #2e77e5;
+}
+</style>
+<script type="text/javascript" src="../js/jquery-3.2.1.js"></script>
+<script type="text/javascript" src="../js/jQuery.md5.js"></script>
+<script type="text/javascript" src="../js/crypto.js"></script>
+<script type="text/javascript" src="../js/reyco.js"></script>
+<script type="text/javascript" src="../js/fingerprint2.js"></script>
+
+
+<script type="text/javascript">
+	const systemInfo = {
+		//baseUrl: "http://www.dasbx.com/api",
+		baseUrl: "http://www.subixin.com/api",
+		deviceId: localStorage.getItem('deviceId'),
+		deviceType: "PC",
+	 	codeName: "dasbx-code",
+		dasbxKey: "reyco",
+		dasbxNonce: "subixin",
+		iv: CryptoJS.enc.Utf8.parse('1234567812345678')
+	};
+	/* 根据参数名获取参数值*/
+	function getQueryString(name) {
+		var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+		var r = window.location.search.substr(1).match(reg);
+		if (r != null)
+			return unescape(r[2]);
+		return null;
+	}
+	$(function() {
+		createFingerprint();
+		loadCode();
+		loadApplication();
+	})
+	function loadCode(){
+		const params = {
+			code: localStorage.getItem(systemInfo.codeName),
+			time: new Date().getTime()
+		};
+		const config = {
+			method: "GET",
+			url: systemInfo.baseUrl+"/login/sys/code",
+			dasbxDeviceId: systemInfo.deviceId,
+			dasbxDeviceType: systemInfo.deviceType,
+			dasbxAccept: "false",
+			dasbxCode: params.code,
+			dasbxKey: systemInfo.dasbxKey,
+			dasbxNonce: systemInfo.dasbxNonce,
+			dasbxTimestamp: new Date().getTime(),
+			dasbxContentSignature: paramSign(params)
+		};
+		$.ajax({
+			type : config.method,
+			dataType : "json",
+			url : config.url,
+			headers: {
+				"dasbx-deviceId": config.dasbxDeviceId,
+				"dasbx-deviceType": config.dasbxDeviceType,
+		        "dasbx-accept": config.dasbxAccept,
+		        "dasbx-code": config.dasbxCode,
+		        "dasbx-key": config.dasbxKey,
+		        "dasbx-nonce": config.dasbxNonce,
+		        "dasbx-Timestamp": config.dasbxTimestamp,
+		        "dasbx-content-signature": config.dasbxContentSignature,
+		        "dasbx-Signature": sign(config)
+		    },
+			data : params,
+			success : function(data) {
+				var flag = data.success;
+				if (flag) {
+					localStorage.setItem(systemInfo.codeName,data.data);
+				} 
+			},
+			error : function() {
+			}
+		});
+	}
+	function loadApplication() {
+		const params = {
+			clientId: getQueryString("client_id"),
+			time: new Date().getTime()
+		};
+		const config = {
+			method: "GET",
+			url: systemInfo.baseUrl+"/open/application/getByClientId",
+			dasbxDeviceId: systemInfo.deviceId,
+			dasbxDeviceType: systemInfo.deviceType,
+			dasbxAccept: "false",
+			dasbxCode: localStorage.getItem(systemInfo.codeName),
+			dasbxKey: systemInfo.dasbxKey,
+			dasbxNonce: systemInfo.dasbxNonce,
+			dasbxTimestamp: new Date().getTime(),
+			dasbxContentSignature: paramSign(params)
+		};
+		$.ajax({
+			type : config.method,
+			dataType : "json",
+			url : config.url,
+			headers: {
+				"dasbx-deviceId": config.dasbxDeviceId,
+				"dasbx-deviceType": config.dasbxDeviceType,
+				"dasbx-accept": config.dasbxAccept,
+		        "dasbx-code": config.dasbxCode,
+		        "dasbx-key": config.dasbxKey,
+		        "dasbx-nonce": config.dasbxNonce,
+		        "dasbx-Timestamp": config.dasbxTimestamp,
+		        "dasbx-content-signature": config.dasbxContentSignature,
+		        "dasbx-Signature": sign(config)
+		    },
+			data : params,
+			success : function(data) {
+				var flag = data.success;
+				if (flag) {
+					$("#application").text(data.data.name);
+					$('#application').attr('href', data.data.domainUri);
+				} else {
+				}
+			},
+			error : function() {
+			}
+		});
+	}
+	
+	function login() {
+		const loginInfo = {
+			username: $("#username").val(),
+			password: $.md5($("#password").val())
+		};
+		const secretKey = getLoginSecretKey();
+		const sourceLoginInfoJson = getSourceLoginInfoJson(loginInfo);
+		const secretRegisterInfoString = encrypt(sourceLoginInfoJson,secretKey);
+		const params = {
+			redirect_uri: getQueryString("redirect_uri"),
+			t: secretRegisterInfoString,
+			time: new Date().getTime()
+		};
+		const code = localStorage.getItem(systemInfo.codeName);
+		const config = {
+			method: "POST",
+			url: systemInfo.baseUrl+"/login/oauth2/login",
+			dasbxDeviceId: systemInfo.deviceId,
+			dasbxDeviceType: systemInfo.deviceType,
+			dasbxAccept: "false",
+			dasbxCode: code,
+			dasbxKey: systemInfo.dasbxKey,
+			dasbxNonce: systemInfo.dasbxNonce,
+			dasbxTimestamp: new Date().getTime(),
+			dasbxContentSignature: paramSign(params)
+		};
+		$.ajax({
+			type : config.method,
+			dataType : "json",
+			url : config.url,
+			headers: {
+				"dasbx-deviceId": config.dasbxDeviceId,
+				"dasbx-deviceType": config.dasbxDeviceType,
+				"dasbx-accept": config.dasbxAccept,
+		        "dasbx-code": config.dasbxCode,
+		        "dasbx-key": config.dasbxKey,
+		        "dasbx-nonce": config.dasbxNonce,
+		        "dasbx-Timestamp": config.dasbxTimestamp,
+		        "dasbx-content-signature": config.dasbxContentSignature,
+		        "dasbx-Signature": sign(config)
+		    },
+			data : params,
+			success : function(data) {
+				var flag = data.success;
+				if (flag && data.code!="211") {
+					localStorage.removeItem(systemInfo.codeName);
+					loadCode();
+					window.location.replace(data.data);
+				} else {
+					showMessage(data.dataMsg);
+				}
+			},
+			error : function() {
+			}
+		});
+	}
+	function showMessage(message){
+		$(".submit").css("margin-top","10px")
+		$("#msg").removeClass("displayNoneClass");
+		$("#msg").addClass("displayBlockClass");
+		$("#message").html(message);
+	}
+	function cleanMessage(){
+		$(".submit").css("margin-top","20px")
+		$("#msg").removeClass("displayBlockClass");
+		$("#msg").addClass("displayNoneClass");
+		$("#message").html("");
+	}
+	function paramSign(params){
+	    let serialize = getSerialize(params);
+	    return $.md5(serialize).toUpperCase();
+	}
+	/**
+	 * 接口签名
+	 * @param {*} config   
+	 */
+	function sign(config){
+	    let url = config.url.replace("/api", "");
+	    let serialize = config.dasbxNonce+"Dasbx-Key="+config.dasbxKey+"&Dasbx-Timestamp="+config.dasbxTimestamp
+	    +"&Dasbx-Nonce="+config.dasbxNonce+"&Dasbx-Content-Signature="+config.dasbxContentSignature+"&url="+url;
+	    return $.md5(serialize).toUpperCase();
+	}
+	 function getSerialize(params){
+	    const map = objToMap(params);
+	    let serialize = "";
+	    if (map.size > 0) {
+	        let keys = Object.keys(params)
+	        keys.sort();
+	        for (let i = 0; i < keys.length; i++) {
+	            let key = keys[i];
+	            serialize += key + "=" + map.get(key) + "&";
+	        }
+	    }
+	    return serialize.substring(0, serialize.length - 1);
+	}
+	 function objToMap(object){
+	    const map = new Map();
+	    Object.entries(object).forEach(([key, value]) => {
+	        map.set(key, value);
+	    });
+	    return map;
+	}
+	function getLoginSecretKey(){
+		const code = localStorage.getItem(systemInfo.codeName);
+	    let secreyKey = code.substring(0,16);
+	    secreyKey = "1234567890123456";
+	    return secreyKey;
+	}
+	function getSourceLoginInfoJson(loginInfo){
+	    const sourceLoginInfoJson = '{"username":"'+loginInfo.username+'","password":"'+loginInfo.password+'"}';
+	    return sourceLoginInfoJson;
+	}
+	/**
+	 * AES对称加密
+	 * @param {Object} source 明文参数
+	 * @param {Object} key  密匙
+	 */
+	function encrypt(source,key) {
+		key = CryptoJS.enc.Utf8.parse(key);
+	    // 明文参数
+	    const str = CryptoJS.enc.Utf8.parse(source)
+	    // 加密
+	    const encryptedData = CryptoJS.AES.encrypt(str, key, {
+	        mode: CryptoJS.mode.ECB, // AES加密模式
+	        padding: CryptoJS.pad.Pkcs7 // 填充方式
+	    })
+	    return CryptoJS.enc.Base64.stringify(encryptedData.ciphertext) // 返回base64格式密文
+	}
+	 /**
+	 * AES对称解密
+	 * @param {Object} ciphertext 加密参数
+	 * @param {Object} key  密匙
+	 */
+	function decrypt(ciphertext,key) {
+		key = CryptoJS.enc.Utf8.parse(key);
+	    // base64格式密文转换
+	    const base64 = CryptoJS.enc.Base64.parse(ciphertext)
+	    const str = CryptoJS.enc.Base64.stringify(base64)
+	    // 解密
+	    const decryptedData = CryptoJS.AES.decrypt(str, key, {
+	        mode: CryptoJS.mode.ECB, // AES加密模式
+	        padding: CryptoJS.pad.Pkcs7 // 填充方式
+	    })
+	    return CryptoJS.enc.Utf8.stringify(decryptedData).toString() // 返回明文
+	}
+	/**
+	 * 创建设备Id
+	 */
+	function createFingerprint(){
+	 	const fingerprint = Fingerprint2.get((components) => { 
+	       const values = components.map(component => component.value);
+	       const murmur = Fingerprint2.x64hash128(values.join(''), 31);
+	       localStorage.setItem('deviceId', murmur);
+	    });
+	}
+</script>
+</head>
+<body>
+	<div class="body">
+		<div class="lay_top">
+			<div class="lay_top_inner">
+				<div class="lay_top_inner_logo"></div>
+			</div>
+		</div>
+		<div class="lay_body">
+			<div class="lay_body_login">
+				<div class="tips">
+					<div class="title">密码登录</div>
+				</div>
+				<div class="login_form">
+					<form class="form">
+						<div class="input">
+							<div class="input1">
+								<input id="username" class="username" placeholder="请输入用户名" onfocus="cleanMessage()"/>
+							</div>
+						</div>
+						<div class="input">
+							<div class="input1">
+								<input id="password" type="password"  class="username" placeholder="请输入密码" onfocus="cleanMessage()"/>
+							</div>
+						</div>
+						<div id="msg" class="message displayNoneClass">
+			              <span class="warn-icon"><img src="../images/error_icon.png"/></span>
+			              <span id="message"></span>
+			            </div>
+						<div class="button">
+							<div>
+								<input class="submit" onclick="login()" value="login"/>
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="guanjia">
+					<div class="guanjiaInfo">
+			        	<div class="guanjiaInfo_login"><a href="http://www.subixin.com">Da爱登录</a></div>
+			            <div>|</div>
+			            <div><a href="http://open.subixin.com">授权管理</a></div>
+			            <div>|</div>
+			            <div class="guanjiaInfo_apply"><a href="http://open.subixin.com">申请接入</a></div>
+			        </div>
+				</div>
+			</div>
+			<div class="page_accredit">
+				<div class="lay_main">
+					<div class="lay_main_top">
+						<div class="lay_main_top1">
+							<input type="checkbox" checked class="accreditInput" /> <label>全选
+								<a id="application" href="http://open.subixin.com"></a> 将获取以下权限：
+							</label>
+						</div>
+						<div class="lay_main_top1">
+							<input type="checkbox" disabled checked class="accreditInput" />
+							<label> 使用你的Dasbx头像、昵称信息 </label>
+						</div>
+					</div>
+					<div class="lay_main_bottom">
+						授权即同意<a href="http://open.subixin.com">服务协议</a>和<a
+							href="http://open.subixin.com">隐私保护指引</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

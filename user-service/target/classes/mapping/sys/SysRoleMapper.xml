@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.user.core.dao.sys.SysRoleDao">
+
+    <sql id="Base_Column_List">
+        `id`, `name`, `remark`, `createBy`, `gmtCreate`, `modifiedBy`, `gmtModified`, `deleted`
+    </sql>
+
+    <!--根据角色ID查询角色数据信息-->
+    <select id="get" resultType="com.reyco.dasbx.user.core.model.domain.SysRole">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_role where id = #{roleId}
+    </select>
+
+	<select id="getAll" resultType="com.reyco.dasbx.user.core.model.domain.SysRole">
+        select * from sys_role where deleted=0 and id>1
+    </select>
+
+    <!--查询角色数据信息列表-->
+    <select id="list" resultType="com.reyco.dasbx.user.core.model.domain.SysRole">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_role
+        <where>
+            `deleted`= 0
+             and id>1
+            <if test="name != null and name != ''">
+                and `name` like #{name}"%"
+            </if>
+        </where>
+        order by `gmtCreate` asc
+    </select>
+
+    <!--用于角色信息数据去重 -->
+    <select id="getCountByNameAndById" resultType="java.lang.Integer" parameterType="map">
+        select count(*) from sys_role
+        <trim prefix="where" prefixOverrides="and|or">
+            name=#{name}
+            <if test="id != null ">
+                and id != #{id}
+            </if>
+            and deleted=0
+        </trim>
+    </select>
+
+    <!--创建角色数据信息 -->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_role(`name`, `remark`, `createBy`, `gmtCreate`, `modifiedBy`, `gmtModified`)
+        values (#{name}, #{remark}, #{createBy}, #{gmtCreate}, #{modifiedBy}, #{gmtModified})
+    </insert>
+
+    <!--修改角色数据信息  -->
+    <update id="update">
+        UPDATE sys_role
+        <set>
+            <if test="name != null and name != ''">
+                `name` = #{name},
+            </if>
+            <if test="remark != null and remark != ''">
+                `remark` = #{remark},
+            </if>
+            modifiedBy=#{modifiedBy},
+            gmtModified=#{gmtModified}
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--删除角色数据信息(修改deleted值)-->
+    <update id="delete">
+        update sys_role set deleted=#{deleted},modifiedBy=#{modifiedBy},gmtModified=now() where id=#{id};
+    </update>
+    
+</mapper>

@@ -1,0 +1,31 @@
+spring:
+  cloud:
+    nacos:
+      discovery: 
+        serverAddr: nacos.housihai.com
+        namespace: 36065885-4477-4ba1-9e8d-9daceb734b29
+        group: DASBX_GROUP
+        clusterName: DasbxCluster
+        weight: 5
+        metadata: 
+           version: 1.0.0
+           author: housihai
+           project: dasbx
+      config: 
+        serverAddr: nacos.housihai.com
+        namespace: 36065885-4477-4ba1-9e8d-9daceb734b29
+        group: DASBX_GROUP
+        file-extension: yaml
+        ## 共享配置
+        shared-configs: 
+          - dataId: dasbx-shared.yaml
+            group: DASBX_GROUP
+            refresh: true
+        ## 扩展配置
+        extension-configs: 
+          - dataId: dasbx-extension.yaml
+            group: DASBX_GROUP
+            refresh: true
+          - dataId: dasbx-gateway-extension.yaml
+            group: DASBX_GROUP
+            refresh: true

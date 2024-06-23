@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.common.core.dao.sys.SysMessageDao">
+
+	<select id="getById" resultType="com.reyco.dasbx.common.core.model.domain.sys.SysMessage">
+        select * from sys_message where id=#{id}
+    </select>
+
+	<select id="list" resultType="com.reyco.dasbx.common.core.model.domain.sys.SysMessage">
+        select * from sys_message
+        <where>
+			deleted=0
+			<if test="userId != null">
+				and userId=#{userId}
+			</if>
+			<if test="read != null">
+				and `read`=#{read}
+			</if>
+		</where> 
+		order by gmtCreate asc
+    </select>
+    
+    <select id="getAll" resultType="com.reyco.dasbx.common.core.model.domain.sys.SysMessage">
+        select * from sys_message where deleted=0
+    </select>
+
+	<select id="getMaxId" resultType="long">
+        select max(id) from sys_message
+    </select>
+	 <select id="getListByLimit" resultType="com.reyco.dasbx.common.core.model.domain.sys.SysMessage">
+        select * from sys_message where deleted=0 and id<![CDATA[>=]]>#{startId} and id<![CDATA[<]]>#{endId}
+    </select>
+
+	<!-- 新增 -->
+	<insert id="insert">
+		insert into sys_message
+		<trim prefix="(" suffix=")">
+			`type`,`userId`,`buzId`,`buzType`,`buzName`,`content`,`read`,`gmtRead`,`readBy`,`handle`,`gmtHandle`,`handleBy`,
+			`gmtCreate`,`createBy`,`gmtModified`,`modifiedBy`
+		</trim>
+		<trim prefix="values(" suffix=")">
+			#{type},#{userId},#{buzId},#{buzType},#{buzName},#{content},#{read},#{gmtRead},#{readBy},#{handle},#{gmtHandle},#{handleBy},
+			#{gmtCreate},#{createBy},#{gmtModified},#{modifiedBy}
+		</trim>
+		<selectKey resultType="long" keyProperty="id" order="AFTER">
+			select @@identity
+		</selectKey>
+	</insert>
+	
+	<!-- 更新已读 -->
+	<update id="updateRead">
+		update sys_message set 
+		`read`=#{read},gmtRead=#{gmtRead},readBy=#{readBy},modifiedBy=#{modifiedBy},gmtModified=now() 
+		where id=#{id}
+	</update>
+	<!-- 更新已处理 -->
+	<update id="updateHandle">
+		update sys_message set 
+		`handle`=#{handle},gmtHandle=#{gmtHandle},handleBy=#{handleBy},modifiedBy=#{modifiedBy},gmtModified=now() 
+		where id=#{id}
+	</update>
+	
+	 <!--删除(修改deleted值)-->
+    <update id="deleteById">
+        update sys_message set deleted=#{deleted},modifiedBy=#{modifiedBy},gmtModified=now() where id=#{id};
+    </update>
+    
+    
+    <select id="getCountByUserId" resultType="java.lang.Integer">
+    	select count(1) from sys_message 
+    	<where>
+			deleted=0
+			and handle = 0
+			<if test="userId != null">
+				and userId=#{userId}
+			</if>
+		</where> 
+    </select>
+    
+</mapper>

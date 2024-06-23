@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.common.core.dao.sys.AreaDao">
+
+	<select id="getById" resultType="com.reyco.dasbx.model.domain.Area">
+        select * from sys_area where id=#{id}
+    </select>
+    
+    <select id="getByName" resultType="com.reyco.dasbx.model.domain.Area">
+        select * from sys_area where name=#{name}
+    </select>
+    
+    <select id="getChildsByParentId" resultType="com.reyco.dasbx.model.domain.Area">
+        select * from sys_area where parentId=#{id} and deleted=0 order by `code`;
+    </select>
+
+    <select id="getAll" resultType="com.reyco.dasbx.model.domain.Area">
+        select * from sys_area where parentId=0 and deleted=0
+    </select>
+
+	<select id="getMaxId" resultType="long">
+        select max(id) from sys_area
+    </select>
+	 <select id="getListByLimit" resultType="com.reyco.dasbx.model.domain.Area">
+        select * from sys_area where deleted=0 and id<![CDATA[>=]]>#{startId} and id<![CDATA[<]]>#{endId}
+    </select>
+
+	<!-- 新增 -->
+	<insert id="insert">
+		insert into sys_area
+		<trim prefix="(" suffix=")">
+			`name`,`parentId`,`code`,`citycode`,`level`,`longitude`,`latitude`,`gmtCreate`,`createBy`,`gmtModified`,`modifiedBy`
+		</trim>
+		<trim prefix="values(" suffix=")">
+			#{name},#{parentId},#{code},#{citycode},#{level},#{longitude},#{latitude},#{gmtCreate},#{createBy},#{gmtModified},#{modifiedBy}
+		</trim>
+		<selectKey resultType="long" keyProperty="id" order="AFTER">
+			select @@identity
+		</selectKey>
+	</insert>
+	
+	<!-- 修改 -->
+	<update id="update">
+		update sys_area
+		<set>
+			<if test="parentId != null">
+				`parentId`=#{parentId},
+			</if>
+			<if test="name != null and name != ''">
+				`name`=#{name},
+			</if>
+			<if test="code != null and code != ''">
+				`code`=#{code},
+			</if>
+			<if test="citycode != null and citycode != ''">
+				`citycode`=#{citycode},
+			</if>
+			<if test="level != null and level != ''">
+				`level`=#{level},
+			</if>
+			<if test="leaf != null">
+				`leaf`=#{leaf},
+			</if>
+			<if test="longitude != null and longitude != ''">
+				`longitude`=#{longitude},
+			</if>
+			<if test="latitude != null and latitude != ''">
+				`latitude`=#{latitude},
+			</if>
+			<if test="remark != null and remark != ''">
+				`remark`=#{remark},
+			</if>
+			gmtModified=#{gmtModified},modifiedBy=#{modifiedBy}
+		</set>
+		where id=#{id}
+	</update>
+	
+	 <!--删除角色数据信息(修改deleted值)-->
+    <update id="deleteById">
+        update sys_area set deleted=#{deleted},modifiedBy=#{modifiedBy},gmtModified=now() where id=#{id};
+    </update>
+</mapper>

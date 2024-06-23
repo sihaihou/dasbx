@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.portal.dao.VideoDao">
+
+	<select id="getById" resultType="com.reyco.dasbx.portal.model.domain.Video">
+        select * from portal_video where id=#{id}
+    </select>
+    
+	<select id="list" resultType="com.reyco.dasbx.portal.model.domain.vo.VideoListVO">
+		select id,categoryId,vipId,name,portraitCoverUrl,landscapeCoverUrl,description
+		from portal_video 
+		<where>
+			deleted=0
+			<if test="categoryId != null">
+				and categoryId=#{categoryId}
+			</if>
+			<if test="name != null">
+				and name like "%"#{name}"%"
+			</if>
+		</where>
+		order by id desc
+	</select>
+	
+	<update id="updatePlay">
+		<foreach collection="videoPlayPOs" index="index" item="videoPlayPO" separator=";">
+			update portal_video set playQuantity = playQuantity+#{videoPlayPO.playQuantity} where id=#{videoPlayPO.id}
+		</foreach>
+		
+	</update>
+</mapper>

@@ -1,0 +1,8 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application: 
+    name: common-service
+    version: v0.0.1
+  profiles:
+    active: dev
