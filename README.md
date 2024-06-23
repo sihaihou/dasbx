@@ -11,7 +11,7 @@
     - jwt-spring-boot-starter：Jwt生成token的starter
     - oss-spring-boot-starter：自定义实现的Oss文件上传的starter
     - constant-spring-boot-starter： 常量工具starter
-    - es-spring-boot-starter： es相关的starter
+    - es-spring-boot-starter： elasticsearch相关的starter
     - syslog-spring-boot-starter：系统日志搜集的starter
     - trim-spring-boot-starter：请求参数去前后空格的starter
       
