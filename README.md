@@ -1,4 +1,4 @@
-# 一.基于springcloudAlibaba开发的项目
+# 一.基于springcloudAlibaba架构的微服务项目
 ## 1.子项目介绍：
   - commons: 公共的工具类包
   - commons-model：公共的Model类
