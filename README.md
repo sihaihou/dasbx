@@ -5,7 +5,7 @@
     - commons: 公共的工具类包
     - commons-model：公共的Model类
     - commons-config：公共的配置类
-    - 
+
   - 各种自定义starter包：
     - id-spring-boot-starter：全局唯一Id生成器starter
     - jwt-spring-boot-starter：Jwt生成token的starter
@@ -14,6 +14,7 @@
     - es-spring-boot-starter： es相关的starter
     - syslog-spring-boot-starter：系统日志搜集的starter
     - trim-spring-boot-starter：请求参数去前后空格的starter
+      
   - 相关服务：
     - common-service： 基础服务
     - portal-service： 门户服务
