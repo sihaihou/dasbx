@@ -20,7 +20,6 @@ import com.reyco.dasbx.config.exception.core.ArgumentException;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.redis.RedisUtil;
 import com.reyco.dasbx.config.utils.TokenUtils;
-import com.reyco.dasbx.log.core.annotation.Syslog;
 import com.reyco.dasbx.login.core.model.dto.ConfirmQRcodeDto;
 import com.reyco.dasbx.login.core.model.dto.EmailLoginDto;
 import com.reyco.dasbx.login.core.model.dto.ScanQRCodeDto;
@@ -50,7 +49,6 @@ public class LoginController {
 	private RedisUtil redisUtil;
 	
 	//密码登录
-	@Syslog
 	@PostMapping("login")
 	public Object login(String t) throws ArgumentException, AuthenticationException {
 		SysAccountToken accountToken = loginService.login(t);
