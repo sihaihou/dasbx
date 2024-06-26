@@ -191,4 +191,17 @@ public class RequestUtils {
 		}
 		return value.trim();
 	}
+	/**
+	 * 获取Token:先从header中获取token属性，如果header中没有，在从cookie中获取Token，如果cookie中也没有，返回null
+	 * @param request
+	 * @param optionName
+	 * @return
+	 */
+	public static String getTokenByHeaderAndCookie(HttpServletRequest request, String tokenName) {
+		String token = RequestUtils.getHeaderOptional(request, tokenName, null);
+		if (token == null) {
+			token = RequestUtils.getCookieOptional(request, tokenName, null);
+		}
+		return token;
+	}
 }

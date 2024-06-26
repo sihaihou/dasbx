@@ -25,17 +25,25 @@ public class DictionaryOrderUtils {
 	 * @return
 	 */
 	public static String lowestDictionaryOrderString(Map<String,Object> paramterMap) {
+		if(paramterMap==null) {
+			return "";
+		}
 		Set<String> keys = paramterMap.keySet();
 		if(keys==null || keys.size()==0) {
 			return "";
 		}
 		String[] strs = keys.toArray(new String[keys.size()]);
 		Arrays.sort(strs,new StringComparator());
-		StringJoiner stringJoiner = new StringJoiner("&","?","");
+		StringJoiner stringJoiner = new StringJoiner("&","","");
 		for (int i = 0; i < strs.length; i++) {
 			String key = strs[i];
 			if(paramterMap.get(key)!=null && StringUtils.isNotEmpty(paramterMap.get(key).toString())) {
-				stringJoiner.add(key+"="+paramterMap.get(key));
+				if(paramterMap.get(key) instanceof Map) {
+					Map<String,Object> subMap = (Map<String,Object>)paramterMap.get(key);
+					stringJoiner.add(key+"=["+lowestDictionaryOrderString(subMap)+"]");
+				}else {
+					stringJoiner.add(key+"="+paramterMap.get(key));
+				}
 			}
 		}
 		return stringJoiner.toString();

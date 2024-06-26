@@ -8,6 +8,17 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
 
+import com.reyco.dasbx.resource.annotation.EnableResource;
+import com.reyco.dasbx.resource.constant.ResourceMode;
+
+@EnableResource(
+		resourceMode=ResourceMode.REGULAR,
+		patterns= {"com.*.controller.*"},
+		excludedPatterns= {
+				"com.*.controller.*.SysLogController.*",
+				"com.*.controller.*.TestController.*"
+				},
+		tokenNames= {"dasbx-token","dasbx-code"})
 @EnableDiscoveryClient
 @EnableFeignClients
 @ComponentScan(value= {"com.reyco.dasbx.common","com.reyco.dasbx.config"})

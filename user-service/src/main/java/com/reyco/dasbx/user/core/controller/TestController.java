@@ -6,38 +6,29 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reyco.dasbx.commons.domain.R;
-import com.reyco.dasbx.commons.utils.JsonUtils;
-import com.reyco.dasbx.id.core.IdGenerator;
-import com.reyco.dasbx.jwt.core.JwtUtils;
-import com.reyco.dasbx.model.domain.SysAccount;
+import com.reyco.dasbx.resource.annotation.Resource;
+import com.reyco.dasbx.user.core.service.TestService;
 
 @RestController
 @RequestMapping("test")
 public class TestController {
-	
 	@Autowired
-	private IdGenerator<Long> idGenerator;
-	
-	@Autowired
-	private JwtUtils jwtUtils;
+	private TestService testService;
 
+	@GetMapping("a")
+	public Object a(String test) {
+		String result = testService.test(test);
+		return R.success(result);
+	}
 	@GetMapping
 	public Object test(String test) {
-		System.err.println(test + idGenerator.getGeneratorId());
-		return "ok";
+		String result = testService.test(test);
+		return R.success(result);
 	}
-
+	@Resource
 	@GetMapping("test1")
-	public Object test1(int a) {
-		int i = 1/a;
-		SysAccount sysAccount = new SysAccount();
-		sysAccount.setId(1L);
-		sysAccount.setUsername("admin");
-		sysAccount.setPassword("123456");
-		String subjectJson = JsonUtils.objToJson(sysAccount);
-		String token = jwtUtils.createToken("1", subjectJson);
-		String principal = jwtUtils.getSubject(token);
-		System.out.println(principal);
-		return R.success(principal);
+	public Object test1(int a, String b) {
+		Object result = testService.test1(a, b);
+		return R.success(result);
 	}
 }

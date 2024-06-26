@@ -12,7 +12,16 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.reyco.dasbx.config.irule.NacosClusterWeightRule;
+import com.reyco.dasbx.resource.annotation.EnableResource;
+import com.reyco.dasbx.resource.constant.ResourceMode;
 
+@EnableResource(
+		resourceMode=ResourceMode.REGULAR,
+		patterns= {"com.*.controller.*"},
+		excludedPatterns= {
+				"com.*.controller.*.TestController.*"
+				},
+		tokenNames= {"dasbx-token","dasbx-code"})
 @EnableDiscoveryClient
 @EnableFeignClients
 @RibbonClients(value= {

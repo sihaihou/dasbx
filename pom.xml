@@ -377,7 +377,7 @@
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
-				<artifactId>syslog-spring-boot-starter</artifactId>
+				<artifactId>resource-spring-boot-starter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>
@@ -399,7 +399,7 @@
 		<module>oss-spring-boot-starter</module>
 		<module>jwt-spring-boot-starter</module>
 		<module>id-spring-boot-starter</module>
-		<module>syslog-spring-boot-starter</module>
+		<module>resource-spring-boot-starter</module>
 		<module>gateway</module>
 		<module>user-service</module>
 		<module>login-service</module>

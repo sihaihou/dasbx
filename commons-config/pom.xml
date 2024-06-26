@@ -35,7 +35,7 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>syslog-spring-boot-starter</artifactId>
+			<artifactId>resource-spring-boot-starter</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.alibaba.cloud</groupId>

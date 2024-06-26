@@ -2,7 +2,6 @@ package com.reyco.dasbx.common.core.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,7 +19,7 @@ public class TestController {
 		System.err.println(test+idGenerator.getGeneratorId());
 		return "ok";
 	}
-	@PostMapping("test1")
+	@GetMapping("test1")
 	public Object test1(String test){
 		System.err.println(test);
 		return R.success();
