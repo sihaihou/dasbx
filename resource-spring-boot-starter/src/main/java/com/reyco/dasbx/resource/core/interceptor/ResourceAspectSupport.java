@@ -2,8 +2,10 @@ package com.reyco.dasbx.resource.core.interceptor;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.StringTokenizer;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,13 +22,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.reyco.dasbx.commons.constant.MethodType;
+import com.reyco.dasbx.commons.utils.JsonUtils;
 import com.reyco.dasbx.commons.utils.KeyValueMergeUtils;
 import com.reyco.dasbx.commons.utils.RequestUtils;
 import com.reyco.dasbx.commons.utils.UnwrapUtils;
 import com.reyco.dasbx.resource.core.handler.ResourceHandler;
-import com.reyco.dasbx.resource.core.interceptor.ResourceAspectSupport.InvocationCallback;
-import com.reyco.dasbx.resource.core.interceptor.ResourceAspectSupport.ResourceHandlerThread;
 import com.reyco.dasbx.resource.core.model.DefaultResourceDefinition;
+import com.reyco.dasbx.trim.requset.RemoveSpaceHttpServletRequestWrapper;
 
 public abstract class ResourceAspectSupport implements InitializingBean{
 	
@@ -107,10 +110,11 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 			try {
 				long endTime = System.currentTimeMillis();
 				String token = parseToken(method, targetClass);
+				Map<String, Object> parameters = parseParameter(method, targetClass, args);
 				if (executor == null) {
-					handlerDefaultResourceDefinition(method,targetClass,args,startTime,endTime,throwable,token);
+					handlerDefaultResourceDefinition(method,targetClass,args,startTime,endTime,throwable,token,parameters);
 				} else {
-					executor.execute(new ResourceHandlerThread(method,targetClass,args,startTime,endTime,throwable,token));
+					executor.execute(new ResourceHandlerThread(method,targetClass,args,startTime,endTime,throwable,token,parameters));
 				}
 			} catch (Exception e) {
 				logger.warn("系统日志出错！exception:{}", e);
@@ -126,14 +130,13 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 	 * @param targetClass
 	 * @param args
 	 */
-	protected void handlerDefaultResourceDefinition(Method method,Class<?> targetClass,Object[] args,long startTime,long endTime,Throwable throwable,String token) {
+	protected void handlerDefaultResourceDefinition(Method method,Class<?> targetClass,Object[] args,long startTime,long endTime,Throwable throwable,String token,Map<String, Object> parameters) {
 		try {
 			DefaultResourceDefinition resourceDefinition = new DefaultResourceDefinition();
 			resourceDefinition.setStartTime(startTime);
 			resourceDefinition.setEndTime(endTime);
 			resourceDefinition.setSuccess(throwable == null ? true : false);
 			resourceDefinition.setToken(token);
-			Map<String, Object> parameters = parseParameter(method, args);
 			String methodName = getMethodName(method, targetClass);
 			String description = parseDescription(method, targetClass,parameters);
 			String resourceName = parseResource(method, targetClass,parameters);
@@ -167,7 +170,8 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 		private long endTime;
 		private Throwable throwable;
 		private String token;
-		public ResourceHandlerThread(Method method, Class<?> targetClass, Object[] args,long startTime,long endTime,Throwable throwable,String token) {
+		private Map<String, Object> parameters;
+		public ResourceHandlerThread(Method method, Class<?> targetClass, Object[] args,long startTime,long endTime,Throwable throwable,String token,Map<String, Object> parameters) {
 			super();
 			this.method = method;
 			this.targetClass = targetClass;
@@ -176,10 +180,11 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 			this.endTime = endTime;
 			this.throwable = throwable;
 			this.token = token;
+			this.parameters = parameters;
 		}
 		@Override
 		public void run() {
-			handlerDefaultResourceDefinition(method, targetClass, args,startTime,endTime,throwable,token);
+			handlerDefaultResourceDefinition(method, targetClass, args,startTime,endTime,throwable,token,parameters);
 		}
 	}
 	/**
@@ -188,7 +193,34 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 	 * @param args
 	 * @return
 	 */
-	private Map<String, Object> parseParameter(Method method, Object[] args) {
+	@Deprecated
+	private Map<String, Object> parseParameter(Method method,Class<?> targetClass, Object[] args) {
+		if(isController(method, targetClass)) {
+			HttpServletRequest request = RequestUtils.getHttpServletRequest();
+			Map<String,Object> map = new HashMap<>();
+			String parameterForQuery = request.getQueryString();
+			if(StringUtils.isNotBlank(parameterForQuery)) {
+				StringTokenizer stKeyValue = new StringTokenizer(parameterForQuery, "&");
+				while(stKeyValue.hasMoreTokens()) {
+					String keyValue = stKeyValue.nextToken();
+					String[] temp = keyValue.split("=");
+					if(temp.length==2 && StringUtils.isNotBlank(temp[0]) && StringUtils.isNotBlank(temp[1])) {
+						map.put(temp[0], temp[1]);
+					}
+				}
+			}
+			if(!request.getMethod().equalsIgnoreCase(MethodType.GET.getMethod())
+					&& !request.getMethod().equalsIgnoreCase(MethodType.OPTIONS.getMethod())
+					&& !request.getMethod().equalsIgnoreCase(MethodType.HEAD.getMethod())) {
+				RemoveSpaceHttpServletRequestWrapper remove = (RemoveSpaceHttpServletRequestWrapper) request;
+				String body = remove.getBody();
+				if(StringUtils.isNotBlank(body)) {
+					Map<String, Object> parameters = JsonUtils.jsonToMap(body);
+					map.putAll(parameters);
+				}
+			}
+			return map;
+		}
 		LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 		String[] parameterNames = localVariableTableParameterNameDiscoverer.getParameterNames(method);
 		return KeyValueMergeUtils.merge(parameterNames, args);
@@ -199,8 +231,7 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 	 * @return
 	 */
 	private String parseDescription(Method method, Class<?> targetClass,Map<String, Object> parameters) {
-		final ResourceAttribute resourceAttribute = getResourceAttribute(getResourceAttributeSource(), method,
-				targetClass);
+		final ResourceAttribute resourceAttribute = getResourceAttribute(getResourceAttributeSource(), method,targetClass);
 		String description = "";
 		if (resourceAttribute != null) {
 			description = resourceAttribute.getName();
