@@ -12,6 +12,7 @@ import org.apache.ibatis.plugin.Signature;
 
 import com.reyco.dasbx.commons.utils.Dasbx;
 import com.reyco.dasbx.commons.utils.ReflectionReycoUtils;
+import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.utils.TokenUtils;
 
 @Intercepts({ @Signature(type = Executor.class, method = "update", args = { MappedStatement.class, Object.class }) })
@@ -39,15 +40,11 @@ public class GlobalParametersInterceptor implements Interceptor {
 	 * @throws Exception
 	 */
 	private void updateField(Object target, Class<?> targetClass, SqlCommandType sqlCommandType) throws Exception{
-		Long id = TokenUtils.getToken().getId();
-		Long currentTime = Dasbx.getCurrentTime();
-		wrapTarget(target, targetClass, MODIFIEDBY, id);
-		wrapTarget(target, targetClass, GMTMODIFIED, currentTime);
+		wrapTarget(target, targetClass, MODIFIEDBY, true);
+		wrapTarget(target, targetClass, GMTMODIFIED, false);
 		if (SqlCommandType.INSERT.equals(sqlCommandType)) {
-			wrapTarget(target, targetClass, CREATEBY, id);
-			wrapTarget(target, targetClass, GMTCREATE, currentTime);
-			wrapTarget(target, targetClass, MODIFIEDBY, id);
-			wrapTarget(target, targetClass, GMTMODIFIED, currentTime);
+			wrapTarget(target, targetClass, CREATEBY, true);
+			wrapTarget(target, targetClass, GMTCREATE, false);
 		}
 	}
 	/**
@@ -55,17 +52,21 @@ public class GlobalParametersInterceptor implements Interceptor {
 	 * @param target
 	 * @param targetClass
 	 * @param fieldName
-	 * @param value
+	 * @param isCreateBy
 	 * @throws IllegalArgumentException
 	 * @throws IllegalAccessException
+	 * @throws AuthenticationException 
 	 */
-	private void wrapTarget(Object target, Class<?> targetClass, String fieldName, Object value)
-			throws IllegalArgumentException, IllegalAccessException {
+	private void wrapTarget(Object target, Class<?> targetClass, String fieldName,Boolean isCreateBy)throws Exception {
 		Field gmtModifiedField = ReflectionReycoUtils.findField(targetClass, fieldName);
 		if (gmtModifiedField != null) {
 			gmtModifiedField.setAccessible(true);
 			if (gmtModifiedField.get(target) == null) {
-				gmtModifiedField.set(target, value);
+				if(isCreateBy) {
+					gmtModifiedField.set(target, TokenUtils.getToken().getId());
+				}else {
+					gmtModifiedField.set(target, Dasbx.getCurrentTime());
+				}
 			}
 		}
 	}
