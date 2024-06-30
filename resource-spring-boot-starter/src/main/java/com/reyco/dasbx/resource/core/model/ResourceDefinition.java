@@ -23,4 +23,6 @@ public interface ResourceDefinition {
 	Long getEndTime();
 	
 	Boolean isSuccess();
+	
+	String getExceptionInfo();
 }

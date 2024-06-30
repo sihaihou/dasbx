@@ -136,6 +136,10 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 			resourceDefinition.setStartTime(startTime);
 			resourceDefinition.setEndTime(endTime);
 			resourceDefinition.setSuccess(throwable == null ? true : false);
+			String message;
+			if(throwable!=null && StringUtils.isNotBlank(message=throwable.getMessage())) {
+				resourceDefinition.setExceptionInfo(message.length()>1000?message.substring(0, 1000):message);
+			}
 			resourceDefinition.setToken(token);
 			String methodName = getMethodName(method, targetClass);
 			String description = parseDescription(method, targetClass,parameters);

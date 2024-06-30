@@ -13,6 +13,8 @@ public class DefaultResourceDefinition implements ResourceDefinition{
 	private Long startTime;
 	private Long endTime;
 	private Boolean success;
+	private String exceptionInfo;
+	
 	@Override
 	public String getToken() {
 		return token;
@@ -84,10 +86,17 @@ public class DefaultResourceDefinition implements ResourceDefinition{
 		this.success = success;
 	}
 	@Override
+	public String getExceptionInfo() {
+		return this.exceptionInfo;
+	}
+	public void setExceptionInfo(String exceptionInfo) {
+		this.exceptionInfo = exceptionInfo;
+	}
+	@Override
 	public String toString() {
 		return "DefaultResourceDefinition [token=" + token + ", application=" + application + ", resource=" + resource
 				+ ", description=" + description + ", isController=" + isController + ", method=" + method
 				+ ", parameters=" + parameters + ", startTime=" + startTime + ", endTime=" + endTime + ", success="
-				+ success + "]";
+				+ success + ", exceptionInfo=" + exceptionInfo + "]";
 	}
 }

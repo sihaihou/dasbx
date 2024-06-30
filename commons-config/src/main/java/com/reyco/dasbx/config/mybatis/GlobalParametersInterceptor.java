@@ -58,14 +58,14 @@ public class GlobalParametersInterceptor implements Interceptor {
 	 * @throws AuthenticationException 
 	 */
 	private void wrapTarget(Object target, Class<?> targetClass, String fieldName,Boolean isCreateBy)throws Exception {
-		Field gmtModifiedField = ReflectionReycoUtils.findField(targetClass, fieldName);
-		if (gmtModifiedField != null) {
-			gmtModifiedField.setAccessible(true);
-			if (gmtModifiedField.get(target) == null) {
+		Field field = ReflectionReycoUtils.findField(targetClass, fieldName);
+		if (field != null) {
+			field.setAccessible(true);
+			if (field.get(target) == null) {
 				if(isCreateBy) {
-					gmtModifiedField.set(target, TokenUtils.getToken().getId());
+					field.set(target, TokenUtils.getToken().getId());
 				}else {
-					gmtModifiedField.set(target, Dasbx.getCurrentTime());
+					field.set(target, Dasbx.getCurrentTime());
 				}
 			}
 		}
