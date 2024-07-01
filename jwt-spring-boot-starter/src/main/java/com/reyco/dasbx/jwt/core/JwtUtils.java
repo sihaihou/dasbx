@@ -8,6 +8,8 @@ import java.util.Map;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.springframework.beans.factory.InitializingBean;
+
 import com.reyco.dasbx.jwt.properties.JwtProperties;
 
 import io.jsonwebtoken.Claims;
@@ -18,7 +20,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.DefaultJwsHeader;
 
-public class JwtUtils {
+public class JwtUtils implements InitializingBean{
 	
 	private JwtProperties jwtProperties;
 	
@@ -34,6 +36,10 @@ public class JwtUtils {
 	}
 	public void setJwtProperties(JwtProperties jwtProperties) {
 		this.jwtProperties = jwtProperties;
+	}
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		SignatureAlgorithm.forName(jwtProperties.getAlgorithmName());
 	}
 	/**
 	 * 签发JWT，创建token的方法。
