@@ -19,7 +19,11 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t housihai:dasbx-${projectName}:0.0.1 .'
+                script {
+                    docker.withRegistry('https://hub.docker.com', '54925b2c-d4e5-4a09-a7b2-a180656174b5') {
+                        docker.build('your-image-name:tag')
+                    }
+                }
             }
         }
     }
