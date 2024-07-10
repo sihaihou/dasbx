@@ -17,5 +17,10 @@ pipeline {
               sh 'mvn  -f ${projectName} -U clean package'
             }
         }
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t housihai:${projectName}:0.0.1 .'
+            }
+        }
     }
 }
