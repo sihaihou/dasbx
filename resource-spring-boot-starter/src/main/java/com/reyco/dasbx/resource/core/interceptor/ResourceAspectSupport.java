@@ -22,7 +22,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.reyco.dasbx.commons.constant.MethodType;
+import com.reyco.dasbx.model.constants.MethodType;
 import com.reyco.dasbx.commons.utils.JsonUtils;
 import com.reyco.dasbx.commons.utils.KeyValueMergeUtils;
 import com.reyco.dasbx.commons.utils.RequestUtils;
