@@ -1,7 +1,7 @@
 package com.reyco.dasbx.user.core.model.dto.sys;
 
-import com.reyco.dasbx.es.core.search.SimpleElasticsearchDto;
+import com.reyco.dasbx.es.core.search.SimpleSearchDto;
 
-public class SysRoleSearchDto extends SimpleElasticsearchDto{
+public class SysRoleSearchDto extends SimpleSearchDto{
 
 }

@@ -1,6 +1,6 @@
 package com.reyco.dasbx.es.core.search;
 
-public class SimpleElasticsearchDto implements ElasticsearchDto {
+public class SimpleSearchDto implements SearchDto {
 	private String keyword;
 	private Integer pageNum=1;
 	private Integer pageSize=10;

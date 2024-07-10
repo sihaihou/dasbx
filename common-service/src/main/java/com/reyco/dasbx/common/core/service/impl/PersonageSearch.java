@@ -7,9 +7,12 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,11 +22,15 @@ import com.reyco.dasbx.common.core.model.dto.personage.PersonageSearchDto;
 import com.reyco.dasbx.common.core.model.po.sys.PersonageElasticsearchDocument;
 import com.reyco.dasbx.common.core.model.vo.personage.PersonageInfoVO;
 import com.reyco.dasbx.commons.utils.Convert;
+import com.reyco.dasbx.commons.utils.CusAccessObjectUtil;
+import com.reyco.dasbx.commons.utils.IPToLongitudeAndLatitudeUtils;
+import com.reyco.dasbx.commons.utils.IPToLongitudeAndLatitudeUtils.LongitudeLatitude;
 import com.reyco.dasbx.commons.utils.JsonUtils;
+import com.reyco.dasbx.commons.utils.RequestUtils;
 import com.reyco.dasbx.es.core.model.Aggregation;
 import com.reyco.dasbx.es.core.model.GeoPoint;
 import com.reyco.dasbx.es.core.search.AbstractSearch;
-import com.reyco.dasbx.es.core.search.ElasticsearchDto;
+import com.reyco.dasbx.es.core.search.SearchDto;
 import com.reyco.dasbx.es.core.search.type.IndexType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexAggregationType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexHighlightType;
@@ -61,14 +68,14 @@ public class PersonageSearch extends AbstractSearch<PersonageInfoVO>{
 		return indexType;
 	}
 	@Override
-	protected void buildBoolQueryBuilderMust(BoolQueryBuilder boolQuery, ElasticsearchDto elasticsearchDto) {
+	protected void buildBoolQueryBuilderMust(BoolQueryBuilder boolQuery, SearchDto elasticsearchDto) {
 		PersonageSearchDto personageSearchDto = (PersonageSearchDto)elasticsearchDto;
 		if (StringUtils.isNotBlank(personageSearchDto.getKeyword())) {
 			boolQuery.must(QueryBuilders.multiMatchQuery(personageSearchDto.getKeyword(), getIndexType().getIndexSearchFieldType().getMultiFields()));
 		}
 	}
 	@Override
-	protected void buildBoolQueryBuilderFilter(BoolQueryBuilder boolQuery, ElasticsearchDto elasticsearchDto) {
+	protected void buildBoolQueryBuilderFilter(BoolQueryBuilder boolQuery, SearchDto elasticsearchDto) {
 		PersonageSearchDto personageSearchDto = (PersonageSearchDto)elasticsearchDto;
 		if (personageSearchDto.getGender() != null) {
 			boolQuery.filter(QueryBuilders.termQuery("gender", personageSearchDto.getGender()));
@@ -78,16 +85,18 @@ public class PersonageSearch extends AbstractSearch<PersonageInfoVO>{
 		}
 	}
 	@Override
-	protected void buildSort(SearchRequest searchRequest, ElasticsearchDto elasticsearchDto) {
+	protected void buildSort(SearchRequest searchRequest, SearchDto elasticsearchDto) {
 		PersonageSearchDto personageSearchDto = (PersonageSearchDto)elasticsearchDto;
-		personageSearchDto.setLatitude(30.316726);
-		personageSearchDto.setLongitude(120.114491);
-		/*if (personageSearchDto.getLatitude() != null || personageSearchDto.getLongitude() != null) {
+		String ip = CusAccessObjectUtil.getIpAddress(RequestUtils.getHttpServletRequest());
+		LongitudeLatitude longitudeLatitude = IPToLongitudeAndLatitudeUtils.getLongitudeAndLatitude(ip);
+		personageSearchDto.setLatitude(longitudeLatitude.getLat());
+		personageSearchDto.setLongitude(longitudeLatitude.getLon());
+		if (personageSearchDto.getLatitude() != null || personageSearchDto.getLongitude() != null) {
 			searchRequest.source().sort(SortBuilders
 					.geoDistanceSort("location", personageSearchDto.getLatitude(), personageSearchDto.getLongitude())
 					.order(SortOrder.ASC)
 					.unit(DistanceUnit.KILOMETERS));
-		}*/
+		}
 	}
 	@Override
 	protected PersonageInfoVO processSearchHit(SearchHit searchHit) throws IOException {

@@ -15,7 +15,7 @@ import com.reyco.dasbx.common.core.model.dto.personage.PersonageSearchDto;
 import com.reyco.dasbx.common.core.model.vo.personage.PersonageInfoVO;
 import com.reyco.dasbx.common.core.service.PersonageService;
 import com.reyco.dasbx.commons.domain.R;
-import com.reyco.dasbx.es.core.search.ElasticsearchVO;
+import com.reyco.dasbx.es.core.search.SearchVO;
 
 @RestController
 @RequestMapping("personage")
@@ -50,7 +50,7 @@ public class PersonageController {
 	}
 	@GetMapping("search")
 	public Object search(PersonageSearchDto personageSearchDto) throws Exception {
-		ElasticsearchVO<PersonageInfoVO> search = personageService.search(personageSearchDto);
+		SearchVO<PersonageInfoVO> search = personageService.search(personageSearchDto);
 		return R.success(search);
 	}
 }

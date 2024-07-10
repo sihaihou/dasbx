@@ -1,8 +1,8 @@
 package com.reyco.dasbx.user.core.model.dto.sys;
 
-import com.reyco.dasbx.es.core.search.SimpleElasticsearchDto;
+import com.reyco.dasbx.es.core.search.SimpleSearchDto;
 
-public class SysAccountSearchDto extends SimpleElasticsearchDto{
+public class SysAccountSearchDto extends SimpleSearchDto{
 	private Byte gender;
 	private Byte state;
 	private Byte type;

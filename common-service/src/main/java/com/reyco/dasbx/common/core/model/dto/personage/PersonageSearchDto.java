@@ -1,8 +1,8 @@
 package com.reyco.dasbx.common.core.model.dto.personage;
 
-import com.reyco.dasbx.es.core.search.SimpleElasticsearchDto;
+import com.reyco.dasbx.es.core.search.SimpleSearchDto;
 
-public class PersonageSearchDto extends SimpleElasticsearchDto {
+public class PersonageSearchDto extends SimpleSearchDto {
 	private Byte gender;
 	private String masterpiece;
 	private Double longitude; 

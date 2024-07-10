@@ -111,6 +111,11 @@ public interface IndexType {
 	 */
 	IndexAggregationType getIndexAggregationType();
 	/**
+	 * 索引排序类型
+	 * @return
+	 */
+	IndexSortsType getIndexSortsType();
+	/**
 	 * 分页大小
 	 * @return
 	 */

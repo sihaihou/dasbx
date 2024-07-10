@@ -15,11 +15,6 @@ public class TestController {
 	@Autowired
 	private TestService testService;
 
-	@GetMapping("a")
-	public Object a(String test) {
-		String result = testService.test(test);
-		return R.success(result);
-	}
 	@GetMapping
 	public Object test(String test) {
 		String result = testService.test(test);

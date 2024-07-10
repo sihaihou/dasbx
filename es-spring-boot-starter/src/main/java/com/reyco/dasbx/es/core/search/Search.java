@@ -11,6 +11,6 @@ import java.io.IOException;
  */
 public interface Search<T> {
 	
-	ElasticsearchVO<T> search(ElasticsearchDto elasticsearchDto) throws IOException;
+	SearchVO<T> search(SearchDto searchDto) throws IOException;
 	
 }

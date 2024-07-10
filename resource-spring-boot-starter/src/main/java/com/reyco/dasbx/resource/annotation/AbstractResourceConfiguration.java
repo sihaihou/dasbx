@@ -68,7 +68,7 @@ public abstract class AbstractResourceConfiguration implements ImportAware {
 		if(resourceMode==ResourceMode.REGULAR) {
 			return (String[])enableAttributes.get("excludedPatterns");
 		}
-		return null;
+		return new String[] {""};
 	}
 	protected ResourceMode getResourceMode() {
 		return (ResourceMode)enableAttributes.get("resourceMode");

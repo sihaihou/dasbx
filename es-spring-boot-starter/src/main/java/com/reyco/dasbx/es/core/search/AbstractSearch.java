@@ -35,25 +35,25 @@ public abstract class AbstractSearch<T> implements Search<T> {
 	private ElasticsearchClient<ElasticsearchDocument> elasticsearchClient;
 
 	@Override
-	public final ElasticsearchVO<T> search(ElasticsearchDto elasticsearchDto) throws IOException {
+	public final SearchVO<T> search(SearchDto searchDto) throws IOException {
 		SearchRequest searchRequest = new SearchRequest(getIndexType().getIndexName());
 		// 构建FromTo
-		buildFromTo(searchRequest, elasticsearchDto);
+		buildFromTo(searchRequest, searchDto);
 		// 构建BoolQuery查询
-		buildBoolQueryBuilder(searchRequest, elasticsearchDto);
+		buildBoolQueryBuilder(searchRequest, searchDto);
 		// 构建高亮属性
-		buildHighlightBuilder(searchRequest, elasticsearchDto);
+		buildHighlightBuilder(searchRequest, searchDto);
 		// 构建排序
-		buildSort(searchRequest, elasticsearchDto);
+		buildSort(searchRequest, searchDto);
 		// 构建聚合
-		buildAggregation(searchRequest, elasticsearchDto);
+		buildAggregation(searchRequest, searchDto);
 		// 执行前处理
-		postProcessBeforeInvoke(searchRequest, elasticsearchDto);
+		postProcessBeforeInvoke(searchRequest, searchDto);
 		// 执行处理
-		ElasticsearchVO<T> elasticsearchVO = invoke(searchRequest, elasticsearchDto);
+		SearchVO<T> searchVO = invoke(searchRequest, searchDto);
 		// 执行后处理
-		postProcessAfterInvoke(elasticsearchVO, elasticsearchDto);
-		return elasticsearchVO;
+		postProcessAfterInvoke(searchVO, searchDto);
+		return searchVO;
 	}
 
 	/**
@@ -63,16 +63,16 @@ public abstract class AbstractSearch<T> implements Search<T> {
 	 */
 	public abstract IndexType getIndexType();
 
-	protected void postProcessAfterInvoke(ElasticsearchVO<T> elasticsearchVO, ElasticsearchDto elasticsearchDto) {
+	protected void postProcessAfterInvoke(SearchVO<T> searchVO, SearchDto searchDto) {
 
 	}
 
-	protected void postProcessBeforeInvoke(SearchRequest searchRequest, ElasticsearchDto elasticsearchDto) {
+	protected void postProcessBeforeInvoke(SearchRequest searchVO, SearchDto searchDto) {
 
 	}
 
-	protected ElasticsearchVO<T> invoke(SearchRequest searchRequest, ElasticsearchDto elasticsearchDto) throws IOException {
-		ElasticsearchVO<T> elasticsearchVO = new ElasticsearchVO<T>() {
+	protected SearchVO<T> invoke(SearchRequest searchRequest, SearchDto searchDto) throws IOException {
+		SearchVO<T> elasticsearchVO = new SearchVO<T>() {
 			SearchResponse searchResponse = elasticsearchClient.restHighLevelClient().search(searchRequest,RequestOptions.DEFAULT);
 			@Override
 			public Map<String, List<Aggregation>> getAggregations() {
@@ -84,14 +84,14 @@ public abstract class AbstractSearch<T> implements Search<T> {
 			}
 			@Override
 			public Page<T> getPage() throws IOException {
-				Page<T> page = invokeSearchHits(searchResponse.getHits(), elasticsearchDto);
+				Page<T> page = invokeSearchHits(searchResponse.getHits(), searchDto);
 				return page;
 			}
 		};
 		return elasticsearchVO;
 	}
 
-	protected Page<T> invokeSearchHits(SearchHits searchHits, ElasticsearchDto elasticsearchDto) throws IOException {
+	protected Page<T> invokeSearchHits(SearchHits searchHits, SearchDto searchDto) throws IOException {
 		TotalHits totalHits = searchHits.getTotalHits();
 		int total = (int) totalHits.value;
 		List<T> tList = Stream.of(searchHits.getHits()).map(searchHit->{
@@ -106,8 +106,8 @@ public abstract class AbstractSearch<T> implements Search<T> {
 		}).collect(Collectors.toList());
 		Page<T> page = new Page<T>();
 		page.setList(tList);
-		page.setPageNum(elasticsearchDto.getPageNum());
-		page.setPageSize(elasticsearchDto.getPageSize());
+		page.setPageNum(searchDto.getPageNum());
+		page.setPageSize(searchDto.getPageSize());
 		page.setTotal(total);
 		return page;
 	};
@@ -135,9 +135,9 @@ public abstract class AbstractSearch<T> implements Search<T> {
 
 	}
 
-	protected void buildFromTo(SearchRequest searchRequest, ElasticsearchDto elasticsearchDto) {
-		Integer pageSize = elasticsearchDto.getPageSize();
-		Integer pageNum = elasticsearchDto.getPageNum();
+	protected void buildFromTo(SearchRequest searchRequest, SearchDto searchDto) {
+		Integer pageSize = searchDto.getPageSize();
+		Integer pageNum = searchDto.getPageNum();
 		if (pageSize > IndexType.DEFAULT_MAX_PAGE_SIZE) {
 			pageSize = IndexType.DEFAULT_MAX_PAGE_SIZE;
 		}
@@ -163,14 +163,14 @@ public abstract class AbstractSearch<T> implements Search<T> {
 	 * 	must_not：必须不匹配(相当于mysql的'!=') 
 	 * 	filter：必须匹配（相当于mysql的'and',不计算分）
 	 * @param searchRequest
-	 * @param simpleElasticsearchDto
+	 * @param searchDto
 	 */
-	protected void buildBoolQueryBuilder(SearchRequest searchRequest, ElasticsearchDto elasticsearchDto) {
+	protected final void buildBoolQueryBuilder(SearchRequest searchRequest, SearchDto searchDto) {
 		BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
-		buildBoolQueryBuilderMust(boolQuery, elasticsearchDto);
-		buildBoolQueryBuilderShould(boolQuery, elasticsearchDto);
-		buildBoolQueryBuilderMustNot(boolQuery, elasticsearchDto);
-		buildBoolQueryBuilderFilter(boolQuery, elasticsearchDto);
+		buildBoolQueryBuilderMust(boolQuery, searchDto);
+		buildBoolQueryBuilderShould(boolQuery, searchDto);
+		buildBoolQueryBuilderMustNot(boolQuery, searchDto);
+		buildBoolQueryBuilderFilter(boolQuery, searchDto);
 		searchRequest.source().query(boolQuery);
 	}
 
@@ -178,47 +178,47 @@ public abstract class AbstractSearch<T> implements Search<T> {
 	 * 构建bool查询--must：必须匹配（相当于mysql的'and'，算分）
 	 * 
 	 * @param boolQuery
-	 * @param simpleElasticsearchDto
+	 * @param searchDto
 	 */
-	protected void buildBoolQueryBuilderMust(BoolQueryBuilder boolQuery, ElasticsearchDto elasticsearchDto) {
+	protected void buildBoolQueryBuilderMust(BoolQueryBuilder boolQuery, SearchDto searchDto) {
 	}
 
 	/**
 	 * 构建bool查询--should：或者匹配（相当于mysql的 'or'）
 	 * 
 	 * @param boolQuery
-	 * @param simpleElasticsearchDto
+	 * @param searchDto
 	 */
-	protected void buildBoolQueryBuilderShould(BoolQueryBuilder boolQuery, ElasticsearchDto elasticsearchDto) {
+	protected void buildBoolQueryBuilderShould(BoolQueryBuilder boolQuery, SearchDto searchDto) {
 	}
 
 	/**
 	 * filter：必须匹配（相当于mysql的'and',不计算分）
 	 * 
 	 * @param boolQuery
-	 * @param simpleElasticsearchDto
+	 * @param searchDto
 	 */
-	protected void buildBoolQueryBuilderMustNot(BoolQueryBuilder boolQuery, ElasticsearchDto elasticsearchDto) {
+	protected void buildBoolQueryBuilderMustNot(BoolQueryBuilder boolQuery, SearchDto searchDto) {
 	}
 
 	/**
 	 * must_not：必须不匹配(相当于mysql的'!=')
 	 * 
 	 * @param boolQuery
-	 * @param simpleElasticsearchDto
+	 * @param searchDto
 	 */
-	protected void buildBoolQueryBuilderFilter(BoolQueryBuilder boolQuery, ElasticsearchDto elasticsearchDto) {
+	protected void buildBoolQueryBuilderFilter(BoolQueryBuilder boolQuery, SearchDto searchDto) {
 	}
 
 	/**
 	 * 构建高亮查询
 	 * 
 	 * @param searchRequest
-	 * @param simpleElasticsearchDto
+	 * @param searchDto
 	 */
-	private final void buildHighlightBuilder(SearchRequest searchRequest, ElasticsearchDto elasticsearchDto) {
+	private final void buildHighlightBuilder(SearchRequest searchRequest, SearchDto searchDto) {
 		HighlightBuilder highlightBuilder = new HighlightBuilder();
-		buildHighlightBuilder(highlightBuilder, elasticsearchDto);
+		buildHighlightBuilder(highlightBuilder, searchDto);
 		searchRequest.source().highlighter(highlightBuilder);
 	}
 
@@ -226,9 +226,9 @@ public abstract class AbstractSearch<T> implements Search<T> {
 	 * 构建高亮查询
 	 * 
 	 * @param highlightBuilder
-	 * @param simpleElasticsearchDto
+	 * @param searchDto
 	 */
-	protected void buildHighlightBuilder(HighlightBuilder highlightBuilder, ElasticsearchDto elasticsearchDto) {
+	protected void buildHighlightBuilder(HighlightBuilder highlightBuilder, SearchDto searchDto) {
 		String[] highlightFields = getIndexType().getIndexHighlightType().getHighlightFields();
 		if (highlightFields != null && highlightFields.length > 0) {
 			Stream.of(highlightFields).forEach(highlightField->highlightBuilder.fields().add(new Field(highlightField)));
@@ -239,19 +239,23 @@ public abstract class AbstractSearch<T> implements Search<T> {
 	 * 构建高亮查询
 	 * 
 	 * @param searchRequest
-	 * @param simpleElasticsearchDto
+	 * @param searchDto
 	 */
-	protected void buildSort(SearchRequest searchRequest, ElasticsearchDto elasticsearchDto) {
-
+	protected void buildSort(SearchRequest searchRequest, SearchDto searchDto) {
+		if(searchDto instanceof SearchAfterDto) {
+			SearchAfterDto searchAfterDto = (SearchAfterDto)searchDto;
+			searchRequest.source().sort(searchAfterDto.getSortField(),searchAfterDto.getSortOrder()).searchAfter(new Object[] {searchAfterDto.getSortId()});
+		}
+		
 	}
 
 	/**
 	 * 构建高亮查询
 	 * 
 	 * @param searchRequest
-	 * @param simpleElasticsearchDto
+	 * @param searchDto
 	 */
-	protected void buildAggregation(SearchRequest searchRequest, ElasticsearchDto elasticsearchDto) {
+	protected void buildAggregation(SearchRequest searchRequest, SearchDto searchDto) {
 		ElasticsearchUtils.buildAggregation(searchRequest, getIndexType().getIndexAggregationType());
 	}
 	/**

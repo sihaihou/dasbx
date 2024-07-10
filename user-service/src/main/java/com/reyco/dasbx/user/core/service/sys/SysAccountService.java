@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.reyco.dasbx.config.exception.core.BusinessException;
 import com.reyco.dasbx.config.service.BaseService;
-import com.reyco.dasbx.es.core.search.ElasticsearchVO;
+import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.model.domain.SysAccount;
 import com.reyco.dasbx.user.core.model.dto.AccountBindDeveloperDto;
 import com.reyco.dasbx.user.core.model.dto.AccountListDto;
@@ -36,7 +36,7 @@ public interface SysAccountService extends BaseService<SysAccountInfoVO, Account
 	
     List<String> getSuggestion(String keyword) throws Exception;
     
-    ElasticsearchVO<SysAccountInfoVO> search(SysAccountSearchDto sysAccountSearchDto) throws IOException;
+    SearchVO<SysAccountInfoVO> search(SysAccountSearchDto sysAccountSearchDto) throws IOException;
 	
 	int initElasticsearchSysAccount() throws IOException;
 	/**

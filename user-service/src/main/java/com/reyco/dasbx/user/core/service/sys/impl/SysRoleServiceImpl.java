@@ -16,7 +16,7 @@ import org.springframework.util.CollectionUtils;
 
 import com.reyco.dasbx.commons.utils.Convert;
 import com.reyco.dasbx.es.core.client.ElasticsearchClient;
-import com.reyco.dasbx.es.core.search.ElasticsearchVO;
+import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.user.core.constant.Constants;
 import com.reyco.dasbx.user.core.dao.sys.SysAccountDao;
 import com.reyco.dasbx.user.core.dao.sys.SysRoleDao;
@@ -76,7 +76,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 		return suggestion;
 	}
     @Override
-    public ElasticsearchVO<SysRoleInfoVO> search(SysRoleSearchDto sysRoleSearchDto) throws IOException {
+    public SearchVO<SysRoleInfoVO> search(SysRoleSearchDto sysRoleSearchDto) throws IOException {
     	logger.debug("role搜索");
     	return sysRoleSearch.search(sysRoleSearchDto);
     }

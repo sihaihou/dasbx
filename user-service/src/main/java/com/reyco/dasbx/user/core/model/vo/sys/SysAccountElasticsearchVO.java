@@ -5,10 +5,10 @@ import java.util.Map;
 
 import com.reyco.dasbx.commons.utils.Page;
 import com.reyco.dasbx.es.core.model.Aggregation;
-import com.reyco.dasbx.es.core.search.ElasticsearchVO;
+import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.user.core.model.vo.SysAccountInfoVO;
 
-public class SysAccountElasticsearchVO implements ElasticsearchVO<SysAccountInfoVO> {
+public class SysAccountElasticsearchVO implements SearchVO<SysAccountInfoVO> {
 	private Map<String,List<Aggregation>> aggregations;
 	private Page<SysAccountInfoVO> page;
 	@Override

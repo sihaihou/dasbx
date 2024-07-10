@@ -50,7 +50,7 @@ import com.reyco.dasbx.config.exception.core.BusinessException;
 import com.reyco.dasbx.config.utils.CodeUtils;
 import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.model.GeoPoint;
-import com.reyco.dasbx.es.core.search.ElasticsearchVO;
+import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.model.domain.Area;
 import com.reyco.dasbx.model.domain.Fullname;
 import com.reyco.dasbx.model.domain.Personage;
@@ -376,7 +376,7 @@ public class PersonageServiceImpl implements PersonageService {
 		return suggestion;
 	}
 	@Override
-	public ElasticsearchVO<PersonageInfoVO> search(PersonageSearchDto personageSearchDto) throws Exception {
+	public SearchVO<PersonageInfoVO> search(PersonageSearchDto personageSearchDto) throws Exception {
 		return personageSearch.search(personageSearchDto);
 	}
 

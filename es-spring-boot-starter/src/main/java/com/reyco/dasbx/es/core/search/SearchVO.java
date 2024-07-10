@@ -7,7 +7,7 @@ import java.util.Map;
 import com.reyco.dasbx.commons.utils.Page;
 import com.reyco.dasbx.es.core.model.Aggregation;
 
-public interface ElasticsearchVO<T> {
+public interface SearchVO<T> {
 	
 	Map<String, List<Aggregation>> getAggregations() throws Exception;
 	

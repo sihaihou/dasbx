@@ -20,7 +20,7 @@ import com.reyco.dasbx.commons.utils.AESUtils;
 import com.reyco.dasbx.commons.utils.JsonUtils;
 import com.reyco.dasbx.commons.utils.SecretKeyUtils;
 import com.reyco.dasbx.config.exception.core.BusinessException;
-import com.reyco.dasbx.es.core.search.ElasticsearchVO;
+import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.model.domain.SysAccount;
 import com.reyco.dasbx.user.core.model.dto.AccountBindDeveloperDto;
 import com.reyco.dasbx.user.core.model.dto.SysAccountInsertDto;
@@ -80,7 +80,7 @@ public class SysAccountController {
 	}
 	@GetMapping("search")
     public Object search(SysAccountSearchDto sysAccountSearchDto) throws IOException {
-		ElasticsearchVO<SysAccountInfoVO> search = sysAccountService.search(sysAccountSearchDto);
+		SearchVO<SysAccountInfoVO> search = sysAccountService.search(sysAccountSearchDto);
         return R.success(search);
     }
 	@PostMapping("register")

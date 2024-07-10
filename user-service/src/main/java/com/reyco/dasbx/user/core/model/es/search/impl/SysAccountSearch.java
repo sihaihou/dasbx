@@ -15,7 +15,7 @@ import com.reyco.dasbx.commons.utils.Convert;
 import com.reyco.dasbx.commons.utils.JsonUtils;
 import com.reyco.dasbx.es.core.model.Aggregation;
 import com.reyco.dasbx.es.core.search.AbstractSearch;
-import com.reyco.dasbx.es.core.search.ElasticsearchDto;
+import com.reyco.dasbx.es.core.search.SearchDto;
 import com.reyco.dasbx.es.core.search.type.IndexType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexAggregationType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexHighlightType;
@@ -56,14 +56,14 @@ public class SysAccountSearch extends AbstractSearch<SysAccountInfoVO>{
 		return indexType;
 	}
 	@Override
-	protected void buildBoolQueryBuilderMust(BoolQueryBuilder boolQuery, ElasticsearchDto elasticsearchDto) {
+	protected void buildBoolQueryBuilderMust(BoolQueryBuilder boolQuery, SearchDto elasticsearchDto) {
 		SysAccountSearchDto sysAccountSearchDto = (SysAccountSearchDto)elasticsearchDto;
 		if (StringUtils.isNotBlank(sysAccountSearchDto.getKeyword())) {
 			boolQuery.must(QueryBuilders.multiMatchQuery(sysAccountSearchDto.getKeyword(), getIndexType().getIndexSearchFieldType().getMultiFields()));
 		}
 	}
 	@Override
-	protected void buildBoolQueryBuilderFilter(BoolQueryBuilder boolQuery, ElasticsearchDto elasticsearchDto) {
+	protected void buildBoolQueryBuilderFilter(BoolQueryBuilder boolQuery, SearchDto elasticsearchDto) {
 		SysAccountSearchDto sysAccountSearchDto = (SysAccountSearchDto)elasticsearchDto;
 		if (sysAccountSearchDto.getGender() != null) {
 			boolQuery.filter(QueryBuilders.termQuery("gender", sysAccountSearchDto.getGender()));

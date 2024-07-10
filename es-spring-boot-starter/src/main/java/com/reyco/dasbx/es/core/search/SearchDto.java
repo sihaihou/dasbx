@@ -1,6 +1,6 @@
 package com.reyco.dasbx.es.core.search;
 
-public interface ElasticsearchDto{
+public interface SearchDto{
 	
 	String getKeyword();
 	

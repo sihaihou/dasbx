@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import com.reyco.dasbx.commons.utils.Convert;
 import com.reyco.dasbx.commons.utils.JsonUtils;
 import com.reyco.dasbx.es.core.search.AbstractSearch;
-import com.reyco.dasbx.es.core.search.ElasticsearchDto;
+import com.reyco.dasbx.es.core.search.SearchDto;
 import com.reyco.dasbx.es.core.search.type.IndexType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexAggregationType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexHighlightType;
@@ -52,7 +52,7 @@ public class SysRoleSearch extends AbstractSearch<SysRoleInfoVO> {
 	}
 	
 	@Override
-	protected void buildBoolQueryBuilderMust(BoolQueryBuilder boolQuery, ElasticsearchDto elasticsearchDto) {
+	protected void buildBoolQueryBuilderMust(BoolQueryBuilder boolQuery, SearchDto elasticsearchDto) {
 		if (StringUtils.isNotBlank(elasticsearchDto.getKeyword())) {
 			boolQuery.must(QueryBuilders.multiMatchQuery(elasticsearchDto.getKeyword(), getIndexType().getIndexSearchFieldType().getMultiFields()));
 		}

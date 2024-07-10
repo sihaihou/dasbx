@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.reyco.dasbx.commons.domain.R;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
-import com.reyco.dasbx.es.core.search.ElasticsearchVO;
+import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.model.constants.Constants;
 import com.reyco.dasbx.user.core.model.dto.sys.SysRoleDeleteDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysRoleDto;
@@ -75,7 +75,7 @@ public class SysRoleController {
 	@GetMapping("search")
 	// @RequiresPermissions("sys:role:list")
 	public Object list(SysRoleSearchDto sysRoleSearchDto) throws IOException {
-		ElasticsearchVO<SysRoleInfoVO> search = sysRoleService.search(sysRoleSearchDto);
+		SearchVO<SysRoleInfoVO> search = sysRoleService.search(sysRoleSearchDto);
 		return R.success(search);
 	}
 

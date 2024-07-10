@@ -5,9 +5,9 @@ import java.util.Map;
 
 import com.reyco.dasbx.commons.utils.Page;
 import com.reyco.dasbx.es.core.model.Aggregation;
-import com.reyco.dasbx.es.core.search.ElasticsearchVO;
+import com.reyco.dasbx.es.core.search.SearchVO;
 
-public class PersonalElasticsearchVO implements ElasticsearchVO<PersonageInfoVO> {
+public class PersonalElasticsearchVO implements SearchVO<PersonageInfoVO> {
 	private Map<String,List<Aggregation>> aggregations;
 	private Page<PersonageInfoVO> page;
 	@Override

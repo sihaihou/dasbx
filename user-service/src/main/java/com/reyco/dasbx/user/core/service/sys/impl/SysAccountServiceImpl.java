@@ -19,7 +19,7 @@ import com.reyco.dasbx.config.exception.core.BusinessException;
 import com.reyco.dasbx.config.rabbitmq.service.RabbitProducrService;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.es.core.client.ElasticsearchClient;
-import com.reyco.dasbx.es.core.search.ElasticsearchVO;
+import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.id.core.IdGenerator;
 import com.reyco.dasbx.model.constants.OperationType;
 import com.reyco.dasbx.model.constants.RabbitConstants;
@@ -99,7 +99,7 @@ public class SysAccountServiceImpl implements SysAccountService {
 		return suggestion;
 	}
 	@Override
-	public ElasticsearchVO<SysAccountInfoVO> search(SysAccountSearchDto sysAccountSearchDto) throws IOException {
+	public SearchVO<SysAccountInfoVO> search(SysAccountSearchDto sysAccountSearchDto) throws IOException {
 		return sysAccountSearch.search(sysAccountSearchDto);
 	}
 	@Override
