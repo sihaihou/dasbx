@@ -12,7 +12,7 @@ pipeline {
               sh 'mvn clean package'
             }
         }
-        stage('构建${projectName}子项目') {
+        stage('构建子项目') {
             steps {
               sh 'mvn  -f ${projectName} clean package'
             }
