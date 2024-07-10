@@ -19,7 +19,7 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t housihai:${projectName}:0.0.1 .'
+                sh 'docker build -t housihai:dasbx-${projectName}:0.0.1 .'
             }
         }
     }
