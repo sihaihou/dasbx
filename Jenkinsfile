@@ -9,12 +9,12 @@ pipeline {
         }
         stage('构建父项目') {
             steps {
-              sh 'mvn clean package'
+              sh 'mvn -U clean install -Dmaven.test.skip=true'
             }
         }
         stage('构建子项目') {
             steps {
-              sh 'mvn  -f ${projectName} clean package'
+              sh 'mvn  -f ${projectName} -U clean install -Dmaven.test.skip=true'
             }
         }
     }
