@@ -14,7 +14,7 @@ pipeline {
         }
         stage('构建子项目') {
             steps {
-              sh 'mvn  -f ${projectName} -U clean install -Dmaven.test.skip=true'
+              sh 'mvn  -f ${projectName} -U clean package'
             }
         }
     }
