@@ -21,7 +21,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://hub.docker.com', '54925b2c-d4e5-4a09-a7b2-a180656174b5') {
-                        docker.build('your-image-name:tag')
+                        docker.build('housihai:dasbx-${projectName}:0.0.1')
                     }
                 }
             }
