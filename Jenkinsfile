@@ -2,6 +2,7 @@ pipeline {
     environment {
         registryCredential = 'dockerhub_id'
         dockerImage = ''
+        projectName = ${projectName}
     }
     agent any
     stages {
@@ -25,7 +26,7 @@ pipeline {
             steps {
                 sh 'cd ${projectName}'
                 script {
-                    dockerImage = docker.build "housihai/dasbx-"+${projectName}+":0.0.1"
+                    dockerImage = docker.build "housihai/dasbx-"+projectName+":0.0.1"
                 }
             }
         }
