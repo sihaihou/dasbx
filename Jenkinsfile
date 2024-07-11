@@ -1,6 +1,9 @@
 pipeline {
+    environment {
+        registryCredential = 'dockerhub_id'
+        dockerImage = ''
+    }
     agent any
-
     stages {
         stage('拉取代码: Checkout Code') {
             steps {
@@ -14,13 +17,16 @@ pipeline {
         }
         stage('构建子项目: build Sub Project') {
             steps {
-              sh 'mvn  -f ${projectName} -U clean package'
+                //sh 'cd ${projectName}'
+                sh 'mvn  -f ${projectName} -U clean package'
             }
         }
         stage('制作Docker镜像：Build Docker Image') {
             steps {
                 sh 'cd ${projectName}'
-                sh "docker build -t housihai/dasbx-${projectName}:0.0.1 ."
+                script {
+                    dockerImage = docker.build "housihai/dasbx-"+${projectName}+":0.0.1"
+                }
             }
         }
     }
