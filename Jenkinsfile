@@ -19,7 +19,8 @@ pipeline {
         }
         stage('制作Docker镜像：Build Docker Image') {
             steps {
-                sh 'docker build -t your-image-name .'
+                sh 'cd ${projectName}'
+                sh "docker build -t housihai/dasbx-${projectName}:0.0.1 ."
             }
         }
     }
