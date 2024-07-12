@@ -4,7 +4,6 @@ pipeline {
         harbor_url = '192.168.83.33:80'
         repo_name = 'dasbx'
         tag = 'latest'
-        port = '8080'
     }
     stages {
         stage('拉取代码：Checkout Code') {
@@ -12,13 +11,12 @@ pipeline {
                 checkout scmGit(branches: [[name: '*/${branch}']], extensions: [], userRemoteConfigs: [[credentialsId: 'aaee6791-9a89-4c67-aef5-00bf0e36ff96', url: 'https://github.com/sihaihou/dasbx.git']])
             }
         }
-
         stage('打包构建父项目: Build Package Project') {
             steps {
                 sh 'mvn -U clean install -Dmaven.test.skip=true'
             }
         }
-        def projects = "${project_name}".split(",")
+        projects = "${project_name}".split(",")
         stage('打包构建子项目: Build Package Project') {
             steps {
                 script{
