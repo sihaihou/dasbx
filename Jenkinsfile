@@ -15,7 +15,7 @@ pipeline {
         stage('打包构建项目: Build Package Project') {
             steps {
                 sh 'mvn -U clean install -Dmaven.test.skip=true'
-                sh 'mvn  -f ${projectName} -U clean install -Dmaven.test.skip=true'
+                sh 'mvn  -f ${project_name} -U clean install -Dmaven.test.skip=true'
             }
         }
         stage('Build and Push Image') {
