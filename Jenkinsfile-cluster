@@ -7,7 +7,7 @@ pipeline {
         tag = 'latest'
     }
     stages {
-        stage{
+        stage("test"){
             steps{
                 script{
                     for(String aaa : projects){
