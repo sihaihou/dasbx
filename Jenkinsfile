@@ -22,7 +22,7 @@ pipeline {
         stage('Build and Push Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: '6ec4aacf-9598-4126-821e-970f77e3ad22', passwordVariable: 'password', usernameVariable: 'username')]) {
-                    sh 'll'
+                    sh 'ls'
                     sh 'docker build -t ${repo_name}/${project_name}:${tag} .'
                     sh 'docker tag ${repo_name}/${project_name}:${tag} ${harbor_url}/${repo_name}/${project_name}:${tag}'
                     sh 'docker login -u $username -p $password http://$harbor_url'
