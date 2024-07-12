@@ -14,7 +14,9 @@ pipeline {
         }
         stage('打包构建项目: Build Package Project') {
             steps {
+                sh "echo '构建父项目'"
                 sh 'mvn -U clean install -Dmaven.test.skip=true'
+                 sh "echo '构建子项目'"
                 sh 'mvn -f ${project_name} -U clean install -Dmaven.test.skip=true'
             }
         }
