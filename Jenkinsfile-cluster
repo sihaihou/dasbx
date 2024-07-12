@@ -24,7 +24,7 @@ pipeline {
                     for(int i=0;i<projects.size();i++){
                         def project =  projects[i]
                         sh 'echo ${project}'
-                        def project_name = "${project}".split("@")[0]
+                        def project_name = project.split("@")[0]
                         sh 'echo ${project_name}'
                         def project_name1 = "${project}".split("@")[0]
                         sh 'echo ${project_name1}'
