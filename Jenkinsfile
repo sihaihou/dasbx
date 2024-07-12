@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment{
         harbor_url = '192.168.83.33:80'
-        repo_name = 'housihai'
+        repo_name = 'dasbx'
         tag = 'latest'
         port = '8080'
     }
