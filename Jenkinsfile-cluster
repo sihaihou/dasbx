@@ -7,10 +7,12 @@ pipeline {
         tag = 'latest'
     }
     stages {
-        steps{
-            script{
-                for(String aaa : projects){
-                    sh 'echo ${aaa}'
+        stage{
+            steps{
+                script{
+                    for(String aaa : projects){
+                        sh 'echo ${aaa}'
+                    }
                 }
             }
         }
