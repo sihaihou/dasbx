@@ -15,17 +15,13 @@ pipeline {
         stage('打包构建项目: Build Package Project') {
             steps {
                 sh 'mvn -U clean install -Dmaven.test.skip=true'
-                sh 'cd ${project_name}'
-                sh 'mvn -U clean install -Dmaven.test.skip=true'
+                sh 'mvn -f ${project_name} -U clean install -Dmaven.test.skip=true'
             }
         }
         stage('Build and Push Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: '6ec4aacf-9598-4126-821e-970f77e3ad22', passwordVariable: 'password', usernameVariable: 'username')]) {
-                    sh 'ls'
-                    sh 'cd ${project_name}'
-                    sh 'ls'
-                    sh 'docker build -t ${repo_name}/${project_name}:${tag} .'
+                    sh 'cd ${project_name} && docker build -t ${repo_name}/${project_name}:${tag} .'
                     sh 'docker tag ${repo_name}/${project_name}:${tag} ${harbor_url}/${repo_name}/${project_name}:${tag}'
                     sh 'docker login -u $username -p $password http://$harbor_url'
                     sh 'docker push $harbor_url/${repo_name}/${project_name}:${tag}'
