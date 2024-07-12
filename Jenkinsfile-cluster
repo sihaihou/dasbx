@@ -20,6 +20,7 @@ pipeline {
         stage('打包构建子项目: Build Package Project') {
             steps {
                 script{
+                    sh 'echo ${projects}'
                     for(int 0;i<projects.size();i++){
                         def project_name = projects[i]
                         sh 'echo ${project_name}'
