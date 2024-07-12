@@ -1,4 +1,3 @@
-def projects = "${project_name}".split(",")
 pipeline {
     agent any
     environment{
@@ -20,6 +19,7 @@ pipeline {
         stage('打包构建子项目: Build Package Project') {
             steps {
                 script{
+                    def projects = "${project_name}".split(",")
                     sh 'echo ${projects}'
                     for(int i=0;i<projects.size();i++){
                         def project_name = projects[i]
