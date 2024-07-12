@@ -1,3 +1,4 @@
+def projects = "${project_name}".split(",")
 pipeline {
     agent any
     environment{
@@ -16,7 +17,6 @@ pipeline {
                 sh 'mvn -U clean install -Dmaven.test.skip=true'
             }
         }
-        projects = "${project_name}".split(",")
         stage('打包构建子项目: Build Package Project') {
             steps {
                 script{
