@@ -5,7 +5,7 @@ FROM openjdk:8u102-jdk
 LABEL maintainer="18307200213@163.com"
 
 # 暴露端口
-EXPOSE 8080
+EXPOSE 8001
 
 #拷贝到工作目录
 COPY ./target/login-service-0.0.1-SNAPSHOT.jar app.jar
