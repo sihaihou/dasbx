@@ -26,7 +26,7 @@ pipeline {
                         sh 'echo ${project}'
                         def project_name = "${project}".split("@")[0]
                         sh 'echo ${project_name}'
-                        def project_name1 = "${project}".split("\@")[0]
+                        def project_name1 = "${project}".split("@")[0]
                         sh 'echo ${project_name1}'
                         sh 'mvn -f ${project_name} -U clean install -Dmaven.test.skip=true'
                     }
