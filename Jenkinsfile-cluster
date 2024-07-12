@@ -19,10 +19,7 @@ pipeline {
         stage('打包构建子项目: Build Package Project') {
             steps {
                 script{
-                    def projects = "${project_name}".split(",")
-                    sh 'echo ${projects}'
-                    for(int i=0;i<projects.size();i++){
-                        def project_name = projects[i]
+                    for(project_name in projectNames.tokenize(',')){
                         sh 'echo ${project_name}'
                         sh 'mvn -f ${project_name} -U clean install -Dmaven.test.skip=true'
                     }
@@ -32,8 +29,7 @@ pipeline {
         stage('Build and Push Image') {
             steps {
                 script{
-                     for(int i=0;i<projects.size();i++){
-                        def project_name = projects[i]
+                    for(project_name in projectNames.tokenize(',')){
                         withCredentials([usernamePassword(credentialsId: '6ec4aacf-9598-4126-821e-970f77e3ad22', passwordVariable: 'password', usernameVariable: 'username')]) {
                             sh 'cd ${project_name} && docker build -t ${repo_name}/${project_name}:${tag} .'
                             sh 'docker tag ${repo_name}/${project_name}:${tag} ${harbor_url}/${repo_name}/${project_name}:${tag}'
