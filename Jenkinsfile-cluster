@@ -19,7 +19,7 @@ pipeline {
         stage('打包构建子项目: Build Package Project') {
             steps {
                 script{
-                    for(project_name in projectNames.tokenize(',')){
+                    for(String project_name : projectNames.tokenize(',')){
                         sh 'echo ${project_name}'
                         sh 'mvn -f ${project_name} -U clean install -Dmaven.test.skip=true'
                     }
