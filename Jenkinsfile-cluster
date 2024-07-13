@@ -1,21 +1,32 @@
-
-pipeline {
-    agent any
-    environment{
-        projects = "${projectNames}".split(",")
-        harbor_url = '192.168.83.33:80'
-        repo_name = 'dasbx'
-        tag = 'latest'
+def harbor_url = '192.168.83.33:80'
+def harBorCredentialsId = '6ec4aacf-9598-4126-821e-970f77e3ad22'
+def repo_name = 'dasbx'
+def gitCredentialsId = 'aaee6791-9a89-4c67-aef5-00bf0e36ff96'
+def gitRepositoryUrl = 'https://github.com/sihaihou/dasbx.git'
+def tag = 'latest'
+node {
+    def projects = "${projectNames}".split(",")
+    stage('拉取代码：Checkout Code') {
+        checkout scmGit(branches: [[name: '*/${branch}']], extensions: [], userRemoteConfigs: [[credentialsId: "${gitCredentialsId}", url: "${gitRepositoryUrl}"]])
     }
-    stages {
-        stage("test"){
-            steps{
-                script{
-                    for(String aaa : projects){
-                        sh 'echo ${aaa}'
-                    }
-                }
-            }
+    stage('打包构建项目: Build Package Parent Project') {
+        sh 'mvn -U clean install -Dmaven.test.skip=true'
+    }
+    stage('构建并推送镜像: Build and Push Image') {
+        withCredentials([usernamePassword(credentialsId: "${harBorCredentialsId}", passwordVariable: 'password', usernameVariable: 'username')]) {
+            sh "docker login -u $username -p $password http://$harbor_url"
+        }
+        for(int i=0;i<projects.length;i++){
+            def project_name = projects[i];
+            sh "cd ${project_name} && docker build -t ${repo_name}/${project_name}:${tag} ."
+            sh "docker tag ${repo_name}/${project_name}:${tag} ${harbor_url}/${repo_name}/${project_name}:${tag}"
+            sh "docker push $harbor_url/${repo_name}/${project_name}:${tag}"
+        }
+    }
+   stage('删除本地镜像: Delete Local Image') {
+        for(int i=0;i<projects.length;i++){
+            def project_name = projects[i];
+            sh "docker rmi -f ${repo_name}/${project_name}:${tag} $harbor_url/${repo_name}/${project_name}:${tag}"
         }
     }
 }
