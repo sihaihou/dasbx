@@ -8,7 +8,7 @@ LABEL maintainer="18307200213@163.com"
 EXPOSE 8000
 
 #拷贝到工作目录
-COPY ./target/geteway-0.0.1-SNAPSHOT.jar app.jar
+COPY ./target/gateway-0.0.1-SNAPSHOT.jar app.jar
  
 # 执行jar包
 ENTRYPOINT ["java", "-jar", "app.jar"]
