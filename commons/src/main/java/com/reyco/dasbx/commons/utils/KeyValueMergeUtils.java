@@ -99,6 +99,9 @@ public class KeyValueMergeUtils {
 				for(Field field : fields) {
 					field.setAccessible(true);
 					String key = field.getName();
+					if(key.equalsIgnoreCase("serialVersionUID")) {
+						continue;
+					}
 					Object v = values(field.get(o),allowValueIsNull,maxTimes,++times);
 					if(v==null && !allowValueIsNull) {
 						continue;

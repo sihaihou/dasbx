@@ -223,7 +223,9 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 					map.putAll(parameters);
 				}
 			}
-			return map;
+			if(map!=null && map.size()>0) {
+				return map;
+			}
 		}
 		LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 		String[] parameterNames = localVariableTableParameterNameDiscoverer.getParameterNames(method);
