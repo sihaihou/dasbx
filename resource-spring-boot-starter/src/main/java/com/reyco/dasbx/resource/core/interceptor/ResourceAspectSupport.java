@@ -287,7 +287,10 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 		if (isController(method, targetClass)) {
 			AnnotationAttributes methodAnnotationAttributes = AnnotatedElementUtils.findMergedAnnotationAttributes(method,RequestMapping.class, false, false);
 			RequestMethod[] requestMethod = (RequestMethod[])methodAnnotationAttributes.get("method");
-			return requestMethod[0].name();
+			if(requestMethod.length>0) {
+				return requestMethod[0].name();
+			}
+			return "GET";
 		} else {
 			return method.getName();
 		}

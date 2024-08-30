@@ -17,7 +17,8 @@ public class DasbxConfig {
 	public final static String DASBX_PREFIX = "reyco.dasbx";
 	
 	private String basePath;
-	private String baseUrl;
+	private String baseVideoPath;
+	private String baseImagePath;
 	private Map<String,Interceptor> interceptors = new HashMap<>();
 	private Map<String,Object> constants = new HashMap<>();
 	
@@ -27,11 +28,17 @@ public class DasbxConfig {
 	public void setBasePath(String basePath) {
 		this.basePath = basePath;
 	}
-	public String getBaseUrl() {
-		return baseUrl;
+	public String getBaseVideoPath() {
+		return baseVideoPath;
 	}
-	public void setBaseUrl(String baseUrl) {
-		this.baseUrl = baseUrl;
+	public void setBaseVideoPath(String baseVideoPath) {
+		this.baseVideoPath = baseVideoPath;
+	}
+	public String getBaseImagePath() {
+		return baseImagePath;
+	}
+	public void setBaseImagePath(String baseImagePath) {
+		this.baseImagePath = baseImagePath;
 	}
 	public Map<String, Interceptor> getInterceptors() {
 		return interceptors;

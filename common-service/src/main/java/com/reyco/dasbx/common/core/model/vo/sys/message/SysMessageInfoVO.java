@@ -8,10 +8,11 @@ public class SysMessageInfoVO implements InfoVO{
 	private Long userId;
 	private String username;
 	private Long type;
-	private Long buzId;
+	private String buzId;
 	private Byte buzType;
 	private String buzName;
 	private String content;
+	private String metadata;
 	private Byte read;
 	private Long gmtRead;
 	private String gmtReadDesc;
@@ -48,10 +49,10 @@ public class SysMessageInfoVO implements InfoVO{
 	public void setType(Long type) {
 		this.type = type;
 	}
-	public Long getBuzId() {
+	public String getBuzId() {
 		return buzId;
 	}
-	public void setBuzId(Long buzId) {
+	public void setBuzId(String buzId) {
 		this.buzId = buzId;
 	}
 	public Byte getBuzType() {
@@ -71,6 +72,12 @@ public class SysMessageInfoVO implements InfoVO{
 	}
 	public void setContent(String content) {
 		this.content = content;
+	}
+	public String getMetadata() {
+		return metadata;
+	}
+	public void setMetadata(String metadata) {
+		this.metadata = metadata;
 	}
 	public Byte getRead() {
 		return read;

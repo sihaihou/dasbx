@@ -35,12 +35,10 @@
 	<insert id="insert">
 		insert into sys_message
 		<trim prefix="(" suffix=")">
-			`type`,`userId`,`buzId`,`buzType`,`buzName`,`content`,`read`,`gmtRead`,`readBy`,`handle`,`gmtHandle`,`handleBy`,
-			`gmtCreate`,`createBy`,`gmtModified`,`modifiedBy`
+			`type`,`userId`,`buzId`,`buzType`,`buzName`,`content`,`metadata`,`gmtCreate`,`createBy`,`gmtModified`,`modifiedBy`
 		</trim>
 		<trim prefix="values(" suffix=")">
-			#{type},#{userId},#{buzId},#{buzType},#{buzName},#{content},#{read},#{gmtRead},#{readBy},#{handle},#{gmtHandle},#{handleBy},
-			#{gmtCreate},#{createBy},#{gmtModified},#{modifiedBy}
+			#{type},#{userId},#{buzId},#{buzType},#{buzName},#{content},#{metadata},#{gmtCreate},#{createBy},#{gmtModified},#{modifiedBy}
 		</trim>
 		<selectKey resultType="long" keyProperty="id" order="AFTER">
 			select @@identity

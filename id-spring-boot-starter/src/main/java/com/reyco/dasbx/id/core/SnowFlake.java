@@ -5,7 +5,7 @@ package com.reyco.dasbx.id.core;
  * @author reyco
  *
  */
-public class SnowFlake {
+public class SnowFlake<T> {
 	/**
 	 * 
 	 */

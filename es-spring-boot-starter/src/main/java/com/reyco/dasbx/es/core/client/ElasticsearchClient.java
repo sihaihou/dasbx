@@ -410,8 +410,17 @@ public class ElasticsearchClient<T extends ElasticsearchDocument> implements App
 		logger.debug("批量删除成功：index="+indexName+",success="+success+",fail="+fail);
 		return success;
 	}
-	
-	
+	/**
+	 * 清空索引下数据
+	 * @param indexName
+	 * @return
+	 * @throws IOException
+	 */
+	public boolean clearIndex(String indexName) throws IOException {
+		DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
+		AcknowledgedResponse response = restHighLevelClient.indices().delete(deleteIndexRequest,RequestOptions.DEFAULT);
+		return response.isAcknowledged();
+	}
 	
 	
 	

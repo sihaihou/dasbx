@@ -26,4 +26,16 @@ public interface RabbitConstants {
 	//系统
 	String LOG_SYS_QUEUE = "sys_log_queue";
 	String LOG_SYS_ROUTE_KEY = "sys_log_route_key";
+	
+	/**
+	 * 视频
+	 */
+	String VIDEO_FANOUT_EXCHANGE = "video_fanout_exchange";
+	//解码
+	String VIDEO_FANOUT_DECODE_QUEUE = "video_fanout_decode_queue";
+	//String VIDEO_DECODE_ROUTE_KEY = "video_decode_route_key";
+	//同步ES
+	String VIDEO_FANOUT_SYNC_ES_QUEUE = "video_fanout_sync_es_queue";
+	//String VIDEO_SYNC_ES_ROUTE_KEY = "video_sync_es_route_key";
+	
 }

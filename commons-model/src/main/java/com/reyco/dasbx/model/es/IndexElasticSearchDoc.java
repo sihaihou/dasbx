@@ -446,5 +446,164 @@ public class IndexElasticSearchDoc {
 		}
 	 */
 	private String index_personal = "";
+	
+	/**
+	 * 视频
+	 	PUT /video
+		{
+		 "settings" : {
+		    "index" : {
+		      "number_of_shards" : "1",
+		      "number_of_replicas" : "0",
+		      "blocks.read_only_allow_delete": false,
+		      "analysis" : {
+		        "analyzer" : {
+		          "text_analyzer" : {
+		            "filter" : "py",
+		            "tokenizer" : "ik_max_word"
+		          },
+		          "completion_analyzer" : {
+		            "filter" : "py",
+		            "tokenizer" : "keyword"
+		          }
+		        },
+		        "filter" : {
+		          "py" : {
+		            "none_chinese_pinyin_tokenizer" : "false",
+		            "keep_joined_full_pinyin" : "true",
+		            "keep_original" : "true",
+		            "remove_duplicated_term" : "true",
+		            "type" : "pinyin",
+		            "limit_first_letter_length" : "16",
+		            "keep_full_pinyin" : "false"
+		          }
+		        }
+		      }
+		    }
+		  },
+		  "mappings" : {
+		    "properties" : {
+		      "id" : {
+		        "type" : "long"
+		      },
+		      "all" : {
+		        "type" : "text",
+		        "analyzer" : "text_analyzer",
+		        "search_analyzer" : "ik_smart"
+		      },
+		      "name" : {
+		        "type" : "text",
+		        "analyzer" : "text_analyzer",
+		        "search_analyzer" : "ik_smart",
+		        "copy_to" : "all"
+		      },
+		      "description" : {
+		        "type": "text",
+		        "analyzer" : "text_analyzer",
+		        "search_analyzer" : "ik_smart",
+		        "copy_to" :"all"
+		      },
+		      "director" : {
+		        "type" : "text",
+		        "analyzer" : "text_analyzer",
+		        "search_analyzer" : "ik_smart",
+		        "copy_to" : "all"
+		      },
+		      "star" : {
+		        "type" : "text",
+		        "analyzer" : "text_analyzer",
+		        "search_analyzer" : "ik_smart",
+		        "copy_to" : "all"
+		      },
+		      "introduction" : {
+		        "type": "keyword",
+		        "index": false
+		      },
+		      "categoryId" : {
+		         "type" : "long"
+		      },
+		      "countryId" : {
+		        "type" : "long"
+		      },
+		      "typeId" : {
+		        "type" : "long"
+		      },
+		      "yearId" : {
+		        "type" : "long"
+		      },
+		      "vipId" : {
+		        "type" : "long"
+		      },
+		      "hls": {
+		        "type": "byte"
+		      },
+		      "state" : {
+		        "type": "byte"
+		      },
+		      "sourceUrl": {
+		        "type": "keyword",
+		        "index": false
+		      },
+		      "playUrl": {
+		        "type": "keyword",
+		        "index": false
+		      },
+		      "portraitCoverUrl": {
+		        "type": "keyword",
+		        "index": false
+		      },
+		      "landscapeCoverUrl": {
+		        "type": "keyword",
+		        "index": false
+		      },
+		      "playQuantity": {
+		        "type": "integer"
+		      },
+		      "commentQuantity": {
+		        "type": "integer"
+		      },
+		      "collectionQuantity": {
+		        "type": "integer"
+		      },
+		      "shareQuantity": {
+		        "type": "integer"
+		      },
+		      "heatQuantity": {
+		        "type": "integer"
+		      },
+		      "uploadBy" : {
+		        "type": "long",
+		        "index": false
+		      },
+		      "remark": {
+		        "type": "keyword",
+		        "index": false
+		      },
+		      "createBy" : {
+		        "type": "long",
+		        "index": false
+		      },
+		      "gmtCreate" : {
+		        "type": "long",
+		        "index": false
+		      },
+		      "modifiedBy" : {
+		        "type": "long",
+		        "index": false
+		      },
+		      "gmtModified" : {
+		        "type": "long",
+		        "index": false
+		      },
+		      "suggestion" : {
+		        "type" : "completion",
+		        "analyzer" : "completion_analyzer",
+		        "search_analyzer" : "ik_smart"
+		      }
+		    }
+		  }
+		}
+	 */
+	private String index_video = "";
 }
 

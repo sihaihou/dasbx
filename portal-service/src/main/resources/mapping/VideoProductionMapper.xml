@@ -5,5 +5,13 @@
 	<select id="getByVideoId" resultType="com.reyco.dasbx.portal.model.domain.vo.VideoProductionInfoVO">
         select * from portal_video_production where videoId=#{videoId}
     </select>
-
+    
+	<insert id="insert">
+    	insert into portal_video_production
+    		(videoId,director,star,introduction,gmtCreate,createBy,gmtModified,modifiedBy)
+    	values(#{videoId},#{director},#{star},#{introduction},#{gmtCreate},#{createBy},#{gmtModified},#{modifiedBy});
+    	<selectKey resultType="long" keyProperty="id" order="AFTER">
+			select @@identity
+		</selectKey>
+    </insert>
 </mapper>

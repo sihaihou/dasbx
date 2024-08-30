@@ -13,7 +13,6 @@ import com.github.pagehelper.PageInfo;
 import com.reyco.dasbx.common.core.dao.sys.SysMessageDao;
 import com.reyco.dasbx.common.core.model.domain.sys.SysMessage;
 import com.reyco.dasbx.common.core.model.dto.sys.message.SysMessageDeleteDto;
-import com.reyco.dasbx.common.core.model.dto.sys.message.SysMessageInsertDto;
 import com.reyco.dasbx.common.core.model.dto.sys.message.SysMessageSelectDto;
 import com.reyco.dasbx.common.core.model.dto.sys.message.SysMessageUpdateHandleDto;
 import com.reyco.dasbx.common.core.model.dto.sys.message.SysMessageUpdateReadDto;
@@ -31,6 +30,7 @@ import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.model.constants.Constants;
 import com.reyco.dasbx.model.domain.SysAccount;
+import com.reyco.dasbx.model.dto.SysMessageInsertDto;
 
 @Service
 public class SysMessageServiceImpl implements SysMessageService {
@@ -128,6 +128,10 @@ public class SysMessageServiceImpl implements SysMessageService {
 	@Override
 	public void insert(SysMessageInsertDto sysMessageInsertDto) {
 		SysMessageInsertPO sysMessageInsertPO = Convert.sourceToTarget(sysMessageInsertDto, SysMessageInsertPO.class);
+		sysMessageInsertPO.setCreateBy(1L);
+		sysMessageInsertPO.setModifiedBy(1L);
+		sysMessageInsertPO.setGmtCreate(Dasbx.getCurrentTime());
+		sysMessageInsertPO.setGmtModified(Dasbx.getCurrentTime());
 		sysMessageDao.insert(sysMessageInsertPO);
 	}
 

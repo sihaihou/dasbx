@@ -6,7 +6,7 @@ public class Video extends Base {
 	/**
 	 * 
 	 */
-	private static long serialVersionUID = 51319128102818491L;
+	private static final long serialVersionUID = 5402649476459320451L;
 	private String name;
 	private Long categoryId;
 	private Long countryId;
@@ -17,6 +17,7 @@ public class Video extends Base {
 	private String yearName;
 	private Long vipId;
 	private Long accountId;
+	private String sourceUrl;
 	private String playUrl;
 	private String portraitCoverUrl;
 	private String landscapeCoverUrl;
@@ -28,12 +29,7 @@ public class Video extends Base {
 	private Integer heatQuantity;
 	private Byte hls;
 	private Byte state;
-	public static long getSerialVersionUID() {
-		return serialVersionUID;
-	}
-	public static void setSerialVersionUID(long serialVersionUID) {
-		Video.serialVersionUID = serialVersionUID;
-	}
+	private Long uploadBy;
 	public String getName() {
 		return name;
 	}
@@ -93,6 +89,12 @@ public class Video extends Base {
 	}
 	public void setAccountId(Long accountId) {
 		this.accountId = accountId;
+	}
+	public String getSourceUrl() {
+		return sourceUrl;
+	}
+	public void setSourceUrl(String sourceUrl) {
+		this.sourceUrl = sourceUrl;
 	}
 	public String getPlayUrl() {
 		return playUrl;
@@ -159,5 +161,11 @@ public class Video extends Base {
 	}
 	public void setState(Byte state) {
 		this.state = state;
+	}
+	public Long getUploadBy() {
+		return uploadBy;
+	}
+	public void setUploadBy(Long uploadBy) {
+		this.uploadBy = uploadBy;
 	}
 }

@@ -76,6 +76,7 @@ public class WebConfig implements WebMvcConfigurer {
         executor.setKeepAliveSeconds(60);
         executor.setThreadNamePrefix("com.reyco.dasbx.portal.asyncMvcThread");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.initialize();
         return executor;
     }
 }

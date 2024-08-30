@@ -13,7 +13,6 @@ public class DefaultIndexType implements IndexType {
 	private IndexHighlightType indexHighlightType;
 	private IndexSuggestionType indexSuggestionType;
 	private IndexAggregationType indexAggregationType;
-	private IndexSortsType indexSortsType;
 	private int pageSize = IndexType.DEFAULT_PAGE_SIZE;
 	@Override
 	public String getIndexName() {
@@ -49,13 +48,6 @@ public class DefaultIndexType implements IndexType {
 	}
 	public void setIndexAggregationType(IndexAggregationType indexAggregationType) {
 		this.indexAggregationType = indexAggregationType;
-	}
-	@Override
-	public IndexSortsType getIndexSortsType() {
-		return indexSortsType;
-	}
-	public void setIndexSortsType(IndexSortsType indexSortsType) {
-		this.indexSortsType = indexSortsType;
 	}
 	@Override
 	public int getPageSize() {

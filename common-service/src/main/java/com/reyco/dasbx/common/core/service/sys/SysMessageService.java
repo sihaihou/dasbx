@@ -2,12 +2,12 @@ package com.reyco.dasbx.common.core.service.sys;
 
 import com.github.pagehelper.PageInfo;
 import com.reyco.dasbx.common.core.model.dto.sys.message.SysMessageDeleteDto;
-import com.reyco.dasbx.common.core.model.dto.sys.message.SysMessageInsertDto;
 import com.reyco.dasbx.common.core.model.dto.sys.message.SysMessageSelectDto;
 import com.reyco.dasbx.common.core.model.dto.sys.message.SysMessageUpdateHandleDto;
 import com.reyco.dasbx.common.core.model.dto.sys.message.SysMessageUpdateReadDto;
 import com.reyco.dasbx.common.core.model.vo.sys.message.SysMessageInfoVO;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
+import com.reyco.dasbx.model.dto.SysMessageInsertDto;
 
 public interface SysMessageService {
 

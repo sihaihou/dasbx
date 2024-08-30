@@ -6,5 +6,7 @@ import com.reyco.dasbx.portal.model.domain.vo.CategoryListVO;
 
 public interface CategoryService {
 	
+	List<CategoryListVO> list();
+	
 	List<CategoryListVO> listByLimit(Integer size);
 }

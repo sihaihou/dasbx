@@ -21,7 +21,7 @@ public class OssConfiguration {
 	}
 	@Bean
 	@ConditionalOnMissingBean(OssService.class)
-	public OssService OssService(OssProperties ossProperties) {
+	public OssService ossService(OssProperties ossProperties) {
 		DefaultOssServiceImpl ossServiceImpl = new DefaultOssServiceImpl();
 		ossServiceImpl.setOssProperties(ossProperties);
 		return ossServiceImpl;

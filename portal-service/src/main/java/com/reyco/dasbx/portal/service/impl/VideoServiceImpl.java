@@ -1,5 +1,6 @@
 package com.reyco.dasbx.portal.service.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,9 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,17 +28,38 @@ import com.github.pagehelper.PageInfo;
 import com.reyco.dasbx.commons.utils.Convert;
 import com.reyco.dasbx.commons.utils.Dasbx;
 import com.reyco.dasbx.commons.utils.ToString;
+import com.reyco.dasbx.config.es.sync.SyncElasticsearchService;
+import com.reyco.dasbx.config.exception.core.AuthenticationException;
+import com.reyco.dasbx.config.rabbitmq.service.RabbitProducrService;
+import com.reyco.dasbx.config.utils.TokenUtils;
+import com.reyco.dasbx.es.core.client.ElasticsearchClient;
+import com.reyco.dasbx.es.core.search.SearchVO;
+import com.reyco.dasbx.es.core.search.Sort;
+import com.reyco.dasbx.lock.annotation.Lock;
+import com.reyco.dasbx.model.constants.RabbitConstants;
+import com.reyco.dasbx.model.msg.VideoMessage;
+import com.reyco.dasbx.model.vo.SysAccountToken;
+import com.reyco.dasbx.portal.constant.Constants;
 import com.reyco.dasbx.portal.dao.VideoDao;
 import com.reyco.dasbx.portal.dao.VideoProductionDao;
 import com.reyco.dasbx.portal.model.domain.Video;
+import com.reyco.dasbx.portal.model.domain.dto.VideoInsertDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoPageDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoPlayEventDto;
+import com.reyco.dasbx.portal.model.domain.dto.VideoProductionInsertDto;
+import com.reyco.dasbx.portal.model.domain.dto.VideoReviewDto;
+import com.reyco.dasbx.portal.model.domain.dto.VideoSearchDto;
+import com.reyco.dasbx.portal.model.domain.po.VideoInsertPO;
 import com.reyco.dasbx.portal.model.domain.po.VideoPlayPO;
+import com.reyco.dasbx.portal.model.domain.po.VideoProductionInsertPO;
+import com.reyco.dasbx.portal.model.domain.po.VideoReviewPO;
 import com.reyco.dasbx.portal.model.domain.po.VideoSelectPO;
 import com.reyco.dasbx.portal.model.domain.vo.VideoInfoVO;
 import com.reyco.dasbx.portal.model.domain.vo.VideoListVO;
 import com.reyco.dasbx.portal.model.domain.vo.VideoProductionInfoVO;
+import com.reyco.dasbx.portal.model.es.po.VideoElasticsearchDocument;
 import com.reyco.dasbx.portal.service.VideoService;
+import com.reyco.dasbx.portal.service.es.video.VideoSearch;
 
 @Service
 public class VideoServiceImpl implements VideoService {
@@ -46,8 +70,17 @@ public class VideoServiceImpl implements VideoService {
 	@Autowired
 	private VideoService videoService;
 	@Autowired
+	private VideoSearch videoSearch;
+	@Autowired
 	private VideoProductionDao videoProductionDao;
-
+	@Autowired
+	private RabbitProducrService rabbitProducrService;
+	
+	@Resource(name="videoSyncElasticsearchSerivce")
+	private SyncElasticsearchService syncElasticsearchService;
+	@Autowired
+	private ElasticsearchClient<VideoElasticsearchDocument> elasticsearchClient;
+	
 	private ExecutorService executor = new ThreadPoolExecutor(5,10,60,TimeUnit.SECONDS, 
 			new LinkedBlockingQueue<>(),
 			new ThreadFactory() {
@@ -72,10 +105,12 @@ public class VideoServiceImpl implements VideoService {
 			executor.execute(playEventNotify);
 		}
 	}
-
+	@Override
+	public int initElasticsearchVideo() throws IOException {
+		return syncElasticsearchService.initElasticsearch();
+	}
 	@Override
 	public VideoInfoVO get(Long id) {
-		logger.info("id:"+id);
 		Video video = videoDao.getById(id);
 		if (video == null) {
 			return null;
@@ -96,7 +131,79 @@ public class VideoServiceImpl implements VideoService {
 		PageInfo<VideoListVO> videoListVOPageInfo = new PageInfo<>(videoListVOs);
 		return videoListVOPageInfo;
 	}
-
+	@Override
+	public List<String> getSuggestion(String keyword) throws Exception {
+		List<String> suggestion = elasticsearchClient.getSuggestion(Constants.VIDEO_INDEX_NAME, keyword);
+		if (suggestion == null) {
+			suggestion = new ArrayList<>();
+		}
+		return suggestion;
+	}
+	@Override
+	public SearchVO<VideoListVO> search(VideoSearchDto videoSearchDto) throws IOException {
+		Byte sortValue = videoSearchDto.getSort();
+		List<Sort> sorts = videoSearchDto.getSorts();
+		if(sortValue.intValue()==-1) {
+			if(sorts==null) {
+				sorts = new ArrayList<>();
+				videoSearchDto.setSorts(sorts);
+			}
+			Sort playQuantitySort = new Sort();
+			playQuantitySort.setField("playQuantity");
+			playQuantitySort.setSortOrder(SortOrder.DESC);
+			sorts.add(playQuantitySort);
+			Sort heatQuantitySort = new Sort();
+			heatQuantitySort.setField("heatQuantity");
+			heatQuantitySort.setSortOrder(SortOrder.DESC);
+			sorts.add(heatQuantitySort);
+		}
+		if(sortValue.intValue()==1) {
+			if(sorts==null) {
+				sorts = new ArrayList<>();
+				videoSearchDto.setSorts(sorts);
+			}
+			Sort heatQuantitySort = new Sort();
+			heatQuantitySort.setField("heatQuantity");
+			heatQuantitySort.setSortOrder(SortOrder.DESC);
+			sorts.add(heatQuantitySort);
+		}
+		if(sortValue.intValue()==2) {
+			if(sorts==null) {
+				sorts = new ArrayList<>();
+				videoSearchDto.setSorts(sorts);
+			}
+			Sort playQuantitySort = new Sort();
+			playQuantitySort.setField("playQuantity");
+			playQuantitySort.setSortOrder(SortOrder.DESC);
+			sorts.add(playQuantitySort);
+		}
+		return videoSearch.search(videoSearchDto);
+	}
+	
+	@Override
+	@Lock(value="#videoInsertDto.name")
+	public void add(VideoInsertDto videoInsertDto) throws AuthenticationException {
+		VideoInsertPO videoInsertPO = Convert.sourceToTarget(videoInsertDto, VideoInsertPO.class);
+		SysAccountToken sysAccountToken = TokenUtils.getToken();
+		videoInsertPO.setUploadBy(sysAccountToken.getId());
+		videoDao.insert(videoInsertPO);
+		VideoProductionInsertDto videoProductionInsertDto = videoInsertDto.getVideoProductionInsertDto();
+		if(videoProductionInsertDto==null) {
+			videoProductionInsertDto = new VideoProductionInsertDto();
+		}
+		VideoProductionInsertPO videoProductionInsertPO = Convert.sourceToTarget(videoProductionInsertDto, VideoProductionInsertPO.class);
+		videoProductionInsertPO.setVideoId(videoInsertPO.getId());
+		videoProductionDao.insert(videoProductionInsertPO);
+		Video video = Convert.sourceToTarget(videoInsertPO, Video.class);
+		publishVideoAddEvent(video);
+	}
+	
+	@Override
+	public void review(VideoReviewDto videoReviewDto) {
+		VideoReviewPO videoReviewPO = Convert.sourceToTarget(videoReviewDto, VideoReviewPO.class);
+		videoReviewPO.setState(videoReviewDto.getReview()?(byte)1:(byte)2);
+		videoDao.review(videoReviewPO);
+	}
 	@Override
 	public void addPlayEvent(VideoPlayEventDto videoPlayEventDto) {
 		PlayEvent playEvent = new PlayEvent();
@@ -177,5 +284,13 @@ public class VideoServiceImpl implements VideoService {
 			this.playTime = playTime;
 		}
 	}
-
+	/**
+	 * 发布视频事件
+	 * @param sysAccountToken
+	 */
+	private void publishVideoAddEvent(Video video) {
+		VideoMessage videoDecodeMessage = new VideoMessage();
+		videoDecodeMessage.setVideoId(video.getId());
+		rabbitProducrService.send(RabbitConstants.VIDEO_FANOUT_EXCHANGE, null, videoDecodeMessage);
+	}
 }

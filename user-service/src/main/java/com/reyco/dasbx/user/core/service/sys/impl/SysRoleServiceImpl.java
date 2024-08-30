@@ -27,13 +27,13 @@ import com.reyco.dasbx.user.core.model.dto.sys.SysRoleInsertDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysRoleSearchDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysRoleUpdateDto;
 import com.reyco.dasbx.user.core.model.es.po.SysRoleElasticsearchDocument;
-import com.reyco.dasbx.user.core.model.es.search.impl.SysRoleSearch;
 import com.reyco.dasbx.user.core.model.po.sys.SysRoleDeletePO;
 import com.reyco.dasbx.user.core.model.po.sys.SysRoleInsertPO;
 import com.reyco.dasbx.user.core.model.po.sys.SysRoleReq;
 import com.reyco.dasbx.user.core.model.po.sys.SysRoleSelectPO;
 import com.reyco.dasbx.user.core.model.po.sys.SysRoleUpdatePO;
 import com.reyco.dasbx.user.core.model.vo.sys.SysRoleInfoVO;
+import com.reyco.dasbx.user.core.service.es.sysAccount.SysRoleSearch;
 import com.reyco.dasbx.user.core.service.sys.SysRoleMenuService;
 import com.reyco.dasbx.user.core.service.sys.SysRoleService;
 

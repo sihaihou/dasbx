@@ -9,4 +9,8 @@ public interface OssParameter {
 	
 	String getUploadPath();
 	
+	default String getFilename() {
+		return null;
+	}
+	
 }

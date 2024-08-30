@@ -18,6 +18,7 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder.Field;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
@@ -26,6 +27,7 @@ import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.client.ElasticsearchDocument;
 import com.reyco.dasbx.es.core.model.Aggregation;
 import com.reyco.dasbx.es.core.search.type.IndexHighlightType;
+import com.reyco.dasbx.es.core.search.type.IndexSortsType;
 import com.reyco.dasbx.es.core.search.type.IndexType;
 import com.reyco.dasbx.es.core.utils.ElasticsearchUtils;
 
@@ -236,15 +238,18 @@ public abstract class AbstractSearch<T> implements Search<T> {
 	}
 
 	/**
-	 * 构建高亮查询
+	 * 构建排序
 	 * 
 	 * @param searchRequest
 	 * @param searchDto
 	 */
 	protected void buildSort(SearchRequest searchRequest, SearchDto searchDto) {
-		if(searchDto instanceof SearchAfterDto) {
-			SearchAfterDto searchAfterDto = (SearchAfterDto)searchDto;
-			searchRequest.source().sort(searchAfterDto.getSortField(),searchAfterDto.getSortOrder()).searchAfter(new Object[] {searchAfterDto.getSortId()});
+		if(searchDto instanceof SortSearchDto) {
+			SortSearchDto sortSearchDto = (SortSearchDto)searchDto;
+			List<Sort> sorts = sortSearchDto.getSorts();
+			if(sorts!=null && sorts.size()>0) {
+				sorts.stream().forEach(sort->searchRequest.source().sort(sort.getField(), sort.getSortOrder()));
+			}
 		}
 		
 	}

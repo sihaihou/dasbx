@@ -380,6 +380,11 @@
 				<artifactId>resource-spring-boot-starter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>lock-spring-boot-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -400,6 +405,7 @@
 		<module>jwt-spring-boot-starter</module>
 		<module>id-spring-boot-starter</module>
 		<module>resource-spring-boot-starter</module>
+		<module>lock-spring-boot-starter</module>
 		<module>gateway</module>
 		<module>user-service</module>
 		<module>login-service</module>

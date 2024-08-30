@@ -49,7 +49,7 @@ public class ElasticsearchUtils {
 		String[] aggregationFields = indexAggregationType.getAggregationFields();
 		String[] aggregationNames = indexAggregationType.getAggregationNames();
 		Integer[] aggregationSizes = indexAggregationType.getAggregationSizes();
-		Boolean[]aggregationOrders = indexAggregationType.getAggregationFieldOrders();
+		Boolean[] aggregationOrders = indexAggregationType.getAggregationFieldOrders();
 		buildAggregation(searchRequest, aggregationFields, aggregationNames, aggregationOrders, aggregationSizes);
 	}
 	/**
@@ -61,7 +61,7 @@ public class ElasticsearchUtils {
 		String[] aggregationFields = indexAggregationType.getAggregationFields();
 		String[] aggregationNames = indexAggregationType.getAggregationNames();
 		Integer[] aggregationSizes = indexAggregationType.getAggregationSizes();
-		Boolean[]aggregationOrders = indexAggregationType.getAggregationFieldOrders();
+		Boolean[] aggregationOrders = indexAggregationType.getAggregationFieldOrders();
 		buildAggregation(searchRequest, aggregationFields, aggregationNames, aggregationOrders, aggregationSizes);
 	}
 	/**

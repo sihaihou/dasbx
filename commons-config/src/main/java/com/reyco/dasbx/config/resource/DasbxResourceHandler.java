@@ -25,11 +25,12 @@ public class DasbxResourceHandler implements ResourceHandler{
 	@Override
 	public void handler(ResourceDefinition reycoResource) {
 		String token = reycoResource.getToken();
+		String correlationDataId = idGenerator.getGeneratorId().toString();
 		if(StringUtils.isBlank(token)) {
-			token = idGenerator.getGeneratorId().toString();
+			token = correlationDataId;
 		}
 		SysLogRabbitmqMessage rabbitMessage = new SysLogRabbitmqMessage();
-		rabbitMessage.setCorrelationDataId(token);
+		rabbitMessage.setCorrelationDataId(correlationDataId);
 		rabbitMessage.setCode(Long.parseLong(token));
 		rabbitMessage.setService(reycoResource.getApplication());
 		rabbitMessage.setType(getType(reycoResource.getMethod()));

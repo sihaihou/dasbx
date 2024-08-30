@@ -2,9 +2,9 @@ package com.reyco.dasbx.user.core.service.sys.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+
+import javax.annotation.Resource;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -15,12 +15,14 @@ import com.reyco.dasbx.commons.utils.Convert;
 import com.reyco.dasbx.commons.utils.Dasbx;
 import com.reyco.dasbx.commons.utils.PasswordUtils;
 import com.reyco.dasbx.commons.utils.SimpleHash;
+import com.reyco.dasbx.config.es.sync.SyncElasticsearchService;
 import com.reyco.dasbx.config.exception.core.BusinessException;
 import com.reyco.dasbx.config.rabbitmq.service.RabbitProducrService;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.id.core.IdGenerator;
+import com.reyco.dasbx.lock.annotation.Lock;
 import com.reyco.dasbx.model.constants.OperationType;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.domain.SysAccount;
@@ -37,7 +39,6 @@ import com.reyco.dasbx.user.core.model.dto.sys.SysAccountDeleteDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysAccountDisableOrEnableDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysAccountSearchDto;
 import com.reyco.dasbx.user.core.model.es.po.SysAccountElasticsearchDocument;
-import com.reyco.dasbx.user.core.model.es.search.impl.SysAccountSearch;
 import com.reyco.dasbx.user.core.model.po.AccountBindDeveloperPO;
 import com.reyco.dasbx.user.core.model.po.AccountInsertPO;
 import com.reyco.dasbx.user.core.model.po.sys.SysAccountDeletePO;
@@ -47,6 +48,7 @@ import com.reyco.dasbx.user.core.model.po.sys.SysAccountUpdatePO;
 import com.reyco.dasbx.user.core.model.vo.AccountListVO;
 import com.reyco.dasbx.user.core.model.vo.SysAccountInfoVO;
 import com.reyco.dasbx.user.core.service.FullnameService;
+import com.reyco.dasbx.user.core.service.es.sysAccount.SysAccountSearch;
 import com.reyco.dasbx.user.core.service.sys.SysAccountService;
 import com.reyco.dasbx.user.core.service.sys.SysUserRoleService;
 
@@ -67,7 +69,8 @@ public class SysAccountServiceImpl implements SysAccountService {
 	private RabbitProducrService rabbitProducrService;
 	@Autowired
 	private FullnameService fullnameService;
-	
+	@Resource(name="sysAccountSyncElasticsearchService")
+	private SyncElasticsearchService syncElasticsearchService;
 	@Override
 	public SysAccountInfoVO get(Long id) {
 		SysAccount account = accountDao.getById(id);
@@ -104,20 +107,7 @@ public class SysAccountServiceImpl implements SysAccountService {
 	}
 	@Override
 	public int initElasticsearchSysAccount() throws IOException {
-		Long maxId = accountDao.getMaxId();
-		int count = 0;
-		for (int i=2;i<maxId;i+=10000) {
-			List<SysAccount> sysAccounts = accountDao.getListByLimit(new Long(i), new Long(1+10000));
-			List<SysAccountElasticsearchDocument> sysAccountElasticsearchDocuments = new ArrayList<>();
-			SysAccountElasticsearchDocument sysAccountElasticsearchDocument = null;
-			for (SysAccount sysAccount : sysAccounts) {
-				sysAccountElasticsearchDocument = sysAccountToSysAccountElasticsearchDocument(sysAccount);
-				sysAccountElasticsearchDocuments.add(sysAccountElasticsearchDocument);
-			}
-			int batchAddDocument = elasticsearchClient.batchAddDocument(Constants.ACCOUNT_INDEX_NAME, sysAccountElasticsearchDocuments);
-			count+=batchAddDocument;
-		}
-		return count;
+		return syncElasticsearchService.initElasticsearch();
 	}
 	@Override
 	public void updateState(SysAccountDisableOrEnableDto sysAccountDisableOrEnableDto){
@@ -126,6 +116,7 @@ public class SysAccountServiceImpl implements SysAccountService {
 		sendSyncEsMessage(sysAccountDisableOrEnablePO.getId(),OperationType.UPDATE);
 	}
 	@Override
+	@Lock(value="account:register")
 	public void register(SysAccountRegisterDto sysAccountRegisterDto) {
 		if(accountDao.getByUsername(sysAccountRegisterDto.getUsername())!=null) {
 			throw new RuntimeException("用户已存在.");
@@ -238,23 +229,5 @@ public class SysAccountServiceImpl implements SysAccountService {
 		rabbitMessage.setAccountId(sysAccountId);
 		rabbitMessage.setType(type);
 		rabbitProducrService.send(RabbitConstants.ACCOUNT_EXCHANGE,RabbitConstants.ACCOUNT_SYNC_ES_ROUTE_KEY,rabbitMessage);
-	}
-	/**
-	 * 
-	 * @param sysAccount
-	 * @return
-	 */
-	private SysAccountElasticsearchDocument sysAccountToSysAccountElasticsearchDocument(SysAccount sysAccount) {
-		if(sysAccount==null) {
-			return null;
-		}
-		SysAccountElasticsearchDocument sysAccountElasticsearchDocument = Convert.sourceToTarget(sysAccount, SysAccountElasticsearchDocument.class);
-		Set<String> suggestionSet = new HashSet<>();
-		suggestionSet.add(sysAccountElasticsearchDocument.getUsername());
-		suggestionSet.add(sysAccountElasticsearchDocument.getNickname());
-		suggestionSet.add(sysAccountElasticsearchDocument.getPhone());
-		suggestionSet.add(sysAccountElasticsearchDocument.getEmail());
-		sysAccountElasticsearchDocument.setSuggestion(new ArrayList<>(suggestionSet));
-		return sysAccountElasticsearchDocument;
 	}
 }

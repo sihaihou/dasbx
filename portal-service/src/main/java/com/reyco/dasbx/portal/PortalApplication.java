@@ -25,7 +25,8 @@ import com.reyco.dasbx.resource.constant.ResourceMode;
 @EnableDiscoveryClient
 @EnableFeignClients
 @RibbonClients(value= {
-		@RibbonClient(value="user-service",configuration=NacosClusterWeightRule.class)
+		@RibbonClient(value="user-service",configuration=NacosClusterWeightRule.class),
+		@RibbonClient(value="common-service",configuration=NacosClusterWeightRule.class)
 })
 @EnableAsync
 @ComponentScan(value= {"com.reyco.dasbx.portal","com.reyco.dasbx.config"})

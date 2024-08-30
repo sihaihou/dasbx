@@ -4,5 +4,5 @@ public interface IndexSortsType {
 	
 	String[] getSortFields();
 	
-	boolean[] getSortMode();
+	Boolean[] getSortMode();
 }

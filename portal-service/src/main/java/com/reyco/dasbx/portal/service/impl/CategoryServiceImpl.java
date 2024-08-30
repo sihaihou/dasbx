@@ -15,6 +15,14 @@ import com.reyco.dasbx.portal.service.CategoryService;
 public class CategoryServiceImpl implements CategoryService{
 	@Autowired
 	private CategoryDao categoryDao;
+	
+	@Override
+	public List<CategoryListVO> list() {
+		 List<Category> listByLimit = categoryDao.listByLimit(1000);
+		 List<CategoryListVO> categoryListVOs = Convert.sourceListToTargetList(listByLimit, CategoryListVO.class);
+		 return categoryListVOs;
+	}
+	
 	@Override
 	public List<CategoryListVO> listByLimit(Integer size) {
 		 List<Category> listByLimit = categoryDao.listByLimit(size);

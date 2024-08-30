@@ -3,17 +3,18 @@ package com.reyco.dasbx.common.core.model.domain.sys;
 import com.reyco.dasbx.model.Base;
 
 public class SysMessage extends Base {
+
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -1358676351079247504L;
-
+	private static final long serialVersionUID = -7590289619316007451L;
 	private Long type;
 	private Long userId;
-	private Long buzId;
+	private String buzId;
 	private Byte buzType;
 	private String buzName;
 	private String content;
+	private String metadata;
 	private Byte read;
 	private Long gmtRead;
 	private Long readBy;
@@ -32,10 +33,10 @@ public class SysMessage extends Base {
 	public void setUserId(Long userId) {
 		this.userId = userId;
 	}
-	public Long getBuzId() {
+	public String getBuzId() {
 		return buzId;
 	}
-	public void setBuzId(Long buzId) {
+	public void setBuzId(String buzId) {
 		this.buzId = buzId;
 	}
 	public Byte getBuzType() {
@@ -55,6 +56,12 @@ public class SysMessage extends Base {
 	}
 	public void setContent(String content) {
 		this.content = content;
+	}
+	public String getMetadata() {
+		return metadata;
+	}
+	public void setMetadata(String metadata) {
+		this.metadata = metadata;
 	}
 	public Byte getRead() {
 		return read;

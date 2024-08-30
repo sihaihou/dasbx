@@ -8,12 +8,13 @@ import org.springframework.cloud.netflix.ribbon.RibbonClients;
 
 import com.reyco.dasbx.gateway.core.irule.NacosClusterWeightRule;
 
-@RibbonClients(value= {
+/*@RibbonClients(value= {
 		@RibbonClient(value="user-service",configuration=NacosClusterWeightRule.class),
 		@RibbonClient(value="login-service",configuration=NacosClusterWeightRule.class),
 		@RibbonClient(value="open-service",configuration=NacosClusterWeightRule.class),
-		@RibbonClient(value="portal-service",configuration=NacosClusterWeightRule.class)
-})
+		@RibbonClient(value="portal-service",configuration=NacosClusterWeightRule.class),
+		@RibbonClient(value="common-service",configuration=NacosClusterWeightRule.class)
+})*/
 @EnableDiscoveryClient
 @SpringBootApplication
 public class GatewayDasbxApplication {

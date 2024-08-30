@@ -5,12 +5,11 @@ import com.reyco.dasbx.model.po.SimpleInsertPO;
 public class SysMessageInsertPO extends SimpleInsertPO{
 	private Long type;
 	private Long userId;
-	private Long buzId;
+	private String buzId;
 	private Byte buzType;
 	private String buzName;
 	private String content;
-	private Byte read;
-	private Byte handle;
+	private String metadata;
 	public Long getUserId() {
 		return userId;
 	}
@@ -23,10 +22,10 @@ public class SysMessageInsertPO extends SimpleInsertPO{
 	public void setType(Long type) {
 		this.type = type;
 	}
-	public Long getBuzId() {
+	public String getBuzId() {
 		return buzId;
 	}
-	public void setBuzId(Long buzId) {
+	public void setBuzId(String buzId) {
 		this.buzId = buzId;
 	}
 	public Byte getBuzType() {
@@ -47,16 +46,10 @@ public class SysMessageInsertPO extends SimpleInsertPO{
 	public void setContent(String content) {
 		this.content = content;
 	}
-	public Byte getRead() {
-		return read;
+	public String getMetadata() {
+		return metadata;
 	}
-	public void setRead(Byte read) {
-		this.read = read;
-	}
-	public Byte getHandle() {
-		return handle;
-	}
-	public void setHandle(Byte handle) {
-		this.handle = handle;
+	public void setMetadata(String metadata) {
+		this.metadata = metadata;
 	}
 }

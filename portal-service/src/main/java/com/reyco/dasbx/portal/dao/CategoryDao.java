@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import com.reyco.dasbx.portal.model.domain.Category;
 
 public interface CategoryDao {
-
+	
 	List<Category> listByLimit(@Param("limit")Integer size);
 	
 }

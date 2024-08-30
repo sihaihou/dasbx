@@ -21,10 +21,36 @@
 		order by id desc
 	</select>
 	
+	<insert id="insert">
+    	insert into portal_video
+    		(name,categoryId,countryId,typeId,yearId,vipId,sourceUrl,portraitCoverUrl,
+    		landscapeCoverUrl,description,uploadBy,gmtCreate,createBy,gmtModified,modifiedBy)
+    	values(#{name},#{categoryId},#{countryId},#{typeId},#{yearId},#{vipId},#{sourceUrl},#{portraitCoverUrl},
+    		#{landscapeCoverUrl},#{description},#{uploadBy},#{gmtCreate},#{createBy},#{gmtModified},#{modifiedBy});
+    	<selectKey resultType="long" keyProperty="id" order="AFTER">
+			select @@identity
+		</selectKey>
+    </insert>
+	
 	<update id="updatePlay">
 		<foreach collection="videoPlayPOs" index="index" item="videoPlayPO" separator=";">
 			update portal_video set playQuantity = playQuantity+#{videoPlayPO.playQuantity} where id=#{videoPlayPO.id}
 		</foreach>
-		
 	</update>
+	
+	<update id="decode">
+		update portal_video set playUrl=#{playUrl},hls=1,gmtModified=#{gmtModified},modifiedBy=#{modifiedBy} where id=#{id};
+	</update>
+	
+	<update id="review">
+		update portal_video set state=#{state},gmtModified=#{gmtModified},modifiedBy=#{modifiedBy} where id=#{id};
+	</update>
+	
+	<select id="getMaxId" resultType="long">
+        select max(id) from portal_video;
+    </select>
+    
+    <select id="getListByLimit" resultType="com.reyco.dasbx.portal.model.domain.Video">
+        select * from portal_video where deleted=0 and id<![CDATA[>=]]>#{startId} and id<![CDATA[<]]>#{endId};
+    </select>
 </mapper>
