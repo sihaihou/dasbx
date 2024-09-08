@@ -14,6 +14,7 @@
     - es-spring-boot-starter： elasticsearch相关的starter
     - resource-spring-boot-starter：系统日志搜集的starter
     - trim-spring-boot-starter：请求参数去前后空格的starter
+    - lock-spring-boot-starter：分布式锁的starter
       
   - 相关服务：
     - common-service： 基础服务
