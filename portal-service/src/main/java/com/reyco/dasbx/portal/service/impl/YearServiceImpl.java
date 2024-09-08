@@ -1,5 +1,6 @@
 package com.reyco.dasbx.portal.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,5 +22,13 @@ public class YearServiceImpl implements YearService {
 		List<YearListVO> yearListVO = Convert.sourceListToTargetList(years, YearListVO.class);
 		return yearListVO;
 	}
-
+	@Override
+	public List<YearListVO> listByCategoryId(Long categoryId) {
+		if(categoryId==null && categoryId.intValue()<1) {
+			return new ArrayList<>();
+		}
+		List<Year> years = yearDao.listByCategoryId(categoryId);
+		List<YearListVO> yearListVOs = Convert.sourceListToTargetList(years, YearListVO.class);
+		return yearListVOs;
+	}
 }

@@ -23,5 +23,9 @@ public class CountryController {
 		List<CountryListVO> countryListVOs = countryService.list();
 		return R.success(countryListVOs);
 	}
-	
+	@GetMapping("listByCategoryId")
+	public Object listByCategoryId(Long categoryId) {
+		List<CountryListVO> countryListVOs = countryService.listByCategoryId(categoryId);
+		return R.success(countryListVOs);
+	}
 }

@@ -10,4 +10,8 @@
 		select * from portal_type order by id;
 	</select>
 	
+	<select id="listByCategoryId" resultType="com.reyco.dasbx.portal.model.domain.Type">
+		select typeId as id,typeName as name from portal_category_type where categoryId = #{categoryId} order by ordered;
+	</select>
+	
 </mapper>

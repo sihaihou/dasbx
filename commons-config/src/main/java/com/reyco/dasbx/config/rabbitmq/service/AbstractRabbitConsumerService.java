@@ -22,8 +22,8 @@ public abstract class AbstractRabbitConsumerService implements RabbitConsumerSer
 	
 	@Override
 	public void execute(RabbitMessage rabbitMessage, Channel channel, Message message) {
+		RabbitMessageType rabbitMessageType = getRabbitMessageType();
 		try {
-			RabbitMessageType rabbitMessageType = getRabbitMessageType();
 			if(redisUtil.isMember(CachePrefixConstants.RABBIT_CORRELATIONDATA_ID_TYPE_PREFIX+rabbitMessageType.getType(),rabbitMessage.getCorrelationDataId())) {
 				channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
 				return;
@@ -33,6 +33,8 @@ public abstract class AbstractRabbitConsumerService implements RabbitConsumerSer
 			channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
 			logger.debug("【消息消费】消息消费成功,时间 {},类型:{},消息{}", DateUtils.format(new Date(),DateUtils.DATE_TIME_FORMAT),rabbitMessageType.getType(),rabbitMessage);
 		} catch(Exception e) {
+			logger.error("【消息异常处理】消息消费失败,出现异常, 时间:{},消息类型:{},消息详情:{},异常信息:{}", DateUtils.format(new Date(),DateUtils.DATE_TIME_FORMAT),rabbitMessageType.getType(),rabbitMessage,e.getMessage());
+			e.printStackTrace();
 			handlerException(e, rabbitMessage, channel, message);
 		} 
 	}
@@ -43,10 +45,9 @@ public abstract class AbstractRabbitConsumerService implements RabbitConsumerSer
 	 * @param channel
 	 * @param message
 	 */
-	public void handlerException(Exception exception, RabbitMessage rabbitMessage, Channel channel, Message message) {
+	public void handlerException(Exception e, RabbitMessage rabbitMessage, Channel channel, Message message) {
 		RabbitMessageType rabbitMessageType = getRabbitMessageType();
 		try {
-			logger.error("【消息异常处理】消息消费失败, 时间:{},消息类型:{},消息详情:{}", DateUtils.format(new Date(),DateUtils.DATE_TIME_FORMAT),rabbitMessageType.getType(),rabbitMessage);
 			boolean hasKey = redisUtil.hasKey(rabbitMessageType.getRetryKey(), rabbitMessage.getCorrelationDataId());
 			if(!hasKey) {
 				redisUtil.put(rabbitMessageType.getRetryKey(), rabbitMessage.getCorrelationDataId(), 1+"");
@@ -55,19 +56,22 @@ public abstract class AbstractRabbitConsumerService implements RabbitConsumerSer
 			String retry = redisUtil.hget(rabbitMessageType.getRetryKey(), rabbitMessage.getCorrelationDataId());
 			Integer retries = Integer.parseInt(retry);
 			if(retries<rabbitMessageType.getRetryTime()) {
-				retries += retries;
+				retries += 1;
 				redisUtil.put(rabbitMessageType.getRetryKey(), rabbitMessage.getCorrelationDataId(),retries.toString());
 				channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
 			}else {
 				try {
-					handlerRabbitMessage(rabbitMessage);
+					logger.info("【消息异常处理】消息消费失败,添加到人工处理消息, 时间:{},消息类型:{},消息详情:{}", DateUtils.format(new Date(),DateUtils.DATE_TIME_FORMAT),rabbitMessageType.getType(),rabbitMessage);
+					handlerExceptionRabbitMessage(rabbitMessage,e);
 				} catch (Exception e1) {
+					logger.error("【消息异常处理】消息消费失败,添加到人工处理消息失败, 时间:{},消息类型:{},消息详情:{},异常消息:{}", DateUtils.format(new Date(),DateUtils.DATE_TIME_FORMAT),rabbitMessageType.getType(),rabbitMessage,e1.getMessage());
 					e1.printStackTrace();
 				}finally {
 					channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, false);
 				}
 			}
 		} catch (IOException e1) {
+			logger.error("【消息异常处理】消息消费失败,处理异常失败, 时间:{},消息类型:{},消息详情:{},异常消息:{}", DateUtils.format(new Date(),DateUtils.DATE_TIME_FORMAT),rabbitMessageType.getType(),rabbitMessage,e1.getMessage());
 			e1.printStackTrace();
 		}
 	}
@@ -81,7 +85,7 @@ public abstract class AbstractRabbitConsumerService implements RabbitConsumerSer
 	 * 处理消息
 	 * @param rabbitMessage
 	 */
-	protected abstract void handlerRabbitMessage(RabbitMessage rabbitMessage) throws Exception;
+	protected abstract void handlerExceptionRabbitMessage(RabbitMessage rabbitMessage,Exception e) throws Exception;
 	/**
 	 * 获取类型
 	 * @return

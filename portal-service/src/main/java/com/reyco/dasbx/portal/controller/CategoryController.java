@@ -17,7 +17,6 @@ public class CategoryController {
 	
 	@Autowired
 	private CategoryService categoryService;
-	
 	@GetMapping("list")
 	public Object list() {
 		List<CategoryListVO> portalCategoryListVOs = categoryService.list();
@@ -25,8 +24,8 @@ public class CategoryController {
 	}
 	
 	@GetMapping("listByLimit")
-	public Object listByLimit() {
-		List<CategoryListVO> portalCategoryListVOs = categoryService.listByLimit(10);
+	public Object listByLimit(int size) {
+		List<CategoryListVO> portalCategoryListVOs = categoryService.listByLimit(size);
 		return R.success(portalCategoryListVOs);
 	}
 }

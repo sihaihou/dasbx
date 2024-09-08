@@ -226,7 +226,6 @@ public class VideoServiceImpl implements VideoService {
 		}
 		videoDao.updatePlay(videoPlayPOs);
 	}
-	
 	public class PlayEventNotify implements Runnable {
 		private BlockingQueue<PlayEvent> blockingQueue = new LinkedBlockingQueue<PlayEvent>();
 		public void addTask(PlayEvent playEvent) {

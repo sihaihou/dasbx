@@ -5,5 +5,5 @@
 	<select id="listByLimit" resultType="com.reyco.dasbx.portal.model.domain.Category">
 		select * from portal_category order by id limit #{limit};
 	</select>
-	
+		
 </mapper>

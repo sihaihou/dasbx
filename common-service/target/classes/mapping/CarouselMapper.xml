@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.common.core.dao.sys.CarouselDao">
+
+	<select id="list" resultType="com.reyco.dasbx.common.core.model.domain.sys.Carousel">
+        select * from common_carousel where deleted=0
+    </select>
+
+</mapper>

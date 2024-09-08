@@ -8,4 +8,5 @@ public interface YearService {
 	
 	List<YearListVO> list();
 	
+	List<YearListVO> listByCategoryId(Long categoryId);
 }

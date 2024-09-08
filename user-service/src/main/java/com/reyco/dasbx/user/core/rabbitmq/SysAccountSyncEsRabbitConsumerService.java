@@ -51,14 +51,14 @@ public class SysAccountSyncEsRabbitConsumerService extends AbstractRabbitConsume
 		SysAccountSyncEsMessage sysAccountSyncEsMessage = (SysAccountSyncEsMessage)rabbitMessage;
 		OperationType type = sysAccountSyncEsMessage.getType();
 		if(OperationType.CREATE==type || OperationType.UPDATE==type) {
-			syncElasticsearchService.syncDeleteElasticsearch(sysAccountSyncEsMessage.getAccountId());
+			syncElasticsearchService.syncElasticsearch(sysAccountSyncEsMessage.getAccountId());
 		}else if(OperationType.DELETE==type) {
 			syncElasticsearchService.syncDeleteElasticsearch(sysAccountSyncEsMessage.getAccountId());
 		}
 	}
 
 	@Override
-	protected void handlerRabbitMessage(RabbitMessage rabbitMessage) throws Exception {
+	protected void handlerExceptionRabbitMessage(RabbitMessage rabbitMessage,Exception e) throws Exception {
 		SysMessageInsertDto sysMessageInsertDto = new SysMessageInsertDto();
 		sysMessageInsertDto.setType(1L);
 		sysMessageInsertDto.setUserId(1L);

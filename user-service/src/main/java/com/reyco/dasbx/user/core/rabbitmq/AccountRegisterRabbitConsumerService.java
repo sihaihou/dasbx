@@ -54,7 +54,7 @@ public class AccountRegisterRabbitConsumerService extends AbstractRabbitConsumer
 	}
 
 	@Override
-	protected void handlerRabbitMessage(RabbitMessage rabbitMessage) throws Exception {
+	protected void handlerExceptionRabbitMessage(RabbitMessage rabbitMessage,Exception e) throws Exception {
 		AccountRegisterMessage accountRegisterMessage = (AccountRegisterMessage)rabbitMessage;
 		SysMessageInsertDto sysMessageInsertDto = new SysMessageInsertDto();
 		sysMessageInsertDto.setType(1L);

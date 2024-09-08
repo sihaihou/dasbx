@@ -8,4 +8,5 @@ public interface TypeService {
 	
 	List<TypeListVO> list();
 	
+	List<TypeListVO> listByCategoryId(Long categoryId);
 }

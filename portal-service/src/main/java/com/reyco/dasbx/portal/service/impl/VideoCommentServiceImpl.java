@@ -98,7 +98,7 @@ public class VideoCommentServiceImpl implements VideoCommentService{
 			SysAccountToken token = TokenUtils.getToken();
 			videoCommentListVOs.stream().forEach(videoCommentListVO->{
 				VideoCommentLike videoCommentLike = videoCommentLikeDao.getByCommentIdAndUserId(videoCommentListVO.getId(), token.getId());
-				if(videoCommentLike!=null) {
+				if(videoCommentLike!=null && videoCommentLike.getState().intValue()==1) {
 					videoCommentListVO.setIsLike(true);
 				}
 			});
@@ -108,14 +108,11 @@ public class VideoCommentServiceImpl implements VideoCommentService{
 	}
 	@Override
 	public VideoCommentInfoVO like(VideoCommentLikeDto videoCommentLikeDto) throws AuthenticationException {
-		long start = System.currentTimeMillis();
 		VideoCommentLikePO videoCommentLikePO = new VideoCommentLikePO();
 		videoCommentLikePO.setId(videoCommentLikeDto.getId());
 		videoCommentLikePO.setLike(videoCommentLikeDto.getLikeQuantity());
 		videoCommentDao.like(videoCommentLikePO);
-		System.out.println("s1:"+(System.currentTimeMillis()-start));
 		videoCommentLikeService.saveOrUpdate(videoCommentLikeDto);
-		System.out.println("s2:"+(System.currentTimeMillis()-start));
 		return get(videoCommentLikeDto.getId());
 	}
 	@Override

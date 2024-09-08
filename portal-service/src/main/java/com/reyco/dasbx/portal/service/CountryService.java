@@ -8,4 +8,5 @@ public interface CountryService {
 	
 	List<CountryListVO> list();
 	
+	List<CountryListVO> listByCategoryId(Long categoryId);
 }

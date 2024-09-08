@@ -1,5 +1,6 @@
 package com.reyco.dasbx.portal.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,5 +22,13 @@ public class TypeServiceImpl implements TypeService {
 		List<TypeListVO> typeListVO = Convert.sourceListToTargetList(types, TypeListVO.class);
 		return typeListVO;
 	}
-
+	@Override
+	public List<TypeListVO> listByCategoryId(Long categoryId) {
+		if(categoryId==null && categoryId.intValue()<1) {
+			return new ArrayList<>();
+		}
+		List<Type> types = typeDao.listByCategoryId(categoryId);
+		List<TypeListVO> typeListVOs = Convert.sourceListToTargetList(types, TypeListVO.class);
+		return typeListVOs;
+	}
 }

@@ -53,7 +53,7 @@ public class VideoSyncEsRabbitConsumerService extends AbstractRabbitConsumerServ
 	}
 
 	@Override
-	protected void handlerRabbitMessage(RabbitMessage rabbitMessage) throws BusinessException {
+	protected void handlerExceptionRabbitMessage(RabbitMessage rabbitMessage,Exception e) throws BusinessException {
 		SysMessageInsertDto sysMessageInsertDto = new SysMessageInsertDto();
 		sysMessageInsertDto.setType(1L);
 		sysMessageInsertDto.setUserId(1L);

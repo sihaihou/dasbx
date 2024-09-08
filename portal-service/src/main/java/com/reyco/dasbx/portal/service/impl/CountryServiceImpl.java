@@ -1,5 +1,6 @@
 package com.reyco.dasbx.portal.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,15 @@ public class CountryServiceImpl implements CountryService {
 	@Override
 	public List<CountryListVO> list() {
 		List<Country> countrys = countryDao.list();
+		List<CountryListVO> countryListVO = Convert.sourceListToTargetList(countrys, CountryListVO.class);
+		return countryListVO;
+	}
+	@Override
+	public List<CountryListVO> listByCategoryId(Long categoryId) {
+		if(categoryId==null && categoryId.intValue()<1) {
+			return new ArrayList<>();
+		}
+		List<Country> countrys = countryDao.listByCategoryId(categoryId);
 		List<CountryListVO> countryListVO = Convert.sourceListToTargetList(countrys, CountryListVO.class);
 		return countryListVO;
 	}

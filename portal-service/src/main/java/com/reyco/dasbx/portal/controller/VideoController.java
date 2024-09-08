@@ -2,6 +2,7 @@ package com.reyco.dasbx.portal.controller;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import com.reyco.dasbx.portal.model.domain.dto.VideoReviewDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoSearchDto;
 import com.reyco.dasbx.portal.model.domain.vo.VideoInfoVO;
 import com.reyco.dasbx.portal.model.domain.vo.VideoListVO;
+import com.reyco.dasbx.portal.service.VideoPublishListService;
 import com.reyco.dasbx.portal.service.VideoService;
 
 @RestController
@@ -32,9 +34,11 @@ public class VideoController {
 	
 	@Autowired
 	private VideoService videoService;
+	@Autowired
+	private VideoPublishListService videoPublishListService;
 	
 	@GetMapping("{id}")
-	public Object search(@PathVariable("id")Long id) {
+	public Object info(@PathVariable("id")Long id) {
 		VideoInfoVO videoInfoVO = videoService.get(id);
 		return R.success(videoInfoVO);
 	}
@@ -94,5 +98,15 @@ public class VideoController {
 				return R.success("播放成功！");
 			}
 		};
+	}
+	/**
+	 * 发布视频时，类别相关列表
+	 * @return
+	 * @throws Exception 
+	 */
+	@GetMapping("listForAdd")
+	public Object listForAdd() throws Exception {
+		Map<String, List<?>> listForAdd = videoPublishListService.listForAdd();
+		return R.success(listForAdd);
 	}
 }

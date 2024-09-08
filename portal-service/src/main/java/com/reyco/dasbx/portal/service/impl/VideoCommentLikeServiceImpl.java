@@ -26,7 +26,6 @@ public class VideoCommentLikeServiceImpl implements VideoCommentLikeService{
 	private VideoCommentLikeDao videoCommentLikeDao;
 	@Override
 	public void saveOrUpdate(VideoCommentLikeDto videoCommentLikeDto) throws AuthenticationException {
-		long start = System.currentTimeMillis();
 		SysAccountToken sysAccountToken = TokenUtils.getToken();
 		VideoCommentLike videoCommentLike = videoCommentLikeDao.getByCommentIdAndUserId(videoCommentLikeDto.getId(), sysAccountToken.getId());
 		if(videoCommentLike==null) {
@@ -43,14 +42,11 @@ public class VideoCommentLikeServiceImpl implements VideoCommentLikeService{
 			videoCommentLikeInsertPO.setDistrict(cityName);
 			videoCommentLikeInsertPO.setAddress(cityName);
 			videoCommentLikeDao.insert(videoCommentLikeInsertPO);
-			System.out.println("s3:"+(System.currentTimeMillis()-start));
 		}else {
-			System.out.println("s5:"+(System.currentTimeMillis()-start));
 			VideoCommentLikeUpdateStatePO videoCommentLikeUpdateStatePO = new VideoCommentLikeUpdateStatePO();
-			videoCommentLikeUpdateStatePO.setId(videoCommentLikeDto.getId());
+			videoCommentLikeUpdateStatePO.setId(videoCommentLike.getId());
 			videoCommentLikeUpdateStatePO.setState(videoCommentLikeDto.getLikeQuantity()>0?(byte)1:(byte)0);
 			videoCommentLikeDao.updateState(videoCommentLikeUpdateStatePO);
-			System.out.println("s4:"+(System.currentTimeMillis()-start));
 		}
 	}
 

@@ -54,7 +54,7 @@ public class SysLogRabbitConsumer extends AbstractRabbitConsumerService{
 	}
 	
 	@Override
-	protected void handlerRabbitMessage(RabbitMessage rabbitMessage) throws Exception {
+	protected void handlerExceptionRabbitMessage(RabbitMessage rabbitMessage,Exception e) throws Exception {
 		SysMessageInsertDto sysMessageInsertDto = new SysMessageInsertDto();
 		sysMessageInsertDto.setType(1L);
 		sysMessageInsertDto.setUserId(1L);

@@ -10,4 +10,8 @@
 		select * from portal_country order by id;
 	</select>
 	
+	<select id="listByCategoryId" resultType="com.reyco.dasbx.portal.model.domain.Country">
+		select countryId as id,countryName as name from portal_category_country where categoryId = #{categoryId} order by ordered;
+	</select>
+	
 </mapper>

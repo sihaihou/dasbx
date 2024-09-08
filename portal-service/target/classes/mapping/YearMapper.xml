@@ -10,4 +10,8 @@
 		select * from portal_year order by id desc;
 	</select>
 	
+	<select id="listByCategoryId" resultType="com.reyco.dasbx.portal.model.domain.Year">
+		select yearId as id,yearName as name from portal_category_year where categoryId = #{categoryId} order by ordered;
+	</select>
+	
 </mapper>
