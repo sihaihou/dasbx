@@ -10,7 +10,13 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.context.expression.MethodBasedEvaluationContext;
+import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.stereotype.Component;
 
 import com.reyco.dasbx.commons.utils.ReflectionReycoUtils;
@@ -19,6 +25,8 @@ import com.reyco.dasbx.lock.annotation.Lock;
 @Aspect
 @Component
 public class DistributedLockAspect {
+	
+	private SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
 	
 	private DistributedLock distributedLock;
 
@@ -53,8 +61,58 @@ public class DistributedLockAspect {
 		}
 		return joinPoint.proceed();
 	}
-	
+	/**
+	 * 获取Key
+	 * @param joinPoint
+	 * @return
+	 */
 	protected String getKey(ProceedingJoinPoint joinPoint){
+		MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+		Method targetMethod = signature.getMethod();
+		Lock lock = targetMethod.getAnnotation(Lock.class);
+		String value = getValue(joinPoint);
+		if(StringUtils.isBlank(lock.prefix()) && StringUtils.isBlank(lock.value()) && StringUtils.isBlank(value)) {
+			throw new RuntimeException("@Lock annotation configuration error,@Lock:"+lock);
+		}
+		String key = (lock.prefix()+":"+lock.value()+":"+value).replaceAll("\\:+", ":");
+		if(key.startsWith(":")) {
+			key = key.substring(1);
+		}
+		if(key.endsWith(":")) {
+			key = key.substring(0,key.length()-1);
+		}
+		return key;
+	}
+	/**
+	 * 获取Value
+	 * @param joinPoint
+	 * @return
+	 */
+	private String getValue(ProceedingJoinPoint joinPoint) {
+		MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+		Method targetMethod = signature.getMethod();
+		Object[] parameterValues = joinPoint.getArgs();
+		Lock lock = targetMethod.getAnnotation(Lock.class);
+		String key = lock.key();
+		if(StringUtils.isBlank(key)) {
+			return "";
+		}
+		if(!key.startsWith("#")) {
+			return key;
+		}
+		Expression expression = spelExpressionParser.parseExpression(key);
+		EvaluationContext evaluationContext = new MethodBasedEvaluationContext(joinPoint.getTarget(), targetMethod, parameterValues, getParameterNameDiscoverer());
+		return expression.getValue(evaluationContext,String.class);
+	}
+	/**
+	 * 获取参数名称发现者
+	 * @return
+	 */
+	private ParameterNameDiscoverer getParameterNameDiscoverer() {
+		return new DefaultParameterNameDiscoverer();
+	}
+	@Deprecated
+	protected String getKey1(ProceedingJoinPoint joinPoint){
 		MethodSignature signature = (MethodSignature) joinPoint.getSignature();
 		Method targetMethod = signature.getMethod();
 		Lock lock = targetMethod.getAnnotation(Lock.class);
@@ -94,6 +152,7 @@ public class DistributedLockAspect {
 		}
 		throw new RuntimeException("value configuration error,Parameter not fount '"+key+"' key.");
 	}
+	@Deprecated
 	private String getKey(String[] keyArray,int currentIndex,String key,Object value) {
 		if(value==null) {
 			throw new RuntimeException("Field '"+keyArray[currentIndex-1]+"' cannot be empty.");

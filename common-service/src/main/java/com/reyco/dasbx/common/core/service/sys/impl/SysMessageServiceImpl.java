@@ -5,6 +5,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -28,6 +30,7 @@ import com.reyco.dasbx.commons.utils.Convert;
 import com.reyco.dasbx.commons.utils.Dasbx;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.utils.TokenUtils;
+import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.constants.Constants;
 import com.reyco.dasbx.model.domain.SysAccount;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
@@ -43,6 +46,7 @@ public class SysMessageServiceImpl implements SysMessageService {
 	private SysAccountService sysAccountService;
 	
 	@Override
+	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_MESSAGE_INFO_PREFIX,key="#id")
 	public SysMessageInfoVO getById(Long id) throws AuthenticationException {
 		SysMessage sysMessage = sysMessageDao.getById(id);
 		if(sysMessage!=null && sysMessage.getRead().intValue()==0) {
@@ -136,6 +140,7 @@ public class SysMessageServiceImpl implements SysMessageService {
 	}
 
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_MESSAGE_INFO_PREFIX,key="#sysMessageUpdateReadDto.id")
 	public void updateRead(SysMessageUpdateReadDto sysMessageUpdateReadDto) throws AuthenticationException {
 		SysMessageUpdateReadPO sysMessageUpdateReadPO = Convert.sourceToTarget(sysMessageUpdateReadDto, SysMessageUpdateReadPO.class);
 		sysMessageUpdateReadPO.setGmtRead(Dasbx.getCurrentTime());
@@ -144,6 +149,7 @@ public class SysMessageServiceImpl implements SysMessageService {
 	}
 
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_MESSAGE_INFO_PREFIX,key="#sysMessageUpdateHandleDto.id")
 	public void updateHandle(SysMessageUpdateHandleDto sysMessageUpdateHandleDto) throws AuthenticationException {
 		SysMessageUpdateHandlePO sysMessageUpdateHandlePO = Convert.sourceToTarget(sysMessageUpdateHandleDto, SysMessageUpdateHandlePO.class);
 		sysMessageUpdateHandlePO.setGmtHandle(Dasbx.getCurrentTime());
@@ -152,6 +158,7 @@ public class SysMessageServiceImpl implements SysMessageService {
 	}
 
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_MESSAGE_INFO_PREFIX,key="#sysMessageDeleteDto.id")
 	public void deleteById(SysMessageDeleteDto sysMessageDeleteDto) {
 		SysMessageDeletePO sysMessageDeletePO = Convert.sourceToTarget(sysMessageDeleteDto, SysMessageDeletePO.class);
 		sysMessageDao.deleteById(sysMessageDeletePO);

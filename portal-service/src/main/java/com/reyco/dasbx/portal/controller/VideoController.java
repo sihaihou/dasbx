@@ -2,7 +2,6 @@ package com.reyco.dasbx.portal.controller;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,18 +13,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.github.pagehelper.PageInfo;
 import com.reyco.dasbx.commons.domain.R;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.portal.model.domain.dto.VideoInsertDto;
-import com.reyco.dasbx.portal.model.domain.dto.VideoPageDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoPlayEventDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoReviewDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoSearchDto;
 import com.reyco.dasbx.portal.model.domain.vo.VideoInfoVO;
+import com.reyco.dasbx.portal.model.domain.vo.VideoListDetailVO;
 import com.reyco.dasbx.portal.model.domain.vo.VideoListVO;
-import com.reyco.dasbx.portal.service.VideoPublishListService;
 import com.reyco.dasbx.portal.service.VideoService;
 
 @RestController
@@ -34,18 +31,11 @@ public class VideoController {
 	
 	@Autowired
 	private VideoService videoService;
-	@Autowired
-	private VideoPublishListService videoPublishListService;
 	
 	@GetMapping("{id}")
 	public Object info(@PathVariable("id")Long id) {
 		VideoInfoVO videoInfoVO = videoService.get(id);
 		return R.success(videoInfoVO);
-	}
-	@GetMapping("list")
-	public Object list(VideoPageDto videoPageDto) {
-		PageInfo<VideoListVO> pageInfo = videoService.list(videoPageDto);
-		return R.success(pageInfo);
 	}
 	@GetMapping("suggestion")
 	public Object getSuggestion(String keyword) throws Exception {
@@ -54,8 +44,13 @@ public class VideoController {
 	}
 	@GetMapping("search")
 	public Object search(VideoSearchDto videoSearchDto) throws IOException {
-		SearchVO<VideoListVO> videoListVOs = videoService.search(videoSearchDto);
-		return R.success(videoListVOs);
+		SearchVO<VideoListVO> searchVO = videoService.search(videoSearchDto);
+		return R.success(searchVO);
+	}
+	@GetMapping("searchBack")
+	public Object searchBack(VideoSearchDto videoSearchDto) throws IOException {
+		SearchVO<VideoListDetailVO> searchVO = videoService.searchBack(videoSearchDto);
+		return R.success(searchVO);
 	}
 	@PostMapping("init")
 	public Object init() throws IOException {
@@ -99,14 +94,5 @@ public class VideoController {
 			}
 		};
 	}
-	/**
-	 * 发布视频时，类别相关列表
-	 * @return
-	 * @throws Exception 
-	 */
-	@GetMapping("listForAdd")
-	public Object listForAdd() throws Exception {
-		Map<String, List<?>> listForAdd = videoPublishListService.listForAdd();
-		return R.success(listForAdd);
-	}
+	
 }

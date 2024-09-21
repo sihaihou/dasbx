@@ -46,11 +46,11 @@ public class SysLogoutRabbitConsumerService extends AbstractRabbitConsumerServic
 			key=RabbitConstants.LOG_LOGOUT_ROUTE_KEY
 			))
 	public void logoutLog(SysLoginLogLogoutMessage sysLoginLogLogoutMessage, Channel channel, Message message) {
-		execute(sysLoginLogLogoutMessage, channel, message);
+		handler(sysLoginLogLogoutMessage, channel, message);
 	}
 	
 	@Override
-	protected void handler(RabbitMessage rabbitMessage) throws Exception {
+	protected void doHandler(RabbitMessage rabbitMessage) throws Exception {
 		SysLoginLogLogoutMessage sysLoginLogLogoutMessage = (SysLoginLogLogoutMessage)rabbitMessage;
 		SysLoginLogLogoutUpdateDto sysLoginLogLogoutUpdateDto = Convert.sourceToTarget(sysLoginLogLogoutMessage, SysLoginLogLogoutUpdateDto.class);
 		sysLoginLogService.updateLogout(sysLoginLogLogoutUpdateDto);

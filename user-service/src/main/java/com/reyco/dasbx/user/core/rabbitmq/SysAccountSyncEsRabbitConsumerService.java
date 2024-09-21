@@ -43,11 +43,11 @@ public class SysAccountSyncEsRabbitConsumerService extends AbstractRabbitConsume
 			exchange = @Exchange(value = RabbitConstants.ACCOUNT_EXCHANGE, type = ExchangeTypes.DIRECT, durable = "true", autoDelete = "false"), 
 			key = RabbitConstants.ACCOUNT_SYNC_ES_ROUTE_KEY))
 	public void syncElasticsearch(SysAccountSyncEsMessage sysAccountSyncEsMessage, Channel channel, Message message) {
-		execute(sysAccountSyncEsMessage, channel, message);
+		handler(sysAccountSyncEsMessage, channel, message);
 	}
 
 	@Override
-	protected void handler(RabbitMessage rabbitMessage) throws Exception {
+	protected void doHandler(RabbitMessage rabbitMessage) throws Exception {
 		SysAccountSyncEsMessage sysAccountSyncEsMessage = (SysAccountSyncEsMessage)rabbitMessage;
 		OperationType type = sysAccountSyncEsMessage.getType();
 		if(OperationType.CREATE==type || OperationType.UPDATE==type) {

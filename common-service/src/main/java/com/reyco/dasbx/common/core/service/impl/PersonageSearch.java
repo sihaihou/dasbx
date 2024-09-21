@@ -35,7 +35,6 @@ import com.reyco.dasbx.es.core.search.type.IndexType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexAggregationType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexHighlightType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexSearchFieldType;
-import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexSuggestionType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexType;
 
 @Service
@@ -55,9 +54,6 @@ public class PersonageSearch extends AbstractSearch<PersonageInfoVO>{
 		indexHighlightType.setIndexName(Constants.PERSONAGE_INDEX_NAME);
 		indexHighlightType.setHighlightFields(Constants.PERSONAGE_HIGHLIGHT_FIELDS);
 		indexType.setIndexHighlightType(indexHighlightType);
-		DefaultIndexSuggestionType indexSuggestionType = new DefaultIndexSuggestionType();
-		indexSuggestionType.setIndexName(Constants.PERSONAGE_INDEX_NAME);
-		indexType.setIndexSuggestionType(indexSuggestionType);
 		DefaultIndexAggregationType indexAggregationType = new DefaultIndexAggregationType();
 		indexAggregationType.setIndexName(Constants.PERSONAGE_INDEX_NAME);
 		indexAggregationType.setAggregationFields(Constants.PERSONAGE_AGGREGATION_FIELDS);

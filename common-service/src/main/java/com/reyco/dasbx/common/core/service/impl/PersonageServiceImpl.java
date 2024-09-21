@@ -24,6 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.reyco.dasbx.common.core.constant.Constants;
@@ -51,6 +53,7 @@ import com.reyco.dasbx.config.utils.CodeUtils;
 import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.model.GeoPoint;
 import com.reyco.dasbx.es.core.search.SearchVO;
+import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.domain.Area;
 import com.reyco.dasbx.model.domain.Fullname;
 import com.reyco.dasbx.model.domain.Personage;
@@ -381,6 +384,7 @@ public class PersonageServiceImpl implements PersonageService {
 	}
 
 	@Override
+	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_PERSONAGE_INFO_PREFIX,key="#id")
 	public PersonageInfoVO get(Long id) {
 		Personage personage = personageDao.getById(id);
 		PersonageInfoVO personageInfoVO = Convert.sourceToTarget(personage, PersonageInfoVO.class);
@@ -393,6 +397,7 @@ public class PersonageServiceImpl implements PersonageService {
 	}
 
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_PERSONAGE_INFO_PREFIX,key="#personageUpdateDto.id")
 	public void update(PersonageUpdateDto personageUpdateDto) {
 		PersonageUpdatePO personageUpdatePO = Convert.sourceToTarget(personageUpdateDto, PersonageUpdatePO.class);
 		personageDao.update(personageUpdatePO);
@@ -441,6 +446,7 @@ public class PersonageServiceImpl implements PersonageService {
 	}
 
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_PERSONAGE_INFO_PREFIX,key="#personageDeleteDto.id")
 	public void delete(PersonageDeleteDto personageDeleteDto) {
 		PersonageDeletePO personageDeletePO = Convert.sourceToTarget(personageDeleteDto, PersonageDeletePO.class);
 		personageDao.deleteById(personageDeletePO);

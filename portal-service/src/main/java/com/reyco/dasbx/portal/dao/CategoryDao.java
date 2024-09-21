@@ -8,6 +8,8 @@ import com.reyco.dasbx.portal.model.domain.Category;
 
 public interface CategoryDao {
 	
+	Category getById(Long id);
+	
 	List<Category> listByLimit(@Param("limit")Integer size);
 	
 }

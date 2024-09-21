@@ -1,25 +1,18 @@
 package com.reyco.dasbx.resource.annotation;
 
-import org.springframework.context.annotation.AdviceMode;
-import org.springframework.context.annotation.AdviceModeImportSelector;
 import org.springframework.context.annotation.AutoProxyRegistrar;
+import org.springframework.context.annotation.ImportSelector;
+import org.springframework.core.type.AnnotationMetadata;
 
-public class ResourceConfigurationSelector extends AdviceModeImportSelector<EnableResource> {
+public class ResourceConfigurationSelector implements ImportSelector {
 
 	@Override
-	protected String[] selectImports(AdviceMode adviceMode) {
-		switch (adviceMode) {
-		case PROXY:
-			return new String[] {
-					AutoProxyRegistrar.class.getName(),
-					ResourceHandlerConfiguration.class.getName(),
-					ResourceConfiguration.class.getName()
-				};
-		case ASPECTJ:
-			return new String[] {};
-		default:
-			return null;
-		}
+	public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+		return new String[] {
+				AutoProxyRegistrar.class.getName(),
+				ResourceHandlerConfiguration.class.getName(),
+				ResourceConfiguration.class.getName()
+			};
 	}
 
 }

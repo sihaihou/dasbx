@@ -5,7 +5,11 @@ import org.springframework.beans.factory.InitializingBean;
 import com.reyco.dasbx.id.core.exception.IdGeneratorException;
 import com.reyco.dasbx.id.properties.SnowFlakeProperties;
 
-
+/**
+ * 雪花算法Id生成器
+ * @author reyco
+ *
+ */
 public class SnowflakeIdGenerator implements IdGenerator<Long>, InitializingBean {
 
 	private SnowFlakeProperties snowFlakeProperties;

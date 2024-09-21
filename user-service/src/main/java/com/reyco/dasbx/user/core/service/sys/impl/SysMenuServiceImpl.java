@@ -12,10 +12,13 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import com.reyco.dasbx.commons.utils.Convert;
+import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.constants.Constants;
 import com.reyco.dasbx.user.core.dao.sys.SysMenuDao;
 import com.reyco.dasbx.user.core.model.domain.SysMenu;
@@ -42,6 +45,7 @@ public class SysMenuServiceImpl implements SysMenuService {
 	private SysMenuDao sysMenuDao;
 
 	@Override
+	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.USER_MENU_COMMENT_INFO_PREFIX,key="#menuId")
 	public SysMenuDto get(Long menuId) {
 		SysMenu sysMenu = sysMenuDao.get(menuId);
 		SysMenuDto sysMenuDto = Convert.sourceToTarget(sysMenu, SysMenuDto.class);
@@ -69,12 +73,14 @@ public class SysMenuServiceImpl implements SysMenuService {
 	}
 
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.USER_MENU_COMMENT_INFO_PREFIX,key="#sysMenuUpdateDto.id")
 	public void update(SysMenuUpdateDto sysMenuUpdateDto) {
 		SysMenuUpdatePO sysMenuUpdatePO = Convert.sourceToTarget(sysMenuUpdateDto, SysMenuUpdatePO.class);
 		sysMenuDao.update(sysMenuUpdatePO);
 	}
 
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.USER_MENU_COMMENT_INFO_PREFIX,key="#sysMenuDeleteDto.id")
 	public void delete(SysMenuDeleteDto sysMenuDeleteDto) {
 		SysMenuDeletePO sysMenuDeletePO = Convert.sourceToTarget(sysMenuDeleteDto, SysMenuDeletePO.class);
 		sysMenuDao.delete(sysMenuDeletePO);

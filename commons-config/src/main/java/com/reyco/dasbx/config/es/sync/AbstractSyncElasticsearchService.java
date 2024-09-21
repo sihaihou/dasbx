@@ -3,6 +3,8 @@ package com.reyco.dasbx.config.es.sync;
 import java.io.IOException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.reyco.dasbx.config.redis.RedisUtil;
@@ -12,11 +14,14 @@ import com.reyco.dasbx.model.constants.CachePrefixConstants;
 
 public abstract class AbstractSyncElasticsearchService implements SyncElasticsearchService {
 	
+	private static final Logger logger = LoggerFactory.getLogger(AbstractSyncElasticsearchService.class);
+	
 	//字符串分割表达式: '.' 或者 ',' 或者 ';' 或者  '、' 或者 '一个或多个空格' 或者 '-'
 	protected final static String SPLIT_EXPRESSION = "\\.|,|，|;|；|、|\\s+|-";
 	
 	@Autowired
 	private ElasticsearchClient<ElasticsearchDocument> elasticsearchClient;
+	
 	@Autowired
 	private RedisUtil redisUtil;
 	
@@ -45,11 +50,15 @@ public abstract class AbstractSyncElasticsearchService implements SyncElasticsea
 			}
 			return count;
 		} catch (Exception e) {
-			// TODO: handle exception
+			handlerInitException(e);
 		}finally {
 			redisUtil.delete(key);
 		}
 		return 0;
+	}
+	protected void handlerInitException(Exception e) {
+		logger.error("【ES初始化】初始化失败,出现异常,异常信息:{}",e.getMessage());
+		e.printStackTrace();
 	}
 	@Override
 	public int syncElasticsearch(Long primaryKeyId) throws IOException {
@@ -62,6 +71,7 @@ public abstract class AbstractSyncElasticsearchService implements SyncElasticsea
 		}
 		return flag ? 1 : 0;
 	}
+	
 	@Override
 	public boolean syncDeleteElasticsearch(Long primaryKeyId) throws IOException {
 		if(elasticsearchClient.existsDocument(getIndexName(), primaryKeyId.toString())) {
@@ -69,6 +79,7 @@ public abstract class AbstractSyncElasticsearchService implements SyncElasticsea
 		}
 		return true;
 	}
+	
 	/**
 	 * 获取索引名称
 	 * @return

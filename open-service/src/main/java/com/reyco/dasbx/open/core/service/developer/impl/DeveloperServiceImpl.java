@@ -5,6 +5,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -13,6 +15,7 @@ import com.github.pagehelper.PageInfo;
 import com.reyco.dasbx.commons.utils.Convert;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.utils.TokenUtils;
+import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.constants.ReviewStateType;
 import com.reyco.dasbx.model.domain.Area;
 import com.reyco.dasbx.model.domain.SysAccount;
@@ -45,7 +48,9 @@ public class DeveloperServiceImpl implements DeveloperService{
 	private AreaFeignClientService areaFeignClientService;
 	@Autowired
 	private AccountFeignClientService accountFeignClientService;
+	
 	@Override
+	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.OPEN_DEVELOPER_INFO_PREFIX,key="#id")
 	public DeveloperInfoVO get(Long id) {
 		Developer developer = developerDao.getById(id);
 		DeveloperInfoVO developerInfoVO = Convert.sourceToTarget(developer, DeveloperInfoVO.class);
@@ -89,6 +94,7 @@ public class DeveloperServiceImpl implements DeveloperService{
 	}
 
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.OPEN_DEVELOPER_INFO_PREFIX,key="#developerUpdateDto.id")
 	public void update(DeveloperUpdateDto developerUpdateDto) {
 		DeveloperUpdatePO developerUpdatePO = Convert.sourceToTarget(developerUpdateDto, DeveloperUpdatePO.class);
 		developerDao.update(developerUpdatePO);
@@ -114,6 +120,7 @@ public class DeveloperServiceImpl implements DeveloperService{
 	}
 
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.OPEN_DEVELOPER_INFO_PREFIX,key="#developerReviewDto.id")
 	public void review(DeveloperReviewDto developerReviewDto) {
 		DeveloperReviewPO developerReviewPO = Convert.sourceToTarget(developerReviewDto, DeveloperReviewPO.class);
 		developerDao.review(developerReviewPO);

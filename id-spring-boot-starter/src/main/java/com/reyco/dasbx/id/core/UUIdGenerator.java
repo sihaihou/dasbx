@@ -2,6 +2,11 @@ package com.reyco.dasbx.id.core;
 
 import java.util.UUID;
 
+/**
+ * UUId算法Id生成器
+ * @author reyco
+ *
+ */
 public class UUIdGenerator implements IdGenerator<String> {
 	
 	@Override

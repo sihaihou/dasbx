@@ -16,7 +16,6 @@ import com.reyco.dasbx.es.core.search.type.IndexType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexAggregationType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexHighlightType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexSearchFieldType;
-import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexSuggestionType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexType;
 import com.reyco.dasbx.user.core.constant.Constants;
 import com.reyco.dasbx.user.core.model.es.po.SysRoleElasticsearchDocument;
@@ -38,9 +37,6 @@ public class SysRoleSearch extends AbstractSearch<SysRoleInfoVO> {
 		indexHighlightType.setIndexName(Constants.ROLE_INDEX_NAME);
 		indexHighlightType.setHighlightFields(Constants.ROLE_HIGHLIGHT_FIELDS);
 		indexType.setIndexHighlightType(indexHighlightType);
-		DefaultIndexSuggestionType indexSuggestionType = new DefaultIndexSuggestionType();
-		indexSuggestionType.setIndexName(Constants.ROLE_INDEX_NAME);
-		indexType.setIndexSuggestionType(indexSuggestionType);
 		DefaultIndexAggregationType indexAggregationType = new DefaultIndexAggregationType();
 		indexAggregationType.setIndexName(Constants.ROLE_INDEX_NAME);
 		indexAggregationType.setAggregationFields(Constants.ROLE_AGGREGATION_FIELDS);

@@ -20,7 +20,6 @@ import com.reyco.dasbx.es.core.search.type.IndexType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexAggregationType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexHighlightType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexSearchFieldType;
-import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexSuggestionType;
 import com.reyco.dasbx.es.core.search.type.impl.DefaultIndexType;
 import com.reyco.dasbx.model.constants.AccountType;
 import com.reyco.dasbx.user.core.constant.Constants;
@@ -43,9 +42,6 @@ public class SysAccountSearch extends AbstractSearch<SysAccountInfoVO>{
 		indexHighlightType.setIndexName(Constants.ACCOUNT_INDEX_NAME);
 		indexHighlightType.setHighlightFields(Constants.ACCOUNT_HIGHLIGHT_FIELDS);
 		indexType.setIndexHighlightType(indexHighlightType);
-		DefaultIndexSuggestionType indexSuggestionType = new DefaultIndexSuggestionType();
-		indexSuggestionType.setIndexName(Constants.ACCOUNT_INDEX_NAME);
-		indexType.setIndexSuggestionType(indexSuggestionType);
 		DefaultIndexAggregationType indexAggregationType = new DefaultIndexAggregationType();
 		indexAggregationType.setIndexName(Constants.ACCOUNT_INDEX_NAME);
 		indexAggregationType.setAggregationFields(Constants.ACCOUNT_AGGREGATION_FIELDS);

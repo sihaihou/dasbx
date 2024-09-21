@@ -12,6 +12,6 @@ import com.reyco.dasbx.model.msg.RabbitMessage;
  */
 public interface RabbitConsumerService{
 	
-	void execute(RabbitMessage rabbitMessage,Channel channel, Message message);
+	void handler(RabbitMessage rabbitMessage,Channel channel, Message message);
 	
 }

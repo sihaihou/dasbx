@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -24,6 +25,7 @@ import com.reyco.dasbx.common.core.model.vo.sys.SysLogListVO;
 import com.reyco.dasbx.common.core.service.sys.SysLogService;
 import com.reyco.dasbx.commons.utils.Convert;
 import com.reyco.dasbx.commons.utils.Dasbx;
+import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.domain.SysLog;
 
 @Service
@@ -35,6 +37,7 @@ public class SysLogServiceImpl implements SysLogService {
 	private SysLoginLogDao sysLoginLogDao;
 	
 	@Override
+	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_LOG_INFO_PREFIX,key="#id")
 	public SysLogInfoVO get(Long id) {
 		SysLog sysLog = sysLogDao.getById(id);
 		SysLogInfoVO sysLogInfoVO = Convert.sourceToTarget(sysLog, SysLogInfoVO.class);

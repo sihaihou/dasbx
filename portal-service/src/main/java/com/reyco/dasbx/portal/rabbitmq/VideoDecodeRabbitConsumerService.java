@@ -50,10 +50,10 @@ public class VideoDecodeRabbitConsumerService extends AbstractRabbitConsumerServ
 			value = @Queue(value = RabbitConstants.VIDEO_FANOUT_DECODE_QUEUE, durable = "true", exclusive = "false", autoDelete = "false")),
 			containerFactory="rabbitListenerContainerFactory")
 	public void log(VideoMessage videoMessage, Channel channel, Message message) {
-		execute(videoMessage, channel, message);
+		handler(videoMessage, channel, message);
 	}
 	@Override
-	protected void handler(RabbitMessage rabbitMessage) throws Exception {
+	protected void doHandler(RabbitMessage rabbitMessage) throws Exception {
 		VideoMessage videoMessage = (VideoMessage)rabbitMessage;
 		Video video = videoDao.getById(videoMessage.getVideoId());
 		decode(video);

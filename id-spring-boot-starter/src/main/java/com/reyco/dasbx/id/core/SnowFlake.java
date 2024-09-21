@@ -5,7 +5,8 @@ package com.reyco.dasbx.id.core;
  * @author reyco
  *
  */
-public class SnowFlake<T> {
+@SuppressWarnings("all")
+public class SnowFlake {
 	/**
 	 * 
 	 */
@@ -135,8 +136,5 @@ public class SnowFlake<T> {
 		SnowFlake snowFlake = getSnowFlake(0,0);
 		long nextId = snowFlake.nextId();
 		return nextId;
-	}
-	public static void main(String[] args) {
-		
 	}
 }

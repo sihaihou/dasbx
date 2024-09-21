@@ -46,6 +46,9 @@ public class ElasticsearchUtils {
 	 */
 	public static void buildAggregation(SearchRequest searchRequest,IndexType indexType) {
 		IndexAggregationType indexAggregationType = indexType.getIndexAggregationType();
+		if(indexAggregationType==null) {
+			return;
+		}
 		String[] aggregationFields = indexAggregationType.getAggregationFields();
 		String[] aggregationNames = indexAggregationType.getAggregationNames();
 		Integer[] aggregationSizes = indexAggregationType.getAggregationSizes();
@@ -58,6 +61,9 @@ public class ElasticsearchUtils {
 	 * @return
 	 */
 	public static void buildAggregation(SearchRequest searchRequest,IndexAggregationType indexAggregationType) {
+		if(indexAggregationType==null) {
+			return;
+		}
 		String[] aggregationFields = indexAggregationType.getAggregationFields();
 		String[] aggregationNames = indexAggregationType.getAggregationNames();
 		Integer[] aggregationSizes = indexAggregationType.getAggregationSizes();
@@ -194,7 +200,7 @@ public class ElasticsearchUtils {
 			suggestionName = completionFieldName;
 		}
 		if(size==null || size<IndexType.DEFAULT_SUGGESTION_MIN_SIZE) {
-			size = IndexType.DEFAULT_SUGGESTION_MIN_SIZE;
+			size = IndexType.DEFAULT_SUGGESTION_SIZE;
 		}
 		if(size>IndexType.DEFAULT_SUGGESTION_MAX_SIZE) {
 			size = IndexType.DEFAULT_SUGGESTION_MAX_SIZE;
@@ -218,6 +224,9 @@ public class ElasticsearchUtils {
 	 * @return
 	 */
 	public static Map<String,List<Aggregation>> parseAggregations(Aggregations aggregations,IndexType indexType){
+		if(indexType==null) {
+			return null;
+		}
 		return parseAggregations(aggregations, indexType.getIndexAggregationType());
 	}
 	/**
@@ -227,6 +236,9 @@ public class ElasticsearchUtils {
 	 * @return
 	 */
 	public static Map<String,List<Aggregation>> parseAggregations(Aggregations aggregations,IndexAggregationType indexAggregationType){
+		if(indexAggregationType==null) {
+			return null;
+		}
 		if((indexAggregationType.getAggregationNames()==null
 				|| indexAggregationType.getAggregationNames().length==0)
 				&& (indexAggregationType.getAggregationFields()==null

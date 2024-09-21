@@ -8,6 +8,8 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -28,6 +30,7 @@ import com.reyco.dasbx.common.core.service.AreaService;
 import com.reyco.dasbx.commons.utils.Convert;
 import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.model.GeoPoint;
+import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.domain.Area;
 
 @Service
@@ -104,6 +107,7 @@ public class AreaServiceImpl implements AreaService {
 	}
 	
 	@Override
+	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_AREA_INFO_PREFIX,key="#id")
 	public AreaInfoVO get(Long id) {
 		Area area = areaDao.getById(id);
 		AreaInfoVO areaInfoVO = Convert.sourceToTarget(area, AreaInfoVO.class);
@@ -156,6 +160,7 @@ public class AreaServiceImpl implements AreaService {
 	}
 	
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_AREA_INFO_PREFIX,key="#areaUpdateDto.id")
 	public void update(AreaUpdateDto areaUpdateDto) {
 		AreaUpdatePO areaUpdatePO = Convert.sourceToTarget(areaUpdateDto, AreaUpdatePO.class);
 		areaDao.update(areaUpdatePO);
@@ -179,6 +184,7 @@ public class AreaServiceImpl implements AreaService {
 	}
 
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_AREA_INFO_PREFIX,key="#areaDeleteDto.id")
 	public void delete(AreaDeleteDto areaDeleteDto) {
 		Area deleteArea = areaDao.getById(areaDeleteDto.getId());
 		if(deleteArea.getLeaf()==0) {

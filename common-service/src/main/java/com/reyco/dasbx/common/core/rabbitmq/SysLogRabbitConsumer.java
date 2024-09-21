@@ -43,11 +43,11 @@ public class SysLogRabbitConsumer extends AbstractRabbitConsumerService{
 			value = @Queue(value = RabbitConstants.LOG_SYS_QUEUE, durable = "true", exclusive = "false", autoDelete = "false"), 
 			key = RabbitConstants.LOG_SYS_ROUTE_KEY),containerFactory="rabbitListenerContainerFactory")
 	public void sysLog(SysLogRabbitmqMessage sysLogRabbitmqMessage, Channel channel, Message message) {
-		execute(sysLogRabbitmqMessage, channel, message);
+		handler(sysLogRabbitmqMessage, channel, message);
 	}
 
 	@Override
-	protected void handler(RabbitMessage rabbitMessage) throws Exception {
+	protected void doHandler(RabbitMessage rabbitMessage) throws Exception {
 		SysLogRabbitmqMessage sysLogRabbitmqMessage = (SysLogRabbitmqMessage)rabbitMessage;
 		SysLogInsertDto sysLogInsertDto = Convert.sourceToTarget(sysLogRabbitmqMessage, SysLogInsertDto.class);
 		SysLogService.insert(sysLogInsertDto);

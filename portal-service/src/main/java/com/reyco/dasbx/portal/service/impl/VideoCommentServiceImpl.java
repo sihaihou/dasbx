@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -21,6 +23,7 @@ import com.reyco.dasbx.commons.utils.Dasbx;
 import com.reyco.dasbx.commons.utils.IPDataUtils;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.utils.TokenUtils;
+import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.vo.SysAccountToken;
 import com.reyco.dasbx.portal.dao.VideoCommentDao;
 import com.reyco.dasbx.portal.dao.VideoCommentLikeDao;
@@ -40,13 +43,18 @@ import com.reyco.dasbx.portal.service.VideoCommentService;
 @Service
 public class VideoCommentServiceImpl implements VideoCommentService{
 	private static Logger logger = LoggerFactory.getLogger(VideoCommentServiceImpl.class);
+	
 	@Autowired
 	private VideoCommentDao videoCommentDao;
+	
 	@Autowired
 	private VideoCommentLikeDao videoCommentLikeDao;
+	
 	@Autowired
 	private VideoCommentLikeService videoCommentLikeService;
+	
 	@Override
+	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.PORTAL_VIDEO_COMMENT_INFO_PREFIX,key="#id")
 	public VideoCommentInfoVO get(Long id) {
 		VideoComment videoComment = videoCommentDao.getById(id);
 		VideoCommentInfoVO videoCommentInfoVO = Convert.sourceToTarget(videoComment, VideoCommentInfoVO.class);
@@ -107,6 +115,7 @@ public class VideoCommentServiceImpl implements VideoCommentService{
 		}
 	}
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.PORTAL_VIDEO_COMMENT_INFO_PREFIX,key="#videoCommentLikeDto.id")
 	public VideoCommentInfoVO like(VideoCommentLikeDto videoCommentLikeDto) throws AuthenticationException {
 		VideoCommentLikePO videoCommentLikePO = new VideoCommentLikePO();
 		videoCommentLikePO.setId(videoCommentLikeDto.getId());

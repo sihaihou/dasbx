@@ -21,10 +21,10 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import com.reyco.dasbx.commons.utils.Convert;
 import com.reyco.dasbx.commons.utils.Dasbx;
 import com.reyco.dasbx.commons.utils.ToString;
@@ -36,6 +36,7 @@ import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.es.core.search.Sort;
 import com.reyco.dasbx.lock.annotation.Lock;
+import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.msg.VideoMessage;
 import com.reyco.dasbx.model.vo.SysAccountToken;
@@ -44,7 +45,6 @@ import com.reyco.dasbx.portal.dao.VideoDao;
 import com.reyco.dasbx.portal.dao.VideoProductionDao;
 import com.reyco.dasbx.portal.model.domain.Video;
 import com.reyco.dasbx.portal.model.domain.dto.VideoInsertDto;
-import com.reyco.dasbx.portal.model.domain.dto.VideoPageDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoPlayEventDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoProductionInsertDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoReviewDto;
@@ -53,12 +53,22 @@ import com.reyco.dasbx.portal.model.domain.po.VideoInsertPO;
 import com.reyco.dasbx.portal.model.domain.po.VideoPlayPO;
 import com.reyco.dasbx.portal.model.domain.po.VideoProductionInsertPO;
 import com.reyco.dasbx.portal.model.domain.po.VideoReviewPO;
-import com.reyco.dasbx.portal.model.domain.po.VideoSelectPO;
+import com.reyco.dasbx.portal.model.domain.vo.CategoryListVO;
+import com.reyco.dasbx.portal.model.domain.vo.CountryListVO;
+import com.reyco.dasbx.portal.model.domain.vo.TypeListVO;
 import com.reyco.dasbx.portal.model.domain.vo.VideoInfoVO;
+import com.reyco.dasbx.portal.model.domain.vo.VideoListDetailVO;
 import com.reyco.dasbx.portal.model.domain.vo.VideoListVO;
 import com.reyco.dasbx.portal.model.domain.vo.VideoProductionInfoVO;
+import com.reyco.dasbx.portal.model.domain.vo.YearListVO;
 import com.reyco.dasbx.portal.model.es.po.VideoElasticsearchDocument;
+import com.reyco.dasbx.portal.service.CategoryService;
+import com.reyco.dasbx.portal.service.CountryService;
+import com.reyco.dasbx.portal.service.TypeService;
+import com.reyco.dasbx.portal.service.VideoProductionService;
 import com.reyco.dasbx.portal.service.VideoService;
+import com.reyco.dasbx.portal.service.YearService;
+import com.reyco.dasbx.portal.service.es.video.VideoListSearch;
 import com.reyco.dasbx.portal.service.es.video.VideoSearch;
 
 @Service
@@ -72,7 +82,19 @@ public class VideoServiceImpl implements VideoService {
 	@Autowired
 	private VideoSearch videoSearch;
 	@Autowired
+	private VideoListSearch videoListSearch;
+	@Autowired
+	private CategoryService categoryService;
+	@Autowired
+	private CountryService countryService;
+	@Autowired
+	private TypeService typeService;
+	@Autowired
+	private YearService yearService;
+	@Autowired
 	private VideoProductionDao videoProductionDao;
+	@Autowired
+	private VideoProductionService videoProductionService;
 	@Autowired
 	private RabbitProducrService rabbitProducrService;
 	
@@ -106,30 +128,19 @@ public class VideoServiceImpl implements VideoService {
 		}
 	}
 	@Override
+	@Lock(name="video:init")
 	public int initElasticsearchVideo() throws IOException {
 		return syncElasticsearchService.initElasticsearch();
 	}
 	@Override
+	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.PORTAL_VIDEO_INFO_PREFIX,key="#id")
 	public VideoInfoVO get(Long id) {
 		Video video = videoDao.getById(id);
 		if (video == null) {
 			return null;
 		}
-		VideoInfoVO videoInfoVO = Convert.sourceToTarget(video, VideoInfoVO.class);
-		VideoProductionInfoVO videoProductionInfoVO = videoProductionDao.getByVideoId(video.getId());
-		videoInfoVO.setVideoProductionInfoVO(videoProductionInfoVO);
+		VideoInfoVO videoInfoVO = buildIfNecessary(video);
 		return videoInfoVO;
-	}
-
-	@Override
-	public PageInfo<VideoListVO> list(VideoPageDto videoPageDto) {
-		VideoSelectPO videoSelectPO = new VideoSelectPO();
-		videoSelectPO.setCategoryId(videoPageDto.getCategoryId());
-		videoSelectPO.setName(videoPageDto.getKeyword());
-		PageHelper.startPage(videoPageDto.getPageNum(), videoPageDto.getPageSize());
-		List<VideoListVO> videoListVOs = videoDao.list(videoSelectPO);
-		PageInfo<VideoListVO> videoListVOPageInfo = new PageInfo<>(videoListVOs);
-		return videoListVOPageInfo;
 	}
 	@Override
 	public List<String> getSuggestion(String keyword) throws Exception {
@@ -141,48 +152,19 @@ public class VideoServiceImpl implements VideoService {
 	}
 	@Override
 	public SearchVO<VideoListVO> search(VideoSearchDto videoSearchDto) throws IOException {
-		Byte sortValue = videoSearchDto.getSort();
-		List<Sort> sorts = videoSearchDto.getSorts();
-		if(sortValue.intValue()==-1) {
-			if(sorts==null) {
-				sorts = new ArrayList<>();
-				videoSearchDto.setSorts(sorts);
-			}
-			Sort playQuantitySort = new Sort();
-			playQuantitySort.setField("playQuantity");
-			playQuantitySort.setSortOrder(SortOrder.DESC);
-			sorts.add(playQuantitySort);
-			Sort heatQuantitySort = new Sort();
-			heatQuantitySort.setField("heatQuantity");
-			heatQuantitySort.setSortOrder(SortOrder.DESC);
-			sorts.add(heatQuantitySort);
-		}
-		if(sortValue.intValue()==1) {
-			if(sorts==null) {
-				sorts = new ArrayList<>();
-				videoSearchDto.setSorts(sorts);
-			}
-			Sort heatQuantitySort = new Sort();
-			heatQuantitySort.setField("heatQuantity");
-			heatQuantitySort.setSortOrder(SortOrder.DESC);
-			sorts.add(heatQuantitySort);
-		}
-		if(sortValue.intValue()==2) {
-			if(sorts==null) {
-				sorts = new ArrayList<>();
-				videoSearchDto.setSorts(sorts);
-			}
-			Sort playQuantitySort = new Sort();
-			playQuantitySort.setField("playQuantity");
-			playQuantitySort.setSortOrder(SortOrder.DESC);
-			sorts.add(playQuantitySort);
-		}
+		buildSortIfNecessary(videoSearchDto);
 		return videoSearch.search(videoSearchDto);
+	}
+	@Override
+	public SearchVO<VideoListDetailVO> searchBack(VideoSearchDto videoSearchDto) throws IOException {
+		buildSortIfNecessary(videoSearchDto);
+		return videoListSearch.search(videoSearchDto);
 	}
 	
 	@Override
-	@Lock(value="#videoInsertDto.name")
+	@Lock(name="video:add:name:",key="#videoInsertDto.name")
 	public void add(VideoInsertDto videoInsertDto) throws AuthenticationException {
+		logger.debug("Video Add,videoInsertDto:{}",videoInsertDto);
 		VideoInsertPO videoInsertPO = Convert.sourceToTarget(videoInsertDto, VideoInsertPO.class);
 		SysAccountToken sysAccountToken = TokenUtils.getToken();
 		videoInsertPO.setUploadBy(sysAccountToken.getId());
@@ -195,16 +177,19 @@ public class VideoServiceImpl implements VideoService {
 		videoProductionInsertPO.setVideoId(videoInsertPO.getId());
 		videoProductionDao.insert(videoProductionInsertPO);
 		Video video = Convert.sourceToTarget(videoInsertPO, Video.class);
-		publishVideoAddEvent(video);
+		publishVideoAddEvent(video.getId());
 	}
 	
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.PORTAL_VIDEO_INFO_PREFIX,key="#videoReviewDto.id")
 	public void review(VideoReviewDto videoReviewDto) {
 		VideoReviewPO videoReviewPO = Convert.sourceToTarget(videoReviewDto, VideoReviewPO.class);
 		videoReviewPO.setState(videoReviewDto.getReview()?(byte)1:(byte)2);
 		videoDao.review(videoReviewPO);
+		publishVideoAddEvent(videoReviewPO.getId());
 	}
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.PORTAL_VIDEO_INFO_PREFIX,key="#videoPlayEventDto.id")
 	public void addPlayEvent(VideoPlayEventDto videoPlayEventDto) {
 		PlayEvent playEvent = new PlayEvent();
 		playEvent.setVideoId(videoPlayEventDto.getId());
@@ -225,6 +210,9 @@ public class VideoServiceImpl implements VideoService {
 			videoPlayPOs.add(videoPlayPO);
 		}
 		videoDao.updatePlay(videoPlayPOs);
+		videoPlayPOs.stream().forEach(VideoPlayPO->{
+			publishVideoAddEvent(VideoPlayPO.getId());
+		});
 	}
 	public class PlayEventNotify implements Runnable {
 		private BlockingQueue<PlayEvent> blockingQueue = new LinkedBlockingQueue<PlayEvent>();
@@ -287,9 +275,64 @@ public class VideoServiceImpl implements VideoService {
 	 * 发布视频事件
 	 * @param sysAccountToken
 	 */
-	private void publishVideoAddEvent(Video video) {
+	private void publishVideoAddEvent(Long videoId) {
 		VideoMessage videoDecodeMessage = new VideoMessage();
-		videoDecodeMessage.setVideoId(video.getId());
+		videoDecodeMessage.setVideoId(videoId);
 		rabbitProducrService.send(RabbitConstants.VIDEO_FANOUT_EXCHANGE, null, videoDecodeMessage);
+	}
+	private VideoInfoVO buildIfNecessary(Video video){
+		VideoInfoVO videoInfoVO = Convert.sourceToTarget(video, VideoInfoVO.class);
+		buildIfNecessary(videoInfoVO);
+		return videoInfoVO;
+	}
+	private void buildIfNecessary(VideoInfoVO videoInfoVO){
+		CategoryListVO categoryListVO = categoryService.get(videoInfoVO.getCategoryId());
+		videoInfoVO.setCategoryName(categoryListVO.getName());
+		CountryListVO countryListVO = countryService.get(videoInfoVO.getCountryId());
+		videoInfoVO.setCountryName(countryListVO.getName());
+		TypeListVO typeListVO = typeService.get(videoInfoVO.getTypeId());
+		videoInfoVO.setTypeName(typeListVO.getName());
+		YearListVO yearListVO = yearService.get(videoInfoVO.getYearId());
+		videoInfoVO.setYearName(yearListVO.getName());
+		VideoProductionInfoVO videoProductionInfoVO = videoProductionService.getByVideoId(videoInfoVO.getId());
+		videoInfoVO.setVideoProductionInfoVO(videoProductionInfoVO);
+	}
+	private void buildSortIfNecessary(VideoSearchDto videoSearchDto) {
+		Byte sortValue = videoSearchDto.getSort();
+		List<Sort> sorts = videoSearchDto.getSorts();
+		if(sortValue.intValue()==-1) {
+			if(sorts==null) {
+				sorts = new ArrayList<>();
+				videoSearchDto.setSorts(sorts);
+			}
+			Sort playQuantitySort = new Sort();
+			playQuantitySort.setField("playQuantity");
+			playQuantitySort.setSortOrder(SortOrder.DESC);
+			sorts.add(playQuantitySort);
+			Sort heatQuantitySort = new Sort();
+			heatQuantitySort.setField("heatQuantity");
+			heatQuantitySort.setSortOrder(SortOrder.DESC);
+			sorts.add(heatQuantitySort);
+		}
+		if(sortValue.intValue()==1) {
+			if(sorts==null) {
+				sorts = new ArrayList<>();
+				videoSearchDto.setSorts(sorts);
+			}
+			Sort heatQuantitySort = new Sort();
+			heatQuantitySort.setField("heatQuantity");
+			heatQuantitySort.setSortOrder(SortOrder.DESC);
+			sorts.add(heatQuantitySort);
+		}
+		if(sortValue.intValue()==2) {
+			if(sorts==null) {
+				sorts = new ArrayList<>();
+				videoSearchDto.setSorts(sorts);
+			}
+			Sort playQuantitySort = new Sort();
+			playQuantitySort.setField("playQuantity");
+			playQuantitySort.setSortOrder(SortOrder.DESC);
+			sorts.add(playQuantitySort);
+		}
 	}
 }

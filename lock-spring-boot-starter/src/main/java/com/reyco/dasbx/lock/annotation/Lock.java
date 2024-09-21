@@ -31,7 +31,12 @@ public @interface Lock {
 	@AliasFor(value="value")
 	String name() default "default";
 	/**
-	 * 锁的前缀
+	 * 锁的名称key
+	 * @return
+	 */
+	String key() default "";
+	/**
+	 * 锁的名称前缀
 	 * @return
 	 */
 	String prefix() default "distributedLock:";

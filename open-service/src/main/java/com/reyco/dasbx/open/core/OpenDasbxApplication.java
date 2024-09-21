@@ -4,6 +4,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.cloud.netflix.ribbon.RibbonClients;
@@ -27,6 +28,7 @@ import com.reyco.dasbx.resource.constant.ResourceMode;
 		@RibbonClient(value="user-service",configuration=NacosClusterWeightRule.class),
 		@RibbonClient(value="common-service",configuration=NacosClusterWeightRule.class)
 })
+@EnableCaching
 @ComponentScan(value= {"com.reyco.dasbx.open","com.reyco.dasbx.config"})
 @MapperScan("com.reyco.dasbx.open.core.dao")
 @SpringBootApplication(exclude=DataSourceAutoConfiguration.class)

@@ -7,8 +7,8 @@ public class Constants {
 	public final static String[] VIDEO_HIGHLIGHT_FIELDS = new String[] {"name","description"};
 	public final static String VIDEO_suggestion_NAME = "suggestion";
 	public final static String VIDEO_SUGGESTION_FIELD = "suggestion";
-	public final static String[] VIDEO_AGGREGATION_FIELDS = new String[] {"countryId","typeId","yearId"};
-	public final static String[] VIDEO_AGGREGATION_NAMES = new String[] {"country","type","year"};
+	public final static String[] VIDEO_AGGREGATION_FIELDS = new String[] {"categoryId","countryId","typeId","yearId"};
+	public final static String[] VIDEO_AGGREGATION_NAMES = new String[] {"category","country","type","year"};
 	public final static Integer[] VIDEO_AGGREGATION_SIZES = new Integer[] {};
 	public final static Boolean[] VIDEO_AGGREGATION_FIELD_ORDERS = new Boolean[] {false};
 }

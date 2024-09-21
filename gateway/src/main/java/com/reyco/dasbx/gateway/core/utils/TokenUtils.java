@@ -25,7 +25,13 @@ public class TokenUtils {
 		}
 		String tokenKey = CachePrefixConstants.TOKEN_PREFIX+token;
 		String tokenJson = redisUtil.get(tokenKey);
+		if(tokenJson==null) {
+			return null;
+		}
 		SysAccountToken sysAccountToken = JsonUtils.jsonToObj(tokenJson, SysAccountToken.class);
+		if(sysAccountToken==null) {
+			return null;
+		}
 		if(deviceType.equalsIgnoreCase(Constants.DEVICE_PC_TYPE)
 				&& !redisUtil.hasKey(CachePrefixConstants.USER_LOGIN_UID+deviceType.toUpperCase()+":"+sysAccountToken.getUid())) {
 			redisUtil.remove(CachePrefixConstants.DEVICE_BING_TOKEN_PREFIX+deviceId, token);

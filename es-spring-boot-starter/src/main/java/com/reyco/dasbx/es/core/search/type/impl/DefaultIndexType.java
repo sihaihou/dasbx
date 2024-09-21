@@ -3,7 +3,6 @@ package com.reyco.dasbx.es.core.search.type.impl;
 import com.reyco.dasbx.es.core.search.type.IndexAggregationType;
 import com.reyco.dasbx.es.core.search.type.IndexHighlightType;
 import com.reyco.dasbx.es.core.search.type.IndexSearchFieldType;
-import com.reyco.dasbx.es.core.search.type.IndexSortsType;
 import com.reyco.dasbx.es.core.search.type.IndexSuggestionType;
 import com.reyco.dasbx.es.core.search.type.IndexType;
 

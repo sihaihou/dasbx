@@ -9,6 +9,8 @@ import javax.annotation.Resource;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.reyco.dasbx.commons.utils.Convert;
@@ -23,6 +25,7 @@ import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.id.core.IdGenerator;
 import com.reyco.dasbx.lock.annotation.Lock;
+import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.constants.OperationType;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.domain.SysAccount;
@@ -71,7 +74,9 @@ public class SysAccountServiceImpl implements SysAccountService {
 	private FullnameService fullnameService;
 	@Resource(name="sysAccountSyncElasticsearchService")
 	private SyncElasticsearchService syncElasticsearchService;
+	
 	@Override
+	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.USER_ACCOUNT_COMMENT_INFO_PREFIX,key="#id")
 	public SysAccountInfoVO get(Long id) {
 		SysAccount account = accountDao.getById(id);
 		List<Long> roleIdList = sysUserRoleService.queryRoleIdsByUserId(id);
@@ -161,6 +166,7 @@ public class SysAccountServiceImpl implements SysAccountService {
 		return accountInfoVO;
 	}
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.USER_ACCOUNT_COMMENT_INFO_PREFIX,key="#sysAccountUpdateDto.id")
 	public void update(SysAccountUpdateDto sysAccountUpdateDto){
 		SysAccount accountParameter = Convert.sourceToTarget(sysAccountUpdateDto, SysAccount.class);
 		SysAccountUpdatePO sysAccountUpdatePO = Convert.sourceToTarget(accountParameter, SysAccountUpdatePO.class);
@@ -209,6 +215,7 @@ public class SysAccountServiceImpl implements SysAccountService {
 	}
 
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.USER_ACCOUNT_COMMENT_INFO_PREFIX,key="#sysAccountDeleteDto.id")
 	public void delete(SysAccountDeleteDto sysAccountDeleteDto) {
 		SysAccountDeletePO sysAccountDeletePO = Convert.sourceToTarget(sysAccountDeleteDto, SysAccountDeletePO.class);
 		accountDao.deleteById(sysAccountDeletePO);

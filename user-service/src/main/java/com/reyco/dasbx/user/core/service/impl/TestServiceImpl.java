@@ -7,7 +7,6 @@ import com.reyco.dasbx.commons.utils.JsonUtils;
 import com.reyco.dasbx.id.core.IdGenerator;
 import com.reyco.dasbx.jwt.core.JwtUtils;
 import com.reyco.dasbx.model.domain.SysAccount;
-import com.reyco.dasbx.resource.annotation.Resource;
 import com.reyco.dasbx.user.core.service.TestService;
 
 @Service

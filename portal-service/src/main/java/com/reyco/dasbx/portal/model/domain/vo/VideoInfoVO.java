@@ -1,11 +1,19 @@
 package com.reyco.dasbx.portal.model.domain.vo;
 
+import java.math.BigDecimal;
+
 import com.reyco.dasbx.model.vo.InfoVO;
 
 public class VideoInfoVO implements InfoVO{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7475747414613042644L;
 	private Long id;
 	private String name;
+	private String description;
 	private Long categoryId;
+	private String categoryName;
 	private Long countryId;
 	private String countryName;
 	private Long typeId;
@@ -13,11 +21,11 @@ public class VideoInfoVO implements InfoVO{
 	private Long yearId;
 	private String yearName;
 	private Long vipId;
-	private Long accountId;
+	private String vipName;
 	private String playUrl;
 	private String portraitCoverUrl;
 	private String landscapeCoverUrl;
-	private String description;
+	private BigDecimal score;
 	private Integer playQuantity;
 	private Integer commentQuantity;
 	private Integer collectionQuantity;
@@ -38,11 +46,23 @@ public class VideoInfoVO implements InfoVO{
 	public void setName(String name) {
 		this.name = name;
 	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
 	public Long getCategoryId() {
 		return categoryId;
 	}
 	public void setCategoryId(Long categoryId) {
 		this.categoryId = categoryId;
+	}
+	public String getCategoryName() {
+		return categoryName;
+	}
+	public void setCategoryName(String categoryName) {
+		this.categoryName = categoryName;
 	}
 	public Long getCountryId() {
 		return countryId;
@@ -86,11 +106,11 @@ public class VideoInfoVO implements InfoVO{
 	public void setVipId(Long vipId) {
 		this.vipId = vipId;
 	}
-	public Long getAccountId() {
-		return accountId;
+	public String getVipName() {
+		return vipName;
 	}
-	public void setAccountId(Long accountId) {
-		this.accountId = accountId;
+	public void setVipName(String vipName) {
+		this.vipName = vipName;
 	}
 	public String getPlayUrl() {
 		return playUrl;
@@ -110,11 +130,11 @@ public class VideoInfoVO implements InfoVO{
 	public void setLandscapeCoverUrl(String landscapeCoverUrl) {
 		this.landscapeCoverUrl = landscapeCoverUrl;
 	}
-	public String getDescription() {
-		return description;
+	public BigDecimal getScore() {
+		return score;
 	}
-	public void setDescription(String description) {
-		this.description = description;
+	public void setScore(BigDecimal score) {
+		this.score = score;
 	}
 	public Integer getPlayQuantity() {
 		return playQuantity;

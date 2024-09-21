@@ -52,11 +52,11 @@ public class SysLoginRabbitConsumerService extends AbstractRabbitConsumerService
 			key=RabbitConstants.LOG_LOGIN_ROUTE_KEY
 			))
 	public void loginLog(SysLoginLogLoginMessage sysLoginLogLoginMessage, Channel channel, Message message) {
-		execute(sysLoginLogLoginMessage, channel, message);
+		handler(sysLoginLogLoginMessage, channel, message);
 	}
 	
 	@Override
-	protected void handler(RabbitMessage rabbitMessage) throws Exception {
+	protected void doHandler(RabbitMessage rabbitMessage) throws Exception {
 		SysLoginLogLoginMessage sysLoginLogLoginMessage = (SysLoginLogLoginMessage)rabbitMessage;
 		SysLoginLog sysLoginLog = sysLoginLogDao.getByCode(sysLoginLogLoginMessage.getCode());
 		if(sysLoginLog!=null) {

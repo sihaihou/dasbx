@@ -5,6 +5,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -24,6 +26,7 @@ import com.reyco.dasbx.common.core.model.vo.sys.SysLoginLogInfoVO;
 import com.reyco.dasbx.common.core.model.vo.sys.SysLoginLogListVO;
 import com.reyco.dasbx.common.core.service.sys.SysLoginLogService;
 import com.reyco.dasbx.commons.utils.Convert;
+import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 
 @Service
 public class SysLoginLogServiceImpl implements SysLoginLogService {
@@ -32,6 +35,7 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
 	private SysLoginLogDao sysLoginLogDao;
 	
 	@Override
+	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_LOGINLOG_INFO_PREFIX,key="#id")
 	public SysLoginLogInfoVO get(Long id) {
 		SysLoginLog sysLoginLog = sysLoginLogDao.getById(id);
 		SysLoginLogInfoVO sysLoginLogInfoVO = Convert.sourceToTarget(sysLoginLog, SysLoginLogInfoVO.class);
@@ -78,6 +82,7 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
 		return sysLoginLogInfoVO;
 	}
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_LOGINLOG_INFO_PREFIX,key="#sysLoginLogLoginUpdateDto.id")
 	public void updateLogin(SysLoginLogLoginUpdateDto sysLoginLogLoginUpdateDto) {
 		SysLoginLogLoginUpdatePO sysLoginLogLoginUpdatePO = Convert.sourceToTarget(sysLoginLogLoginUpdateDto, SysLoginLogLoginUpdatePO.class);
 		SysLoginLog sysLoginLog = sysLoginLogDao.getByCode(sysLoginLogLoginUpdateDto.getCode());
@@ -88,6 +93,7 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
 		sysLoginLogDao.updateLogin(sysLoginLogLoginUpdatePO);
 	}
 	@Override
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_LOGINLOG_INFO_PREFIX,key="#sysLoginLogUpdateDto.id")
 	public void updateLogout(SysLoginLogLogoutUpdateDto sysLoginLogUpdateDto) {
 		SysLoginLogLogoutUpdatePO sysLoginLogUpdatePO = Convert.sourceToTarget(sysLoginLogUpdateDto, SysLoginLogLogoutUpdatePO.class);
 		SysLoginLog sysLoginLog = sysLoginLogDao.getByCode(sysLoginLogUpdateDto.getCode());

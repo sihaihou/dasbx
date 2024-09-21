@@ -11,12 +11,15 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import com.reyco.dasbx.commons.utils.Convert;
 import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.search.SearchVO;
+import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.user.core.constant.Constants;
 import com.reyco.dasbx.user.core.dao.sys.SysAccountDao;
 import com.reyco.dasbx.user.core.dao.sys.SysRoleDao;
@@ -58,6 +61,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     private SysRoleSearch sysRoleSearch;
     
     @Override
+    @Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.USER_ROLE_COMMENT_INFO_PREFIX,key="#roleId")
     public SysRoleInfoVO get(Long roleId) {
         SysRole sysRole = sysRoleMapper.get(roleId);
         SysRoleInfoVO sysRoleInfoVO = Convert.sourceToTarget(sysRole, SysRoleInfoVO.class);
@@ -110,6 +114,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
     
     @Override
+    @CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.USER_ROLE_COMMENT_INFO_PREFIX,key="#sysRoleUpdateDto.id")
     public void update(SysRoleUpdateDto sysRoleUpdateDto){
     	SysRoleUpdatePO sysRoleUpdatePO = Convert.sourceToTarget(sysRoleUpdateDto, SysRoleUpdatePO.class);
         //修改角色的基本数据信息
@@ -136,6 +141,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         return sysRoleMapper.getCountByNameAndById(map);
     }
     @Override
+    @CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.USER_ROLE_COMMENT_INFO_PREFIX,key="#sysRoleDeleteDto.id")
     public void delete(SysRoleDeleteDto sysRoleDeleteDto) {
     	SysRoleDeletePO sysRoleDeletePO = Convert.sourceToTarget(sysRoleDeleteDto, SysRoleDeletePO.class);
         sysRoleMapper.delete(sysRoleDeletePO);

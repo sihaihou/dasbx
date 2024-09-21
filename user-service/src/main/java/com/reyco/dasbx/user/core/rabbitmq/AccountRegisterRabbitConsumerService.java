@@ -43,11 +43,11 @@ public class AccountRegisterRabbitConsumerService extends AbstractRabbitConsumer
 			key=RabbitConstants.ACCOUNT_REGISTER_ROUTE_KEY)
 	)
 	public void register(AccountRegisterMessage accountRegisterMessage, Channel channel, Message message) {
-		execute(accountRegisterMessage, channel, message);
+		handler(accountRegisterMessage, channel, message);
 	}
 
 	@Override
-	protected void handler(RabbitMessage rabbitMessage) throws Exception {
+	protected void doHandler(RabbitMessage rabbitMessage) throws Exception {
 		AccountRegisterMessage accountRegisterMessage = (AccountRegisterMessage)rabbitMessage;
 		SysAccountRegisterDto sysAccountRegisterDto = Convert.sourceToTarget(accountRegisterMessage, SysAccountRegisterDto.class);
 		accountService.register(sysAccountRegisterDto);

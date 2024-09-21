@@ -43,11 +43,12 @@ public class VideoSyncEsRabbitConsumerService extends AbstractRabbitConsumerServ
 			value = @Queue(value = RabbitConstants.VIDEO_FANOUT_SYNC_ES_QUEUE, durable = "true", exclusive = "false", autoDelete = "false")),
 			containerFactory="rabbitListenerContainerFactory")
 	public void syncElasticsearch(VideoMessage videoDecodeMessage, Channel channel, Message message) {
-		execute(videoDecodeMessage, channel, message);
+		handler(videoDecodeMessage, channel, message);
 	}
 
 	@Override
-	protected void handler(RabbitMessage rabbitMessage) throws Exception {
+	protected void doHandler(RabbitMessage rabbitMessage) throws Exception {
+		logger.debug("Video Sync Elasticsearch,rabbitMessage:{}",rabbitMessage);
 		VideoMessage videoMessage = (VideoMessage)rabbitMessage;
 		syncElasticsearchService.syncElasticsearch(videoMessage.getVideoId());
 	}

@@ -1,5 +1,7 @@
 package com.reyco.dasbx.model.vo;
 
-public interface BaseVO {
+import java.io.Serializable;
+
+public interface BaseVO extends Serializable {
 
 }

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,6 +18,13 @@ public class CategoryController {
 	
 	@Autowired
 	private CategoryService categoryService;
+	
+	@GetMapping("/{id}")
+	public Object info(@PathVariable("id") Long id) {
+		CategoryListVO categoryListVO = categoryService.get(id);
+		return R.success(categoryListVO);
+	}
+	
 	@GetMapping("list")
 	public Object list() {
 		List<CategoryListVO> portalCategoryListVOs = categoryService.list();

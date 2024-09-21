@@ -18,7 +18,6 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder.Field;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
-import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
@@ -27,15 +26,14 @@ import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.client.ElasticsearchDocument;
 import com.reyco.dasbx.es.core.model.Aggregation;
 import com.reyco.dasbx.es.core.search.type.IndexHighlightType;
-import com.reyco.dasbx.es.core.search.type.IndexSortsType;
 import com.reyco.dasbx.es.core.search.type.IndexType;
 import com.reyco.dasbx.es.core.utils.ElasticsearchUtils;
 
 public abstract class AbstractSearch<T> implements Search<T> {
-
+	
 	@Autowired
 	private ElasticsearchClient<ElasticsearchDocument> elasticsearchClient;
-
+	
 	@Override
 	public final SearchVO<T> search(SearchDto searchDto) throws IOException {
 		SearchRequest searchRequest = new SearchRequest(getIndexType().getIndexName());
@@ -96,7 +94,16 @@ public abstract class AbstractSearch<T> implements Search<T> {
 	protected Page<T> invokeSearchHits(SearchHits searchHits, SearchDto searchDto) throws IOException {
 		TotalHits totalHits = searchHits.getTotalHits();
 		int total = (int) totalHits.value;
-		List<T> tList = Stream.of(searchHits.getHits()).map(searchHit->{
+		List<T> tList = processSearchHits(searchHits);
+		Page<T> page = new Page<T>();
+		page.setList(tList);
+		page.setPageNum(searchDto.getPageNum());
+		page.setPageSize(searchDto.getPageSize());
+		page.setTotal(total);
+		return page;
+	};
+	protected List<T> processSearchHits(SearchHits searchHits) throws IOException{
+		return Stream.of(searchHits.getHits()).map(searchHit->{
 			T t = null;
 			try {
 				t = processSearchHit(searchHit);
@@ -106,13 +113,7 @@ public abstract class AbstractSearch<T> implements Search<T> {
 			}
 			return t;
 		}).collect(Collectors.toList());
-		Page<T> page = new Page<T>();
-		page.setList(tList);
-		page.setPageNum(searchDto.getPageNum());
-		page.setPageSize(searchDto.getPageSize());
-		page.setTotal(total);
-		return page;
-	};
+	}
 	protected abstract T processSearchHit(SearchHit searchHit) throws IOException;
 	/**
 	 * 执行解析聚合
@@ -231,10 +232,12 @@ public abstract class AbstractSearch<T> implements Search<T> {
 	 * @param searchDto
 	 */
 	protected void buildHighlightBuilder(HighlightBuilder highlightBuilder, SearchDto searchDto) {
-		String[] highlightFields = getIndexType().getIndexHighlightType().getHighlightFields();
-		if (highlightFields != null && highlightFields.length > 0) {
-			Stream.of(highlightFields).forEach(highlightField->highlightBuilder.fields().add(new Field(highlightField)));
+		IndexHighlightType highlightType = getIndexType().getIndexHighlightType();
+		String[] highlightFields = null;
+		if(highlightType==null || (highlightFields = highlightType.getHighlightFields())==null || highlightFields.length==0) {
+			return;
 		}
+		Stream.of(highlightFields).forEach(highlightField->highlightBuilder.fields().add(new Field(highlightField)));
 	}
 
 	/**
@@ -255,7 +258,7 @@ public abstract class AbstractSearch<T> implements Search<T> {
 	}
 
 	/**
-	 * 构建高亮查询
+	 * 构建聚合查询
 	 * 
 	 * @param searchRequest
 	 * @param searchDto
