@@ -3,7 +3,7 @@ package com.reyco.dasbx.user.core.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.reyco.dasbx.commons.utils.JsonUtils;
+import com.reyco.dasbx.commons.utils.convert.JsonUtils;
 import com.reyco.dasbx.id.core.IdGenerator;
 import com.reyco.dasbx.jwt.core.JwtUtils;
 import com.reyco.dasbx.model.domain.SysAccount;

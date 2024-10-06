@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.reyco.dasbx.commons.utils.Convert;
+import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.model.dto.DeleteDto;
 import com.reyco.dasbx.model.dto.InsertDto;
 import com.reyco.dasbx.model.dto.ListDto;

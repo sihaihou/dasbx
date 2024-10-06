@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.reyco.dasbx.commons.domain.R;
-import com.reyco.dasbx.commons.utils.VideoUtils;
-import com.reyco.dasbx.commons.utils.VpsUtils;
+import com.reyco.dasbx.commons.utils.tools.vps.VpsUtils;
+import com.reyco.dasbx.commons.utils.video.VideoUtils;
 import com.reyco.dasbx.config.DasbxConfig;
 import com.reyco.dasbx.oss.core.OssParameter;
 import com.reyco.dasbx.oss.core.OssService;

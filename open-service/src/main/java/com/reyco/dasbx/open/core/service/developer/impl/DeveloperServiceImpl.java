@@ -12,7 +12,7 @@ import org.springframework.util.CollectionUtils;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.reyco.dasbx.commons.utils.Convert;
+import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;

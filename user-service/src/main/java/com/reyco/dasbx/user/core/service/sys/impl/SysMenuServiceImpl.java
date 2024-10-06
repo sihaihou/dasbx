@@ -17,7 +17,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import com.reyco.dasbx.commons.utils.Convert;
+import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.constants.Constants;
 import com.reyco.dasbx.user.core.dao.sys.SysMenuDao;

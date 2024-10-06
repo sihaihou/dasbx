@@ -16,7 +16,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import com.reyco.dasbx.commons.utils.Convert;
+import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;

@@ -7,8 +7,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import com.reyco.dasbx.commons.utils.JsonUtils;
-import com.reyco.dasbx.commons.utils.RequestUtils;
+import com.reyco.dasbx.commons.utils.convert.JsonUtils;
+import com.reyco.dasbx.commons.utils.net.RequestUtils;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.redis.RedisUtil;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;

@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import com.reyco.dasbx.commons.utils.Convert;
+import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.portal.dao.TypeDao;
 import com.reyco.dasbx.portal.model.domain.Type;

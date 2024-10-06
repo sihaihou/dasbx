@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.reyco.dasbx.common.core.dao.sys.SurnameDao;
 import com.reyco.dasbx.common.core.service.SurnameService;
-import com.reyco.dasbx.commons.utils.RandomUtils;
+import com.reyco.dasbx.commons.utils.random.RandomUtils;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.domain.Surname;
 

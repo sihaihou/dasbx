@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.reyco.dasbx.commons.utils.Convert;
+import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.config.es.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.es.core.client.ElasticsearchDocument;
 import com.reyco.dasbx.portal.constant.Constants;

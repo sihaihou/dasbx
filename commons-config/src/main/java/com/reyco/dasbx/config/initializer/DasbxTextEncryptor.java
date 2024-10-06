@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 
-import com.reyco.dasbx.commons.utils.AESUtils;
+import com.reyco.dasbx.commons.utils.encrypt.AESUtils;
 
 public class DasbxTextEncryptor implements TextEncryptor{
 	

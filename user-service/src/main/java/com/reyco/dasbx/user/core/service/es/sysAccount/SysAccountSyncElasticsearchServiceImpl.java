@@ -8,7 +8,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.reyco.dasbx.commons.utils.Convert;
+import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.config.es.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.es.core.client.ElasticsearchDocument;
 import com.reyco.dasbx.model.domain.SysAccount;

@@ -1,6 +1,6 @@
 package com.reyco.dasbx.model.msg;
 
-import com.reyco.dasbx.commons.utils.ToString;
+import com.reyco.dasbx.commons.utils.serializable.ToString;
 import com.reyco.dasbx.model.constants.OperationType;
 
 public class SysAccountSyncEsMessage extends ToString implements RabbitMessage{

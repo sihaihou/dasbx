@@ -23,8 +23,8 @@ import com.reyco.dasbx.common.core.model.po.sys.SysLogUpdatePO;
 import com.reyco.dasbx.common.core.model.vo.sys.SysLogInfoVO;
 import com.reyco.dasbx.common.core.model.vo.sys.SysLogListVO;
 import com.reyco.dasbx.common.core.service.sys.SysLogService;
-import com.reyco.dasbx.commons.utils.Convert;
 import com.reyco.dasbx.commons.utils.Dasbx;
+import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.domain.SysLog;
 

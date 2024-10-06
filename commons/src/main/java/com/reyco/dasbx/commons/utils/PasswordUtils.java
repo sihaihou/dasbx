@@ -1,5 +1,7 @@
 package com.reyco.dasbx.commons.utils;
 
+import com.reyco.dasbx.commons.utils.encrypt.SimpleHash;
+
 /**
  * 
  * @author reyco

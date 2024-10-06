@@ -11,8 +11,8 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder.Field;
 import org.springframework.stereotype.Service;
 
-import com.reyco.dasbx.commons.utils.Convert;
-import com.reyco.dasbx.commons.utils.JsonUtils;
+import com.reyco.dasbx.commons.utils.convert.Convert;
+import com.reyco.dasbx.commons.utils.convert.JsonUtils;
 import com.reyco.dasbx.es.core.search.AbstractSearch;
 import com.reyco.dasbx.es.core.search.SearchDto;
 import com.reyco.dasbx.es.core.search.type.IndexHighlightType;

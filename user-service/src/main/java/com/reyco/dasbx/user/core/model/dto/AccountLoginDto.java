@@ -1,6 +1,6 @@
 package com.reyco.dasbx.user.core.model.dto;
 
-import com.reyco.dasbx.commons.utils.ToString;
+import com.reyco.dasbx.commons.utils.serializable.ToString;
 
 /**
  * 登录参数对象

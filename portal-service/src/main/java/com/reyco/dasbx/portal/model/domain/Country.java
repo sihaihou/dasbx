@@ -1,6 +1,6 @@
 package com.reyco.dasbx.portal.model.domain;
 
-import com.reyco.dasbx.commons.utils.ToString;
+import com.reyco.dasbx.commons.utils.serializable.ToString;
 
 public class Country extends ToString {
 	/**

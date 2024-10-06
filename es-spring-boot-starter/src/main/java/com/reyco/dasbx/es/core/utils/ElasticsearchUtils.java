@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.validation.constraints.NotNull;
-
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -257,7 +255,7 @@ public class ElasticsearchUtils {
 	 * @param aggsNames
 	 * @return
 	 */
-	public static Map<String,List<Aggregation>> parseAggregations(@NotNull Aggregations aggregations,String... aggregationNames){
+	public static Map<String,List<Aggregation>> parseAggregations(Aggregations aggregations, String... aggregationNames){
 		final Map<String,List<Aggregation>> mapAggregationList = new HashMap<>();;
 		Stream.of(aggregationNames).forEach(aggregationName->{
 			List<Aggregation> aggregationList = parseAggregationListByAggregationName(aggregations, aggregationName);
@@ -271,7 +269,7 @@ public class ElasticsearchUtils {
 	 * @param aggsName
 	 * @return
 	 */
-	private static List<Aggregation> parseAggregationListByAggregationName(@NotNull Aggregations aggregations,@NotNull String aggregationName){
+	private static List<Aggregation> parseAggregationListByAggregationName(Aggregations aggregations, String aggregationName){
 		return ((Terms) aggregations.get(aggregationName)).getBuckets().stream()
 				.map(bucket->new Aggregation(bucket.getKeyAsString()))
 				.collect(Collectors.toList());

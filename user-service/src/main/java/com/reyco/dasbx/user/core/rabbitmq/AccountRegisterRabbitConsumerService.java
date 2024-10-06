@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.rabbitmq.client.Channel;
-import com.reyco.dasbx.commons.utils.Convert;
-import com.reyco.dasbx.commons.utils.JsonUtils;
+import com.reyco.dasbx.commons.utils.convert.Convert;
+import com.reyco.dasbx.commons.utils.convert.JsonUtils;
 import com.reyco.dasbx.config.rabbitmq.service.AbstractRabbitConsumerService;
 import com.reyco.dasbx.config.rabbitmq.service.RabbitMessageType;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;

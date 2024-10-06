@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import com.reyco.dasbx.common.core.service.FullnameService;
 import com.reyco.dasbx.common.core.service.NameService;
 import com.reyco.dasbx.common.core.service.SurnameService;
-import com.reyco.dasbx.commons.utils.RandomUtils;
+import com.reyco.dasbx.commons.utils.random.RandomUtils;
 import com.reyco.dasbx.model.domain.Fullname;
 import com.reyco.dasbx.model.domain.Name;
 import com.reyco.dasbx.model.domain.Surname;

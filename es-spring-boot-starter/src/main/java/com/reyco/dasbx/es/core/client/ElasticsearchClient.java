@@ -35,8 +35,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.CollectionUtils;
 
-import com.reyco.dasbx.commons.utils.JsonUtils;
-import com.reyco.dasbx.commons.utils.ToString;
+import com.reyco.dasbx.commons.utils.convert.JsonUtils;
+import com.reyco.dasbx.commons.utils.serializable.ToString;
 import com.reyco.dasbx.es.core.event.ElasticSearcchErrorEvent;
 import com.reyco.dasbx.es.core.event.ElasticSearcchErrorEvent.ProcessFailureMessage;
 import com.reyco.dasbx.es.core.model.Aggregation;

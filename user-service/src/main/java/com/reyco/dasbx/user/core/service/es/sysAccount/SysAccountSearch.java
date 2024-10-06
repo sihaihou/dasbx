@@ -11,8 +11,8 @@ import org.elasticsearch.search.SearchHit;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import com.reyco.dasbx.commons.utils.Convert;
-import com.reyco.dasbx.commons.utils.JsonUtils;
+import com.reyco.dasbx.commons.utils.convert.Convert;
+import com.reyco.dasbx.commons.utils.convert.JsonUtils;
 import com.reyco.dasbx.es.core.model.Aggregation;
 import com.reyco.dasbx.es.core.search.AbstractSearch;
 import com.reyco.dasbx.es.core.search.SearchDto;

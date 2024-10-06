@@ -16,6 +16,16 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>commons-config</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.bytedeco</groupId>
+					<artifactId>javacv</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bytedeco</groupId>
+					<artifactId>ffmpeg-platform</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
@@ -37,18 +47,6 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.elasticsearch.client</groupId>
-			<artifactId>elasticsearch-rest-high-level-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.elasticsearch</groupId>
-			<artifactId>elasticsearch</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.elasticsearch.client</groupId>
-			<artifactId>elasticsearch-rest-client</artifactId>
 		</dependency>
 	</dependencies>
 

@@ -25,7 +25,7 @@ import com.reyco.dasbx.common.core.model.po.sys.SysLoginLogPO;
 import com.reyco.dasbx.common.core.model.vo.sys.SysLoginLogInfoVO;
 import com.reyco.dasbx.common.core.model.vo.sys.SysLoginLogListVO;
 import com.reyco.dasbx.common.core.service.sys.SysLoginLogService;
-import com.reyco.dasbx.commons.utils.Convert;
+import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 
 @Service

@@ -1,6 +1,6 @@
 package com.reyco.dasbx.model.domain;
 
-import com.reyco.dasbx.commons.utils.ToString;
+import com.reyco.dasbx.commons.utils.serializable.ToString;
 
 public class Fullname extends ToString{
 	/**

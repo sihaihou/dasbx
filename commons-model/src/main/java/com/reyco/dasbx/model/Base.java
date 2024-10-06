@@ -1,6 +1,6 @@
 package com.reyco.dasbx.model;
 
-import com.reyco.dasbx.commons.utils.ToString;
+import com.reyco.dasbx.commons.utils.serializable.ToString;
 
 /**
  * 基础实体类

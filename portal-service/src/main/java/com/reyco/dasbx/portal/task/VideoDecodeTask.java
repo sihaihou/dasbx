@@ -12,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.reyco.dasbx.commons.utils.Dasbx;
-import com.reyco.dasbx.commons.utils.MultipartFileUtils;
-import com.reyco.dasbx.commons.utils.VpsUtils;
+import com.reyco.dasbx.commons.utils.net.MultipartFileUtils;
+import com.reyco.dasbx.commons.utils.tools.vps.VpsUtils;
 import com.reyco.dasbx.portal.dao.VideoDao;
 import com.reyco.dasbx.portal.model.domain.Video;
 import com.reyco.dasbx.portal.model.domain.po.VideoDecodePO;

@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.context.ApplicationEvent;
 
-import com.reyco.dasbx.commons.utils.ToString;
+import com.reyco.dasbx.commons.utils.serializable.ToString;
 
 public class ElasticSearcchErrorEvent extends ApplicationEvent{
 	/**

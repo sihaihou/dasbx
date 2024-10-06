@@ -3,7 +3,7 @@ package com.reyco.dasbx.login.core.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.reyco.dasbx.commons.utils.SimpleHash;
+import com.reyco.dasbx.commons.utils.encrypt.SimpleHash;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.login.core.feign.AccountFeignClientService;
 import com.reyco.dasbx.login.core.service.authentication.AbstractAuthenticating;

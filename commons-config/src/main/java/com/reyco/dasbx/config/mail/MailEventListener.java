@@ -14,9 +14,9 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
-import com.reyco.dasbx.commons.utils.MailUtils;
-import com.reyco.dasbx.commons.utils.MailUtils.MailAccount;
-import com.reyco.dasbx.commons.utils.ToString;
+import com.reyco.dasbx.commons.utils.mail.MailUtils;
+import com.reyco.dasbx.commons.utils.mail.MailUtils.MailAccount;
+import com.reyco.dasbx.commons.utils.serializable.ToString;
 import com.reyco.dasbx.config.mail.MailEventListener.MailEvent;
 
 @Component

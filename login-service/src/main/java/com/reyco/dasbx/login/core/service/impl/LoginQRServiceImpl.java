@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import com.reyco.dasbx.commons.utils.JsonUtils;
+import com.reyco.dasbx.commons.utils.convert.JsonUtils;
 import com.reyco.dasbx.config.redis.RedisUtil;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.id.core.IdGenerator;

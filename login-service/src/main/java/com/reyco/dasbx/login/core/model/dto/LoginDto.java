@@ -1,6 +1,6 @@
 package com.reyco.dasbx.login.core.model.dto;
 
-import com.reyco.dasbx.commons.utils.ToString;
+import com.reyco.dasbx.commons.utils.serializable.ToString;
 
 public class LoginDto extends ToString {
 	/**

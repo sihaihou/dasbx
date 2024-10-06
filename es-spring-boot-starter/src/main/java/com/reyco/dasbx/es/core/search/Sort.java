@@ -2,7 +2,7 @@ package com.reyco.dasbx.es.core.search;
 
 import org.elasticsearch.search.sort.SortOrder;
 
-import com.reyco.dasbx.commons.utils.ToString;
+import com.reyco.dasbx.commons.utils.serializable.ToString;
 
 public class Sort extends ToString{
 	/**

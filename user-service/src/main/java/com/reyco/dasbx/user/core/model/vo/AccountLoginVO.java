@@ -1,6 +1,6 @@
 package com.reyco.dasbx.user.core.model.vo;
 
-import com.reyco.dasbx.commons.utils.ToString;
+import com.reyco.dasbx.commons.utils.serializable.ToString;
 
 public class AccountLoginVO extends ToString{
 	/**

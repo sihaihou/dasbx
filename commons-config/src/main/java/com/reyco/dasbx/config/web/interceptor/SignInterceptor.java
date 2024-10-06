@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import com.reyco.dasbx.commons.utils.DictionaryOrderUtils;
-import com.reyco.dasbx.commons.utils.JsonUtils;
+import com.reyco.dasbx.commons.utils.convert.JsonUtils;
 import com.reyco.dasbx.model.constants.MethodType;
 import com.reyco.dasbx.trim.requset.RemoveSpaceHttpServletRequestWrapper;
 

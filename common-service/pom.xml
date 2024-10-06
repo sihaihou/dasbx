@@ -15,14 +15,14 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>commons-config</artifactId>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>es-spring-boot-starter</artifactId>
-		</dependency>
+		</dependency>-->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>oss-spring-boot-starter</artifactId>
-		</dependency>
+		</dependency> 
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>

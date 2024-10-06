@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.reyco.dasbx.commons.utils.JsonUtils;
+import com.reyco.dasbx.commons.utils.convert.JsonUtils;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.redis.RedisUtil;
 import com.reyco.dasbx.config.utils.TokenUtils;

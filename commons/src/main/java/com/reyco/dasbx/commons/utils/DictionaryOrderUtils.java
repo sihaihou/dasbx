@@ -9,6 +9,11 @@ import java.util.StringJoiner;
 
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * 字典序
+ * @author reyco
+ *
+ */
 public class DictionaryOrderUtils {
 	public static void main(String[] args) {
 		Map<String,Object> paramterMap = new HashMap<>();

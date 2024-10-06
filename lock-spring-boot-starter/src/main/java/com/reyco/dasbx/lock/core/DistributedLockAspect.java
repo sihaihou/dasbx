@@ -19,7 +19,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.stereotype.Component;
 
-import com.reyco.dasbx.commons.utils.ReflectionReycoUtils;
+import com.reyco.dasbx.commons.utils.reflect.ReflectionReycoUtils;
 import com.reyco.dasbx.lock.annotation.Lock;
 
 @Aspect

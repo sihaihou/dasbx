@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import com.reyco.dasbx.common.core.dao.sys.GirlNameDao;
 import com.reyco.dasbx.common.core.dao.sys.MaleNameDao;
 import com.reyco.dasbx.common.core.service.NameService;
-import com.reyco.dasbx.commons.utils.RandomUtils;
+import com.reyco.dasbx.commons.utils.random.RandomUtils;
 import com.reyco.dasbx.model.domain.Name;
 
 @Service

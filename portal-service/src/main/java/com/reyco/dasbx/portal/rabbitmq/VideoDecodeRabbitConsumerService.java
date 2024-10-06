@@ -20,8 +20,8 @@ import org.springframework.stereotype.Service;
 
 import com.rabbitmq.client.Channel;
 import com.reyco.dasbx.commons.utils.Dasbx;
-import com.reyco.dasbx.commons.utils.MultipartFileUtils;
-import com.reyco.dasbx.commons.utils.VpsUtils;
+import com.reyco.dasbx.commons.utils.net.MultipartFileUtils;
+import com.reyco.dasbx.commons.utils.tools.vps.VpsUtils;
 import com.reyco.dasbx.config.rabbitmq.service.AbstractRabbitConsumerService;
 import com.reyco.dasbx.config.rabbitmq.service.RabbitMessageType;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;

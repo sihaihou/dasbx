@@ -3,7 +3,7 @@ package com.reyco.dasbx.login.core.service.authentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.reyco.dasbx.commons.utils.SimpleHash;
+import com.reyco.dasbx.commons.utils.encrypt.SimpleHash;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
 
 /**
