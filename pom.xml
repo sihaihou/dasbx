@@ -389,9 +389,14 @@
 				<artifactId>lock-spring-boot-starter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>actuator-spring-boot-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
-
+	
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -402,6 +407,7 @@
 		<module>commons</module>
 		<module>commons-model</module>
 		<module>commons-config</module>
+		<module>actuator-spring-boot-starter</module>
 		<module>constant-spring-boot-starter</module>
 		<module>trim-spring-boot-starter</module>
 		<module>es-spring-boot-starter</module>

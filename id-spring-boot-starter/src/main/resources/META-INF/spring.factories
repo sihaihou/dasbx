@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.reyco.dasbx.id.autoConfiguration.IdGeneratorConfiguration
+com.reyco.dasbx.id.autoConfiguration.IdGeneratorConfiguration,\
+com.reyco.dasbx.id.endpoint.IdEndpointAutoConfiguration

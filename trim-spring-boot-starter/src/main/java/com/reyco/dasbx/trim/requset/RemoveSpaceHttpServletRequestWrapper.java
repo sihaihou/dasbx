@@ -70,8 +70,9 @@ public class RemoveSpaceHttpServletRequestWrapper extends HttpServletRequestWrap
 	 */
 	@Override
 	public ServletInputStream getInputStream() throws IOException {
+		String header = super.getHeader(HttpHeaders.CONTENT_TYPE);
 		// 非json类型，直接返回
-		if (!super.getHeader(HttpHeaders.CONTENT_TYPE).equalsIgnoreCase(MediaType.APPLICATION_JSON_VALUE)) {
+		if (StringUtils.isBlank(header) || !header.equalsIgnoreCase(MediaType.APPLICATION_JSON_VALUE)) {
 			return super.getInputStream();
 		}
 		// 为空，直接返回

@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.reyco.dasbx.constant.autoConfiguration.ConstantConfiguration
+com.reyco.dasbx.constant.autoConfiguration.ConstantConfiguration,\
+com.reyco.dasbx.constant.endpoint.ConstantEndpointAutoConfiguration

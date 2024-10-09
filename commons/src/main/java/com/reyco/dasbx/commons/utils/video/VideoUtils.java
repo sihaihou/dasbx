@@ -4,13 +4,18 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Base64;
 
 import javax.imageio.ImageIO;
@@ -18,6 +23,8 @@ import javax.imageio.ImageIO;
 import org.apache.commons.lang3.StringUtils;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 获取视频封面
@@ -30,6 +37,7 @@ public class VideoUtils {
 	public static final int DEFAULT_COVER_SIZE = 128;
 	public static final int DEFAULT_COVER_WIDTH = 128;
 	public static final int DEFAULT_COVER_HEIGHT = 128;
+	private static final Logger logger = LoggerFactory.getLogger(VideoUtils.class);
 	/**
 	 * 根据视频URL地址获取视频封面
 	 * @param url			视频url地址
@@ -270,6 +278,101 @@ public class VideoUtils {
         int des_height = src.height + len_dalta_height * 2;
         return new java.awt.Rectangle(new Dimension(des_width, des_height));
     }
+	/**
+	 * m3u8转mp4
+	 * @param m3u8Url
+	 * @param destPath
+	 */
+	public static void m3u8ToMp4(String m3u8Url, String destPath) {
+		//
+		String totalTime = "";
+		BigDecimal total = BigDecimal.ONE;
+		BigDecimal progress = BigDecimal.ZERO;
+		
+		String ffmpegCmd = "ffmpeg -i %s -c copy %s";
+		String cmd = String.format(ffmpegCmd, m3u8Url,destPath);
+		logger.info("转码开始："+cmd);
+		try {
+			Process process = Runtime.getRuntime().exec(cmd);
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream(), Charset.forName("UTF-8")));
+			String line = "";
+			while ((line = bufferedReader.readLine()) != null) {
+				if(line.contains("Duration")) {            
+					totalTime = parseLineDurationToTime(line);
+					total = getDuration(totalTime);
+					logger.info("总时间:"+totalTime+",总时长:"+total.doubleValue());
+				}
+				if(line.contains("frame") && line.contains("time")) {
+					String currentTime = parseLineframeToTime(line);
+					BigDecimal position = getDuration(currentTime);
+					BigDecimal currProgress = computeProgress(total, position);
+					if(progress == BigDecimal.ZERO 
+							|| currProgress.subtract(progress).compareTo(BigDecimal.ONE) > 0
+							|| currProgress.compareTo(new BigDecimal(100))>=0) {
+						progress = currProgress;
+						logger.debug("当前进度,总时间："+totalTime+",当前时间："+currentTime+",当前进度："+progress + "%");
+					}
+				}
+			}
+			logger.info("转码成功："+cmd);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("转码失败："+cmd);
+		}
+	}
+	/**
+	 * 计数进度
+	 * @param total
+	 * @param position
+	 * @return
+	 */
+	private static BigDecimal computeProgress(BigDecimal total, BigDecimal position) {
+		BigDecimal progress = position.multiply(new BigDecimal(100)).divide(total, 2, RoundingMode.HALF_UP).setScale(2,RoundingMode.HALF_UP);
+		return progress;
+	}
+	/**
+	 * frame=   50 fps= 22 q=-1.0 size=     256kB time=00:00:01.92 bitrate=1088.4kbits/s speed=0.857x-->00:00:01.92
+	 * @return
+	 */
+	private static String parseLineframeToTime(String lineframe) {
+		String startChar = "time=";
+		String endChar = "bitrate=";
+		String time = lineframe.substring(lineframe.indexOf(startChar)+startChar.length(),lineframe.indexOf(endChar)-1); //00:00:01.92
+		return time;
+	}
+	/**
+	 * Duration: 00:08:13.24, start: 1.457000, bitrate: 0 kb/s --> 00:08:13.24
+	 * @param line
+	 * @return
+	 */
+	private static String parseLineDurationToTime(String lineDuration) {
+		String startChar = "Duration:";
+		String endChar = ",";
+		String duration = lineDuration.substring(lineDuration.indexOf(startChar)+startChar.length()+2,lineDuration.indexOf(endChar)); //00:08:13.24
+		return duration;
+	}
+	/**
+	 * 00:08:13.24 --> 493.02
+	 * @param timeStr
+	 * @return
+	 */
+	private static BigDecimal getDuration(String timeStr) {
+		String HHmmss = timeStr.substring(0, timeStr.indexOf("."));
+		String SSS = timeStr.substring(timeStr.indexOf(".")+1);
+		String[] arr = HHmmss.split(":");
+		BigDecimal duration = BigDecimal.ZERO;
+		int t = 1;
+		for(int i=arr.length-1;i>=0;i--) {
+			int num = Integer.parseInt(arr[i]);
+			duration = duration.add(new BigDecimal(t*num));
+			t *= 60;
+		}
+		int SSSDuration = Integer.parseInt(SSS);
+		BigDecimal SSBigDecimal = new BigDecimal(SSSDuration);
+		SSBigDecimal = SSBigDecimal.divide(new BigDecimal(1000), 2, RoundingMode.HALF_UP);
+		duration = duration.add(SSBigDecimal);
+		return duration;
+	}
 	public static void main(String[] args) throws Exception {
 		BufferedImage coverImage = getCoverImage(10, "D:/usr/local/dasbx/web/work_store_file/videos/1.mp4");
 		writeCoverImage(coverImage, "1.jpg", "D:\\usr\\local\\dasbx\\web\\work_store_file\\videos\\");

@@ -11,8 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.reyco.dasbx.commons.utils.convert.Convert;
-import com.reyco.dasbx.config.es.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.es.core.client.ElasticsearchDocument;
+import com.reyco.dasbx.es.core.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.portal.constant.Constants;
 import com.reyco.dasbx.portal.dao.VideoDao;
 import com.reyco.dasbx.portal.dao.VideoProductionDao;
@@ -21,12 +21,13 @@ import com.reyco.dasbx.portal.model.domain.vo.VideoProductionInfoVO;
 import com.reyco.dasbx.portal.model.es.po.VideoElasticsearchDocument;
 
 @Service("videoSyncElasticsearchSerivce")
-public class VideoSyncElasticsearchSerivceImpl extends AbstractSyncElasticsearchService {
+public class VideoSyncElasticsearchSerivceImpl extends AbstractSyncElasticsearchService{
 	
 	@Autowired
 	private VideoDao videoDao;
 	@Autowired
 	private VideoProductionDao videoProductionDao;
+	
 	@Override
 	protected String getIndexName() {
 		return Constants.VIDEO_INDEX_NAME;
@@ -46,8 +47,9 @@ public class VideoSyncElasticsearchSerivceImpl extends AbstractSyncElasticsearch
 		return elasticsearchDocuments;
 	}
 	@Override
-	protected ElasticsearchDocument getElasticsearchDocumentByPrimaryKeyId(Long primaryKeyId) {
-		Video video = videoDao.getById(primaryKeyId);
+	protected ElasticsearchDocument getElasticsearchDocumentByPrimaryKeyId(Object primaryKeyId) {
+		Long pkId = (Long)primaryKeyId;
+		Video video = videoDao.getById(pkId);
 		ElasticsearchDocument elasticsearchDocument = convert(video);
 		return elasticsearchDocument;
 	}

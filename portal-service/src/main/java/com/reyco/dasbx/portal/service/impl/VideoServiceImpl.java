@@ -28,13 +28,13 @@ import org.springframework.stereotype.Service;
 import com.reyco.dasbx.commons.utils.Dasbx;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.serializable.ToString;
-import com.reyco.dasbx.config.es.sync.SyncElasticsearchService;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.rabbitmq.service.RabbitProducrService;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.es.core.search.Sort;
+import com.reyco.dasbx.es.core.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.lock.annotation.Lock;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.constants.RabbitConstants;
@@ -99,7 +99,7 @@ public class VideoServiceImpl implements VideoService {
 	private RabbitProducrService rabbitProducrService;
 	
 	@Resource(name="videoSyncElasticsearchSerivce")
-	private SyncElasticsearchService syncElasticsearchService;
+	private AbstractSyncElasticsearchService syncElasticsearchService;
 	@Autowired
 	private ElasticsearchClient<VideoElasticsearchDocument> elasticsearchClient;
 	
@@ -130,7 +130,7 @@ public class VideoServiceImpl implements VideoService {
 	@Override
 	@Lock(name="video:init")
 	public int initElasticsearchVideo() throws IOException {
-		return syncElasticsearchService.initElasticsearch();
+		return syncElasticsearchService.fullSyncElasticsearch();
 	}
 	@Override
 	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.PORTAL_VIDEO_INFO_PREFIX,key="#id")

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,18 +85,25 @@ public class VideoDecodeRabbitConsumerService extends AbstractRabbitConsumerServ
 			}
 		};
 	}
+	/*public static void main(String[] args) throws Exception {
+		VideoDecodeRabbitConsumerService videoDecodeRabbitConsumerService = new VideoDecodeRabbitConsumerService();
+		Video video = new Video();
+		video.setHls((byte)0);
+		video.setSourceUrl("http://oss.dasbx.com/videos/746/398977873974927360.mp4");
+		videoDecodeRabbitConsumerService.decode(video);
+	}*/
 	private void decode(Video video) throws Exception {
 		if(video.getHls().intValue()==1) {
 			return;
 		}
 		try {
-			// http://oss.dasbx.com/videos/409/新喜剧之王-隐藏了一个重要情节-202408042212049.mp4
+			// http://oss.dasbx.com/videos/746/398977873974927360.mp4
 			URL url = new URL(video.getSourceUrl());
-			// /videos/409/新喜剧之王-隐藏了一个重要情节-202408042212049.mp4
+			// /videos/409/398977873974927360.mp4
 			String path = url.getPath();
-			// /usr/local/dasbx/web/work_store_file/videos/409/新喜剧之王-隐藏了一个重要情节-202408042212049.mp4
+			// /usr/local/dasbx/web/work_store_file/videos/746/398977873974927360.mp4
 			String sourceVideoPath = ("/usr/local/dasbx/web/work_store_file/"+path).replace("//", "/");
-			// /usr/local/dasbx/web/work_store_file/hls/409
+			// /usr/local/dasbx/web/work_store_file/hls/746
 			String baseHlsPath = getHlsPath(path);
 			String ffmpegCommand = getFFmpegCommand(sourceVideoPath, baseHlsPath);
 			logger.info("ffmpegCommand:"+ffmpegCommand);
@@ -121,68 +130,95 @@ public class VideoDecodeRabbitConsumerService extends AbstractRabbitConsumerServ
 	}
 	/**
 	 * 获取FFmpegCommand
-	 * @param sourceVideoPath	/usr/local/dasbx/web/work_store_file/videos/409/新喜剧之王-隐藏了一个重要情节-202408042212049.mp4
-	 * @param baseHlsPath		/usr/local/dasbx/web/work_store_file/hls/409
+	 * <pre>
+	 * ffmpeg -re -i /usr/local/dasbx/web/work_store_file/videos/746/398977873974927360.mp4 
+	 * -c copy -hls_time 1 -hls_playlist_type vod 
+	 * -hls_segment_filename /usr/local/dasbx/web/work_store_file/hls/746/1-%d.ts /usr/local/dasbx/web/work_store_file/hls/746/398977873974927360.m3u8
+	 * </pre>
+	 * @param sourceVideoPath	/usr/local/dasbx/web/work_store_file/videos/746/398977873974927360.mp4
+	 * @param baseHlsPath		/usr/local/dasbx/web/work_store_file/hls/746
 	 * @return
 	 */
 	private static String getFFmpegCommand(String sourceVideoPath,String baseHlsPath) {
-		// 新喜剧之王-隐藏了一个重要情节-202408042212049
+		// 398977873974927360
 		String filename = getFilename(sourceVideoPath);
-		// /usr/local/dasbx/web/work_store_file/hls/409/新喜剧之王-隐藏了一个重要情节-202408042212049-%d.ts
+		// /usr/local/dasbx/web/work_store_file/hls/746/398977873974927360-%d.ts
 		String tsVideoPath = getVideoTsPath(baseHlsPath, filename);
-		// /usr/local/dasbx/web/work_store_file/hls/409/新喜剧之王-隐藏了一个重要情节-202408042212049.m3u8
+		// /usr/local/dasbx/web/work_store_file/hls/746/398977873974927360.m3u8
 		String m3u8VideoPath = getVideoM3u8Path(baseHlsPath, filename);
-		String ffmpegCommand = "ffmpeg -re -i " + sourceVideoPath + " -c copy" + " -hls_time 1"
-				+ " -hls_playlist_type vod" + " -hls_segment_filename " + tsVideoPath + " " + m3u8VideoPath;
+		List<String> ffmpegCommands = new ArrayList<String>(); 
+		ffmpegCommands.add("ffmpeg");
+		ffmpegCommands.add("-i "+sourceVideoPath);
+		ffmpegCommands.add("-c copy");	//
+		ffmpegCommands.add("-hls_time 5");	//分片视频长度
+		ffmpegCommands.add("-hls_playlist_type vod"); //指定播放列表的类型,VOD、Live、Event
+		ffmpegCommands.add("-hls_segment_filename "+tsVideoPath); //指定每个HLS分段的文件名格式
+		ffmpegCommands.add(m3u8VideoPath);
+		StringBuilder sb = new StringBuilder();
+		ffmpegCommands.stream().forEach(item->sb.append(item).append(" "));
+		String ffmpegCommand = sb.toString();
 		return ffmpegCommand;
 	}
 	/**
-	 * 
-	 * @param baseHlsPath
-	 * @param filename
-	 * @return
-	 */
-	private static String getVideoTsPath(String baseHlsPath,String filename) {
-		// /usr/local/dasbx/web/work_store_file/hls/409/新喜剧之王-隐藏了一个重要情节-202408042212049-%d.ts
-		String tsVideoPath = baseHlsPath+ "/" + filename + "-%d.ts";
-		return tsVideoPath;
-	}
-	/**
-	 * 
-	 * @param baseHlsPath
-	 * @param filename
-	 * @return
-	 */
-	private static String getVideoM3u8Path(String baseHlsPath,String filename) {
-		// /usr/local/dasbx/web/work_store_file/hls/409/新喜剧之王-隐藏了一个重要情节-202408042212049.m3u8
-		String m3u8VideoPath = baseHlsPath + "/" + filename + ".m3u8";
-		return m3u8VideoPath;
-	}
-	/**
-	 * 获取解码目录
-	 * @param path	/videos/409/新喜剧之王-隐藏了一个重要情节-202408042212049.mp4
+	 * 获取解码目录。例：/usr/local/dasbx/web/work_store_file/hls/746
+	 * @param path	/videos/746/398977873974927360.mp4
 	 * @return
 	 */
 	private static String getHlsPath(String path) {
-		// filenameToVps=新喜剧之王-隐藏了一个重要情节
-		String filenameToVps = path.substring(path.lastIndexOf("/")+1, path.lastIndexOf("-"));
+		// filenameToVps=398977873974927360
+		String filenameToVps = path.substring(path.lastIndexOf("/")+1, path.lastIndexOf("."));
+		//746
 		int vps = VpsUtils.getVps(filenameToVps);
-		// /usr/local/dasbx/web/work_store_file/hls/409
+		// /usr/local/dasbx/web/work_store_file/hls/746
 		String baseHlsPath = "/usr/local/dasbx/web/work_store_file/hls/"+vps;
 		MultipartFileUtils.mkdirs(baseHlsPath);
 		return baseHlsPath;
 	}
-	private static String getFilename(String sourceVideoPath) {
-		// 新喜剧之王-隐藏了一个重要情节-202408042212049
-		String filename = sourceVideoPath.substring(sourceVideoPath.lastIndexOf("/")+1, sourceVideoPath.lastIndexOf("."));
-		return filename;
-	}
+	/**
+	 * 获取视频播放地址。例：http://oss.dasbx.com/hls/746/398977873974927360.m3u8
+	 * @param host				 http://oss.subixin.com
+	 * @param sourceVideoPath	 /usr/local/dasbx/web/work_store_file/videos/746/398977873974927360.mp4
+	 * @param baseHlsPath		 /usr/local/dasbx/web/work_store_file/hls/746
+	 * @return
+	 */
 	private static String getPlayUrl(String host,String sourceVideoPath,String baseHlsPath) {
-		// 新喜剧之王-隐藏了一个重要情节-202408042212049
+		// 398977873974927360
 		String filename = getFilename(sourceVideoPath);
-		// /usr/local/dasbx/web/work_store_file/hls/409/新喜剧之王-隐藏了一个重要情节-202408042212049.m3u8
+		// /usr/local/dasbx/web/work_store_file/hls/746/398977873974927360.m3u8
 		String m3u8VideoPath = getVideoM3u8Path(baseHlsPath, filename);
 		String playUrl = host+m3u8VideoPath.replace("/usr/local/dasbx/web/work_store_file", "");
 		return playUrl;
+	}
+	/**
+	 * 获取.ts目录。例：/usr/local/dasbx/web/work_store_file/hls/746/398977873974927360-%d.ts
+	 * @param baseHlsPath	/usr/local/dasbx/web/work_store_file/hls/746
+	 * @param filename		398977873974927360
+	 * @return
+	 */
+	private static String getVideoTsPath(String baseHlsPath,String filename) {
+		// /usr/local/dasbx/web/work_store_file/hls/746/新喜剧之王-隐藏了一个重要情节-202408042212049-%d.ts
+		String tsVideoPath = baseHlsPath+ "/" + filename + "-%d.ts";
+		return tsVideoPath;
+	}
+	/**
+	 * 获取.m3u8目录。例：/usr/local/dasbx/web/work_store_file/hls/746/398977873974927360.m3u8
+	 * @param baseHlsPath	/usr/local/dasbx/web/work_store_file/hls/746
+	 * @param filename		398977873974927360
+	 * @return
+	 */
+	private static String getVideoM3u8Path(String baseHlsPath,String filename) {
+		// /usr/local/dasbx/web/work_store_file/hls/746/398977873974927360.m3u8
+		String m3u8VideoPath = baseHlsPath + "/" + filename + ".m3u8";
+		return m3u8VideoPath;
+	}
+	/**
+	 * 获取文件名。例：398977873974927360
+	 * @param sourceVideoPath	/usr/local/dasbx/web/work_store_file/videos/746/398977873974927360.mp4
+	 * @return
+	 */
+	private static String getFilename(String sourceVideoPath) {
+		// 398977873974927360
+		String filename = sourceVideoPath.substring(sourceVideoPath.lastIndexOf("/")+1, sourceVideoPath.lastIndexOf("."));
+		return filename;
 	}
 }

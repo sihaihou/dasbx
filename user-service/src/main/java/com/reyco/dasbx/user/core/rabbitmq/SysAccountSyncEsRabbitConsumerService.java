@@ -15,9 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.rabbitmq.client.Channel;
-import com.reyco.dasbx.config.es.sync.SyncElasticsearchService;
 import com.reyco.dasbx.config.rabbitmq.service.AbstractRabbitConsumerService;
 import com.reyco.dasbx.config.rabbitmq.service.RabbitMessageType;
+import com.reyco.dasbx.es.core.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.OperationType;
 import com.reyco.dasbx.model.constants.RabbitConstants;
@@ -35,7 +35,7 @@ public class SysAccountSyncEsRabbitConsumerService extends AbstractRabbitConsume
 	private SysMessageService sysMessageService;
 	
 	@Resource(name="sysAccountSyncElasticsearchService")
-	private SyncElasticsearchService syncElasticsearchService;
+	private AbstractSyncElasticsearchService syncElasticsearchService;
 	
 	@RabbitHandler
 	@RabbitListener(bindings = @QueueBinding(
@@ -51,9 +51,9 @@ public class SysAccountSyncEsRabbitConsumerService extends AbstractRabbitConsume
 		SysAccountSyncEsMessage sysAccountSyncEsMessage = (SysAccountSyncEsMessage)rabbitMessage;
 		OperationType type = sysAccountSyncEsMessage.getType();
 		if(OperationType.CREATE==type || OperationType.UPDATE==type) {
-			syncElasticsearchService.syncElasticsearch(sysAccountSyncEsMessage.getAccountId());
+			syncElasticsearchService.incrementUpdateSyncElasticsearch(sysAccountSyncEsMessage.getAccountId());
 		}else if(OperationType.DELETE==type) {
-			syncElasticsearchService.syncDeleteElasticsearch(sysAccountSyncEsMessage.getAccountId());
+			syncElasticsearchService.incrementDeleteSyncElasticsearch(sysAccountSyncEsMessage.getAccountId());
 		}
 	}
 

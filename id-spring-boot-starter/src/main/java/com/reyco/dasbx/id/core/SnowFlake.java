@@ -66,7 +66,7 @@ public class SnowFlake {
 	 *
 	 * @return
 	 */
-	public synchronized long nextId() {
+	public synchronized Long nextId() {
 		long currStmp = getNewstmp();
 		if (currStmp < lastStmp) {
 			// 时钟倒流抛出异常

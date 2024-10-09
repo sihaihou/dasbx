@@ -16,7 +16,8 @@ public class TestController {
 	
 	@GetMapping
 	public Object test(String test){
-		System.err.println(test+idGenerator.getGeneratorId());
+		Long generatorId = idGenerator.getGeneratorId();
+		System.err.println(test+":"+generatorId);
 		return "ok";
 	}
 	@GetMapping("test1")

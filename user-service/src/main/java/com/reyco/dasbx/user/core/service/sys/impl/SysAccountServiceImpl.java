@@ -17,12 +17,12 @@ import com.reyco.dasbx.commons.utils.Dasbx;
 import com.reyco.dasbx.commons.utils.PasswordUtils;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.encrypt.SimpleHash;
-import com.reyco.dasbx.config.es.sync.SyncElasticsearchService;
 import com.reyco.dasbx.config.exception.core.BusinessException;
 import com.reyco.dasbx.config.rabbitmq.service.RabbitProducrService;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.search.SearchVO;
+import com.reyco.dasbx.es.core.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.id.core.IdGenerator;
 import com.reyco.dasbx.lock.annotation.Lock;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
@@ -73,7 +73,7 @@ public class SysAccountServiceImpl implements SysAccountService {
 	@Autowired
 	private FullnameService fullnameService;
 	@Resource(name="sysAccountSyncElasticsearchService")
-	private SyncElasticsearchService syncElasticsearchService;
+	private AbstractSyncElasticsearchService syncElasticsearchService;
 	
 	@Override
 	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.USER_ACCOUNT_COMMENT_INFO_PREFIX,key="#id")
@@ -112,7 +112,7 @@ public class SysAccountServiceImpl implements SysAccountService {
 	}
 	@Override
 	public int initElasticsearchSysAccount() throws IOException {
-		return syncElasticsearchService.initElasticsearch();
+		return syncElasticsearchService.fullSyncElasticsearch();
 	}
 	@Override
 	public void updateState(SysAccountDisableOrEnableDto sysAccountDisableOrEnableDto){

@@ -32,3 +32,14 @@ spring:
           - dataId: common-service-extension.yaml
             group: DASBX_GROUP
             refresh: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    shutdown:
+      enabled: false

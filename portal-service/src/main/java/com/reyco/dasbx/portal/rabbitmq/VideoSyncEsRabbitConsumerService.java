@@ -15,10 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.rabbitmq.client.Channel;
-import com.reyco.dasbx.config.es.sync.SyncElasticsearchService;
 import com.reyco.dasbx.config.exception.core.BusinessException;
 import com.reyco.dasbx.config.rabbitmq.service.AbstractRabbitConsumerService;
 import com.reyco.dasbx.config.rabbitmq.service.RabbitMessageType;
+import com.reyco.dasbx.es.core.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
@@ -35,7 +35,7 @@ public class VideoSyncEsRabbitConsumerService extends AbstractRabbitConsumerServ
 	private SysMessageService sysMessageService;
 	
 	@Resource(name="videoSyncElasticsearchSerivce")
-	private SyncElasticsearchService syncElasticsearchService;
+	private AbstractSyncElasticsearchService syncElasticsearchService;
 	
 	@RabbitHandler
 	@RabbitListener(bindings = @QueueBinding(
@@ -50,7 +50,7 @@ public class VideoSyncEsRabbitConsumerService extends AbstractRabbitConsumerServ
 	protected void doHandler(RabbitMessage rabbitMessage) throws Exception {
 		logger.debug("Video Sync Elasticsearch,rabbitMessage:{}",rabbitMessage);
 		VideoMessage videoMessage = (VideoMessage)rabbitMessage;
-		syncElasticsearchService.syncElasticsearch(videoMessage.getVideoId());
+		syncElasticsearchService.incrementUpdateSyncElasticsearch(videoMessage.getVideoId());
 	}
 
 	@Override

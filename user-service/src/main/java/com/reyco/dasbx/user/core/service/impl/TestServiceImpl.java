@@ -24,7 +24,6 @@ public class TestServiceImpl implements TestService{
 	}
 	@Override
 	public String test1(int a, String b) {
-		int i = 1/a;
 		SysAccount sysAccount = new SysAccount();
 		sysAccount.setId(1L);
 		sysAccount.setUsername("admin");

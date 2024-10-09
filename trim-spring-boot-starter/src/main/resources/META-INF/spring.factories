@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.reyco.dasbx.trim.autoConfiguration.TrimFilterConfig
+com.reyco.dasbx.trim.autoConfiguration.TrimFilterConfig,\
+com.reyco.dasbx.trim.endpoint.TrimEndpointAutoConfiguration

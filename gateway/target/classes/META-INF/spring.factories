@@ -1,2 +1,0 @@
-org.springframework.context.ApplicationListener=\
-com.reyco.dasbx.gateway.core.listener.RegisterTextEncryptorListener

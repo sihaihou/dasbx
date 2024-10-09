@@ -74,6 +74,7 @@ public abstract class AbstractOssService implements OssService {
 		}
 		return uploadPath;
 	}
+	
 	/**
 	 * 获取文件名称(含扩展名)
 	 * @param multipartFile
@@ -81,15 +82,11 @@ public abstract class AbstractOssService implements OssService {
 	 * @return
 	 */
 	protected String getFileName(MultipartFile multipartFile,OssParameter ossParameter) {
-		String filename = null;
-		if(ossParameter!=null) {
-			filename = ossParameter.getFilename();
-		}
-		if(!StringUtils.hasLength(filename)) {
-			filename = MultipartFileUtils.getFilename(multipartFile);
-		}
+		//文件名
+		String filename = MultipartFileUtils.getFilename(multipartFile);
+		//文件扩展名  .png
 		String extension = MultipartFileUtils.getExtension(multipartFile);
-		return filename + LINES + FORMAT.format(new Date()) + extension;
+		return getFileName(filename, extension, ossParameter);
 	}
 	/**
 	 * 获取文件名称(含扩展名)
@@ -98,17 +95,32 @@ public abstract class AbstractOssService implements OssService {
 	 * @return
 	 */
 	protected String getFileName(String base64,OssParameter ossParameter) {
-		String filename = null;
-		if(ossParameter!=null) {
-			filename = ossParameter.getFilename();
-		}
-		if(!StringUtils.hasLength(filename)) {
-			filename = getRandomFilename();
-		}
+		//文件名
+		String filename = getRandomFilename();
 		// data:image/png;base64,
 		String base64Data = base64.split(COMMA)[0];
 		// 文件扩展名  .png
 		String extension = SPOT + base64Data.substring(base64Data.indexOf("/") + 1, base64Data.indexOf(SEMICOLON));
+		return getFileName(filename, extension, ossParameter);
+	}
+	/**
+	 * 获取文件名称(含扩展名)
+	 * @param base64
+	 * @param ossParameter
+	 * @return
+	 */
+	private String getFileName(String filename,String extension,OssParameter ossParameter) {
+		String fileName = ossParameter.getFileName(filename, extension);
+		if(StringUtils.hasLength(fileName)) {
+			return fileName;
+		}
+		String newFilename = null;
+		if(ossParameter!=null) {
+			newFilename = ossParameter.getFilename(filename);
+		}
+		if(StringUtils.hasLength(newFilename)) {
+			filename = newFilename;
+		}
 		return filename + LINES + FORMAT.format(new Date()) + extension;
 	}
 	/**

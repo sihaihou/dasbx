@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.reyco.dasbx.commons.utils.convert.Convert;
-import com.reyco.dasbx.config.es.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.es.core.client.ElasticsearchDocument;
+import com.reyco.dasbx.es.core.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.model.domain.SysAccount;
 import com.reyco.dasbx.user.core.constant.Constants;
 import com.reyco.dasbx.user.core.dao.sys.SysAccountDao;
@@ -42,8 +42,9 @@ public class SysAccountSyncElasticsearchServiceImpl extends AbstractSyncElastics
 		return elasticsearchDocuments;
 	}
 	@Override
-	public ElasticsearchDocument getElasticsearchDocumentByPrimaryKeyId(Long primaryKeyId) {
-		SysAccount sysAccount = sysAccountDao.getById(primaryKeyId);
+	public ElasticsearchDocument getElasticsearchDocumentByPrimaryKeyId(Object primaryKeyId) {
+		Long pkId = (Long)primaryKeyId;
+		SysAccount sysAccount = sysAccountDao.getById(pkId);
 		ElasticsearchDocument elasticsearchDocument = convert(sysAccount);
 		return elasticsearchDocument;
 	}
