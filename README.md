@@ -15,6 +15,7 @@
     - resource-spring-boot-starter：系统日志搜集的starter
     - trim-spring-boot-starter：请求参数去前后空格的starter
     - lock-spring-boot-starter：分布式锁的starter
+    - actuator-spring-boot-starter: 自定义Tools端点
       
   - 相关服务：
     - common-service： 基础服务
