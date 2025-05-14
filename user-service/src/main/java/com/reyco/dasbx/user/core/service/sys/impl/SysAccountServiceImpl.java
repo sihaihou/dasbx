@@ -124,7 +124,7 @@ public class SysAccountServiceImpl implements SysAccountService {
 		sendSyncEsMessage(sysAccountDisableOrEnablePO.getId(),OperationType.UPDATE);
 	}
 	@Override
-	@Lock(value="account:register")
+	@Lock(value="account:register",key="#sysAccountRegisterDto.username")
 	public void register(SysAccountRegisterDto sysAccountRegisterDto) {
 		if(accountDao.getByUsername(sysAccountRegisterDto.getUsername())!=null) {
 			throw new RuntimeException("用户已存在.");
