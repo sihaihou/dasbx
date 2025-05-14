@@ -13,10 +13,11 @@ import com.reyco.dasbx.portal.model.domain.vo.VideoInfoVO;
 import com.reyco.dasbx.portal.model.domain.vo.VideoListDetailVO;
 import com.reyco.dasbx.portal.model.domain.vo.VideoListVO;
 import com.reyco.dasbx.portal.service.impl.VideoServiceImpl.PlayEvent;
+import com.reyco.dasbx.sync.exception.SyncException;
 
 public interface VideoService {
 	
-	int initElasticsearchVideo() throws IOException;
+	int initElasticsearchVideo() throws SyncException;
 	
 	VideoInfoVO get(Long id);
 	

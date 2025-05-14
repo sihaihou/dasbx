@@ -20,18 +20,18 @@ import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.net.CookieUtil;
 import com.reyco.dasbx.commons.utils.net.CusAccessObjectUtil;
 import com.reyco.dasbx.commons.utils.net.IPDataUtils;
-import com.reyco.dasbx.config.rabbitmq.service.RabbitProducrService;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.login.core.config.Party;
 import com.reyco.dasbx.login.core.config.ThirdConfig;
 import com.reyco.dasbx.login.core.feign.AccountFeignClientService;
+import com.reyco.dasbx.login.core.model.msg.AccountRegisterMessage;
 import com.reyco.dasbx.login.core.service.third.ThirdPartyLoginService;
 import com.reyco.dasbx.model.constants.AccountType;
 import com.reyco.dasbx.model.constants.Constants;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.domain.SysAccount;
-import com.reyco.dasbx.model.msg.AccountRegisterMessage;
 import com.reyco.dasbx.model.vo.SysAccountToken;
+import com.reyco.dasbx.rabbitmq.service.RabbitProducrService;
 
 @Component("qq")
 public class QQThirdPartyLoginServiceImpl implements ThirdPartyLoginService{

@@ -29,16 +29,13 @@ import com.reyco.dasbx.commons.utils.Dasbx;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.serializable.ToString;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
-import com.reyco.dasbx.config.rabbitmq.service.RabbitProducrService;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.es.core.search.Sort;
-import com.reyco.dasbx.es.core.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.lock.annotation.Lock;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.constants.RabbitConstants;
-import com.reyco.dasbx.model.msg.VideoMessage;
 import com.reyco.dasbx.model.vo.SysAccountToken;
 import com.reyco.dasbx.portal.constant.Constants;
 import com.reyco.dasbx.portal.dao.VideoDao;
@@ -62,6 +59,7 @@ import com.reyco.dasbx.portal.model.domain.vo.VideoListVO;
 import com.reyco.dasbx.portal.model.domain.vo.VideoProductionInfoVO;
 import com.reyco.dasbx.portal.model.domain.vo.YearListVO;
 import com.reyco.dasbx.portal.model.es.po.VideoElasticsearchDocument;
+import com.reyco.dasbx.portal.model.msg.VideoMessage;
 import com.reyco.dasbx.portal.service.CategoryService;
 import com.reyco.dasbx.portal.service.CountryService;
 import com.reyco.dasbx.portal.service.TypeService;
@@ -70,6 +68,9 @@ import com.reyco.dasbx.portal.service.VideoService;
 import com.reyco.dasbx.portal.service.YearService;
 import com.reyco.dasbx.portal.service.es.video.VideoListSearch;
 import com.reyco.dasbx.portal.service.es.video.VideoSearch;
+import com.reyco.dasbx.rabbitmq.service.RabbitProducrService;
+import com.reyco.dasbx.sync.es.AbstractElasticsearchSync;
+import com.reyco.dasbx.sync.exception.SyncException;
 
 @Service
 public class VideoServiceImpl implements VideoService {
@@ -99,7 +100,7 @@ public class VideoServiceImpl implements VideoService {
 	private RabbitProducrService rabbitProducrService;
 	
 	@Resource(name="videoSyncElasticsearchSerivce")
-	private AbstractSyncElasticsearchService syncElasticsearchService;
+	private AbstractElasticsearchSync<Long,VideoElasticsearchDocument> syncElasticsearchService;
 	@Autowired
 	private ElasticsearchClient<VideoElasticsearchDocument> elasticsearchClient;
 	
@@ -129,8 +130,8 @@ public class VideoServiceImpl implements VideoService {
 	}
 	@Override
 	@Lock(name="video:init")
-	public int initElasticsearchVideo() throws IOException {
-		return syncElasticsearchService.fullSyncElasticsearch();
+	public int initElasticsearchVideo() throws SyncException {
+		return syncElasticsearchService.fullSync();
 	}
 	@Override
 	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.PORTAL_VIDEO_INFO_PREFIX,key="#id")

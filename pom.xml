@@ -73,6 +73,11 @@
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-context</artifactId>
+				<version>${spring.cloud.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-gateway</artifactId>
 				<version>${spring.cloud.version}</version>
 				<exclusions>
@@ -351,6 +356,11 @@
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
+				<artifactId>sync</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
 				<artifactId>constant-spring-boot-starter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -394,6 +404,26 @@
 				<artifactId>actuator-spring-boot-starter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>desensitize-spring-boot-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>redis-spring-cloud-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>rabbitmq-spring-boot-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>decrypt-spring-cloud-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	
@@ -407,6 +437,7 @@
 		<module>commons</module>
 		<module>commons-model</module>
 		<module>commons-config</module>
+		<module>sync</module>
 		<module>actuator-spring-boot-starter</module>
 		<module>constant-spring-boot-starter</module>
 		<module>trim-spring-boot-starter</module>
@@ -422,6 +453,10 @@
 		<module>open-service</module>
 		<module>portal-service</module>
 		<module>common-service</module>
+		<module>desensitize-spring-boot-starter</module>
+		<module>redis-spring-cloud-starter</module>
+		<module>rabbitmq-spring-boot-starter</module>
+		<module>decrypt-spring-cloud-starter</module>
 	</modules>
 
 </project>

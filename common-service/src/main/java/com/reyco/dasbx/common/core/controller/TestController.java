@@ -11,6 +11,7 @@ import com.reyco.dasbx.id.core.IdGenerator;
 @RestController
 @RequestMapping("test")
 public class TestController {
+	
 	@Autowired
 	private IdGenerator<Long> idGenerator;
 	

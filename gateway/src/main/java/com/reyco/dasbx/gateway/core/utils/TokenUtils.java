@@ -2,11 +2,11 @@ package com.reyco.dasbx.gateway.core.utils;
 
 import java.util.concurrent.TimeUnit;
 
-import com.reyco.dasbx.gateway.core.config.redis.RedisUtil;
 import com.reyco.dasbx.gateway.core.constant.CachePrefixConstants;
 import com.reyco.dasbx.gateway.core.constant.Constants;
 import com.reyco.dasbx.gateway.core.exception.AuthenticationException;
 import com.reyco.dasbx.gateway.core.model.SysAccountToken;
+import com.reyco.dasbx.gateway.core.redis.RedisUtil;
 
 public class TokenUtils {
 	/**

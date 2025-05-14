@@ -15,17 +15,18 @@ import org.springframework.stereotype.Service;
 import com.rabbitmq.client.Channel;
 import com.reyco.dasbx.common.core.dao.sys.SysLoginLogDao;
 import com.reyco.dasbx.common.core.model.dto.sys.SysLoginLogLogoutUpdateDto;
+import com.reyco.dasbx.common.core.model.msg.SysLoginLogLogoutMessage;
 import com.reyco.dasbx.common.core.service.sys.SysLoginLogService;
 import com.reyco.dasbx.common.core.service.sys.SysMessageService;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
-import com.reyco.dasbx.config.rabbitmq.service.AbstractRabbitConsumerService;
-import com.reyco.dasbx.config.rabbitmq.service.RabbitMessageType;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
-import com.reyco.dasbx.model.msg.RabbitMessage;
-import com.reyco.dasbx.model.msg.SysLoginLogLogoutMessage;
+import com.reyco.dasbx.rabbitmq.model.RabbitMessage;
+import com.reyco.dasbx.rabbitmq.service.AbstractRabbitConsumerService;
+import com.reyco.dasbx.rabbitmq.service.RabbitMessageType;
+import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
 
 @Service
 public class SysLogoutRabbitConsumerService extends AbstractRabbitConsumerService  {
@@ -38,6 +39,11 @@ public class SysLogoutRabbitConsumerService extends AbstractRabbitConsumerServic
 	public SysLoginLogDao  sysLoginLogDao;
 	@Autowired
 	public SysLoginLogService  sysLoginLogService;
+
+	@Autowired
+	public SysLogoutRabbitConsumerService(RedisUtil redisUtil) {
+		super(redisUtil);
+	}
 	
 	@RabbitHandler
 	@RabbitListener(bindings=@QueueBinding(

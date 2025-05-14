@@ -18,19 +18,19 @@ import com.reyco.dasbx.commons.utils.PasswordUtils;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.encrypt.SimpleHash;
 import com.reyco.dasbx.config.exception.core.BusinessException;
-import com.reyco.dasbx.config.rabbitmq.service.RabbitProducrService;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.es.core.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.search.SearchVO;
-import com.reyco.dasbx.es.core.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.id.core.IdGenerator;
 import com.reyco.dasbx.lock.annotation.Lock;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.constants.OperationType;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.domain.SysAccount;
-import com.reyco.dasbx.model.msg.SysAccountSyncEsMessage;
 import com.reyco.dasbx.model.vo.SysAccountToken;
+import com.reyco.dasbx.rabbitmq.service.RabbitProducrService;
+import com.reyco.dasbx.sync.es.ElasticsearchSync;
+import com.reyco.dasbx.sync.exception.SyncException;
 import com.reyco.dasbx.user.core.constant.Constants;
 import com.reyco.dasbx.user.core.dao.sys.SysAccountDao;
 import com.reyco.dasbx.user.core.model.dto.AccountBindDeveloperDto;
@@ -42,6 +42,7 @@ import com.reyco.dasbx.user.core.model.dto.sys.SysAccountDeleteDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysAccountDisableOrEnableDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysAccountSearchDto;
 import com.reyco.dasbx.user.core.model.es.po.SysAccountElasticsearchDocument;
+import com.reyco.dasbx.user.core.model.msg.SysAccountSyncEsMessage;
 import com.reyco.dasbx.user.core.model.po.AccountBindDeveloperPO;
 import com.reyco.dasbx.user.core.model.po.AccountInsertPO;
 import com.reyco.dasbx.user.core.model.po.sys.SysAccountDeletePO;
@@ -52,6 +53,7 @@ import com.reyco.dasbx.user.core.model.vo.AccountListVO;
 import com.reyco.dasbx.user.core.model.vo.SysAccountInfoVO;
 import com.reyco.dasbx.user.core.service.FullnameService;
 import com.reyco.dasbx.user.core.service.es.sysAccount.SysAccountSearch;
+import com.reyco.dasbx.user.core.service.es.sysAccount.SysAccountSyncElasticsearchServiceImpl;
 import com.reyco.dasbx.user.core.service.sys.SysAccountService;
 import com.reyco.dasbx.user.core.service.sys.SysUserRoleService;
 
@@ -72,8 +74,9 @@ public class SysAccountServiceImpl implements SysAccountService {
 	private RabbitProducrService rabbitProducrService;
 	@Autowired
 	private FullnameService fullnameService;
-	@Resource(name="sysAccountSyncElasticsearchService")
-	private AbstractSyncElasticsearchService syncElasticsearchService;
+	
+	@Resource(name=SysAccountSyncElasticsearchServiceImpl.SYNC_NAME)
+	private ElasticsearchSync<Long,Integer> elasticsearchSync;
 	
 	@Override
 	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.USER_ACCOUNT_COMMENT_INFO_PREFIX,key="#id")
@@ -111,8 +114,8 @@ public class SysAccountServiceImpl implements SysAccountService {
 		return sysAccountSearch.search(sysAccountSearchDto);
 	}
 	@Override
-	public int initElasticsearchSysAccount() throws IOException {
-		return syncElasticsearchService.fullSyncElasticsearch();
+	public int initElasticsearchSysAccount() throws SyncException {
+		return elasticsearchSync.fullSync();
 	}
 	@Override
 	public void updateState(SysAccountDisableOrEnableDto sysAccountDisableOrEnableDto){

@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.reyco.dasbx.desensitize.autoConfiguration.DesensitizeConfiguration,\
+com.reyco.dasbx.desensitize.utils.SpringContextUtils

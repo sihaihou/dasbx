@@ -1,0 +1,7 @@
+# 事件监听器
+org.springframework.context.ApplicationListener=\
+com.reyco.dasbx.decrypt.listener.RegisterTextEncryptorListener
+
+# 初始化器
+org.springframework.context.ApplicationContextInitializer=\
+com.reyco.dasbx.decrypt.initializer.CustomEnvironmentDecryptApplicationInitializer

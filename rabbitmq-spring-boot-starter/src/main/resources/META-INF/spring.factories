@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.reyco.dasbx.rabbitmq.configuration.RabbitMQAutoConfiguration,\
+com.reyco.dasbx.rabbitmq.configuration.endpoint.RabbitmqEndpointAutoConfiguration

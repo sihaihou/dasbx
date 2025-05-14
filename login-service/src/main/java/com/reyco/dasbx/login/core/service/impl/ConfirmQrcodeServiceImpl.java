@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
-import com.reyco.dasbx.config.redis.RedisUtil;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.login.core.model.dto.ConfirmQRcodeDto;
 import com.reyco.dasbx.login.core.model.vo.QRCodeInfoVO;
@@ -16,6 +15,7 @@ import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.Constants;
 import com.reyco.dasbx.model.constants.QRCodeType;
 import com.reyco.dasbx.model.vo.SysAccountToken;
+import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
 
 @Service
 public class ConfirmQrcodeServiceImpl implements ConfirmQrcodeService{

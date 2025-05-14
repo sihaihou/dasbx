@@ -11,13 +11,13 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
-import com.reyco.dasbx.config.redis.RedisUtil;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.id.core.IdGenerator;
 import com.reyco.dasbx.login.core.model.vo.QRCodeInfoVO;
 import com.reyco.dasbx.login.core.service.LoginQRService;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.QRCodeType;
+import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
 
 @Service
 public class LoginQRServiceImpl implements LoginQRService {

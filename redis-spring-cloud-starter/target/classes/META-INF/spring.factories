@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.reyco.dasbx.redis.auto.configuration.RedisAutoConfiguration,\
+com.reyco.dasbx.redis.endpoint.RedisEndpointAutoConfiguration

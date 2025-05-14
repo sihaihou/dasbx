@@ -14,17 +14,18 @@ import org.springframework.stereotype.Service;
 
 import com.rabbitmq.client.Channel;
 import com.reyco.dasbx.common.core.model.dto.sys.SysLogInsertDto;
+import com.reyco.dasbx.common.core.model.msg.SysLogRabbitmqMessage;
 import com.reyco.dasbx.common.core.service.sys.SysLogService;
 import com.reyco.dasbx.common.core.service.sys.SysMessageService;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
-import com.reyco.dasbx.config.rabbitmq.service.AbstractRabbitConsumerService;
-import com.reyco.dasbx.config.rabbitmq.service.RabbitMessageType;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
-import com.reyco.dasbx.model.msg.RabbitMessage;
-import com.reyco.dasbx.model.msg.SysLogRabbitmqMessage;
+import com.reyco.dasbx.rabbitmq.model.RabbitMessage;
+import com.reyco.dasbx.rabbitmq.service.AbstractRabbitConsumerService;
+import com.reyco.dasbx.rabbitmq.service.RabbitMessageType;
+import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
 
 @Service
 public class SysLogRabbitConsumer extends AbstractRabbitConsumerService{
@@ -37,6 +38,10 @@ public class SysLogRabbitConsumer extends AbstractRabbitConsumerService{
 	@Autowired
 	private SysMessageService sysMessageService;
 	
+	@Autowired
+	public SysLogRabbitConsumer(RedisUtil redisUtil) {
+		super(redisUtil);
+	}
 	@RabbitHandler
 	@RabbitListener(bindings = @QueueBinding(
 			exchange = @Exchange(value = RabbitConstants.LOG_EXCHANGE, type = ExchangeTypes.DIRECT, durable = "true", autoDelete = "false"), 

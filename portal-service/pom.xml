@@ -1,9 +1,10 @@
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<packaging>jar</packaging>
-	
+
 	<parent>
 		<groupId>com.reyco.dasbx</groupId>
 		<artifactId>dasbx</artifactId>
@@ -15,6 +16,10 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>commons-config</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>sync</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
@@ -42,7 +47,7 @@
 			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
@@ -51,5 +56,5 @@
 			</plugin>
 		</plugins>
 	</build>
-	
+
 </project>

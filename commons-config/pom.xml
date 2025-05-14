@@ -46,6 +46,18 @@
 			<artifactId>lock-spring-boot-starter</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>redis-spring-cloud-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>rabbitmq-spring-boot-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>decrypt-spring-cloud-starter</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.alibaba.cloud</groupId>
 			<artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
 		</dependency>

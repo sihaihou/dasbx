@@ -16,15 +16,17 @@ import org.springframework.stereotype.Service;
 
 import com.rabbitmq.client.Channel;
 import com.reyco.dasbx.config.exception.core.BusinessException;
-import com.reyco.dasbx.config.rabbitmq.service.AbstractRabbitConsumerService;
-import com.reyco.dasbx.config.rabbitmq.service.RabbitMessageType;
-import com.reyco.dasbx.es.core.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
-import com.reyco.dasbx.model.msg.RabbitMessage;
-import com.reyco.dasbx.model.msg.VideoMessage;
+import com.reyco.dasbx.portal.model.es.po.VideoElasticsearchDocument;
+import com.reyco.dasbx.portal.model.msg.VideoMessage;
 import com.reyco.dasbx.portal.service.SysMessageService;
+import com.reyco.dasbx.rabbitmq.model.RabbitMessage;
+import com.reyco.dasbx.rabbitmq.service.AbstractRabbitConsumerService;
+import com.reyco.dasbx.rabbitmq.service.RabbitMessageType;
+import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
+import com.reyco.dasbx.sync.es.AbstractElasticsearchSync;
 
 @Service
 public class VideoSyncEsRabbitConsumerService extends AbstractRabbitConsumerService{
@@ -35,8 +37,12 @@ public class VideoSyncEsRabbitConsumerService extends AbstractRabbitConsumerServ
 	private SysMessageService sysMessageService;
 	
 	@Resource(name="videoSyncElasticsearchSerivce")
-	private AbstractSyncElasticsearchService syncElasticsearchService;
+	private AbstractElasticsearchSync<Long,VideoElasticsearchDocument> syncElasticsearchService;
 	
+	@Autowired
+	public VideoSyncEsRabbitConsumerService(RedisUtil redisUtil) {
+		super(redisUtil);
+	}
 	@RabbitHandler
 	@RabbitListener(bindings = @QueueBinding(
 			exchange = @Exchange(value = RabbitConstants.VIDEO_FANOUT_EXCHANGE, type = ExchangeTypes.FANOUT, durable = "true", autoDelete = "false"), 
@@ -50,7 +56,7 @@ public class VideoSyncEsRabbitConsumerService extends AbstractRabbitConsumerServ
 	protected void doHandler(RabbitMessage rabbitMessage) throws Exception {
 		logger.debug("Video Sync Elasticsearch,rabbitMessage:{}",rabbitMessage);
 		VideoMessage videoMessage = (VideoMessage)rabbitMessage;
-		syncElasticsearchService.incrementUpdateSyncElasticsearch(videoMessage.getVideoId());
+		syncElasticsearchService.incrementUpdateSync(()->videoMessage.getVideoId());
 	}
 
 	@Override

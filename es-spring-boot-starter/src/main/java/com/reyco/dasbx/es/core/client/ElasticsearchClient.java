@@ -49,7 +49,7 @@ import com.reyco.dasbx.es.core.utils.ElasticsearchUtils;
  *
  * @param <T>
  */
-public class ElasticsearchClient<T extends ElasticsearchDocument> implements ApplicationContextAware {
+public class ElasticsearchClient<E extends ElasticsearchDocument> implements ApplicationContextAware {
 	
 	protected Logger logger = LoggerFactory.getLogger(ElasticsearchClient.class);
 	
@@ -177,8 +177,8 @@ public class ElasticsearchClient<T extends ElasticsearchDocument> implements App
 	 * @return
 	 * @throws IOException
 	 */
-	public Boolean addDocument(String indexName,T t) throws IOException {
-		return addDocument(indexName, t.getPrimaryKeyId(),JsonUtils.objToJson(t));
+	public Boolean addDocument(String indexName,E e) throws IOException {
+		return addDocument(indexName, e.getPrimaryKeyId(),JsonUtils.objToJson(e));
 	}
 	/**
 	 * 新增文档
@@ -208,11 +208,11 @@ public class ElasticsearchClient<T extends ElasticsearchDocument> implements App
 	 * @throws IOException
 	 * @throws InterruptedException 
 	 */
-	public int batchAddDocument(String indexName,List<T> documents) throws IOException {
-		if (documents == null || documents.isEmpty()) {
+	public int batchAddDocument(String indexName,List<E> es) throws IOException {
+		if (es == null || es.isEmpty()) {
 			return 0;
 		}
-		int size = documents.size();
+		int size = es.size();
 		int count = 5000;
 		int frequency = size / count;
 		int remainder = size % count;
@@ -222,14 +222,14 @@ public class ElasticsearchClient<T extends ElasticsearchDocument> implements App
 		logger.debug("size="+size+",count="+count+",frequency=" + frequency);
 		BulkRequest bulkRequest = null;
 		IndexRequest indexRequest = null;
-		List<T> tempDocuments = null;
+		List<E> tempDocuments = null;
 		int success = 0;
 		int fail = 0;
 		for (int i = 0; i < frequency; i++) {
 			if ((i + 1) == frequency) {
-				tempDocuments = documents.subList(i * count, size);
+				tempDocuments = es.subList(i * count, size);
 			} else {
-				tempDocuments = documents.subList(i * count, (i + 1) * count);
+				tempDocuments = es.subList(i * count, (i + 1) * count);
 			}
 			for (ElasticsearchDocument document : tempDocuments) {
 				if(bulkRequest==null) {
@@ -256,8 +256,8 @@ public class ElasticsearchClient<T extends ElasticsearchDocument> implements App
 	 * @return
 	 * @throws IOException
 	 */
-	public Boolean updateDocument(String indexName,T t) throws IOException {
-		return updateDocument(indexName,t.getPrimaryKeyId(), JsonUtils.objToJson(t));
+	public Boolean updateDocument(String indexName,E e) throws IOException {
+		return updateDocument(indexName,e.getPrimaryKeyId(), JsonUtils.objToJson(e));
 	}
 	/**
 	 * 更新文档 
@@ -287,11 +287,11 @@ public class ElasticsearchClient<T extends ElasticsearchDocument> implements App
 	 * @return
 	 * @throws IOException
 	 */
-	public int batchUpdateDocument(String indexName,List<T> ts) throws IOException {
-		if (ts == null || ts.isEmpty()) {
+	public int batchUpdateDocument(String indexName,List<E> es) throws IOException {
+		if (es == null || es.isEmpty()) {
 			return 0;
 		}
-		int size = ts.size();
+		int size = es.size();
 		int count = 5000;
 		int frequency = size / count;
 		int remainder = size % count;
@@ -301,21 +301,21 @@ public class ElasticsearchClient<T extends ElasticsearchDocument> implements App
 		logger.debug("size="+size+",count="+count+",frequency=" + frequency);
 		BulkRequest bulkRequest = null;
 		UpdateRequest updateRequest = null;
-		List<T> tempDocuments = null;
+		List<E> tempDocuments = null;
 		int success = 0;
 		int fail = 0;
 		for (int i = 0; i < frequency; i++) {
 			if ((i + 1) == frequency) {
-				tempDocuments = ts.subList(i * count, size);
+				tempDocuments = es.subList(i * count, size);
 			} else {
-				tempDocuments = ts.subList(i * count, (i + 1) * count);
+				tempDocuments = es.subList(i * count, (i + 1) * count);
 			}
-			for (T t : tempDocuments) {
+			for (E e : tempDocuments) {
 				if(bulkRequest==null) {
 					bulkRequest = new BulkRequest();
 				}
-				updateRequest = new UpdateRequest(indexName,t.getPrimaryKeyId());
-				updateRequest.doc(JsonUtils.objToJson(t), XContentType.JSON);
+				updateRequest = new UpdateRequest(indexName,e.getPrimaryKeyId());
+				updateRequest.doc(JsonUtils.objToJson(e), XContentType.JSON);
 				bulkRequest.add(updateRequest);
 			}
 			logger.debug("i:"+i+"更新开始");
@@ -353,13 +353,13 @@ public class ElasticsearchClient<T extends ElasticsearchDocument> implements App
 	 * @return
 	 * @throws IOException
 	 */
-	public int batchDeleteDocument(String indexName,List<T> ts) throws IOException {
+	public int batchDeleteDocument(String indexName,List<E> es) throws IOException {
 		List<String> documentIds = null;
-		for (T t : ts) {
+		for (E e : es) {
 			if(documentIds==null) {
 				documentIds = new ArrayList<>();
 			}
-			documentIds.add(t.getPrimaryKeyId());
+			documentIds.add(e.getPrimaryKeyId());
 		}
 		return batchDeleteDocumentByIds(indexName, documentIds);
 	}

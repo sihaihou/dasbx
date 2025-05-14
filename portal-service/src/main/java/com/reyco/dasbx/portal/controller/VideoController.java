@@ -24,6 +24,7 @@ import com.reyco.dasbx.portal.model.domain.vo.VideoInfoVO;
 import com.reyco.dasbx.portal.model.domain.vo.VideoListDetailVO;
 import com.reyco.dasbx.portal.model.domain.vo.VideoListVO;
 import com.reyco.dasbx.portal.service.VideoService;
+import com.reyco.dasbx.sync.exception.SyncException;
 
 @RestController
 @RequestMapping("/portal/video")
@@ -53,7 +54,7 @@ public class VideoController {
 		return R.success(searchVO);
 	}
 	@PostMapping("init")
-	public Object init() throws IOException {
+	public Object init() throws SyncException {
 		int count = videoService.initElasticsearchVideo();
 		return R.success(count);
 	}

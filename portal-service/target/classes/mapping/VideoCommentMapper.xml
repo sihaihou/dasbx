@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.portal.dao.VideoCommentDao">
+	
+	<select id="getById" resultType="com.reyco.dasbx.portal.model.domain.VideoComment">
+        select * from portal_video_comment where id=#{id}
+    </select>
+	
+	<select id="listByVideoIdAndParentId" resultType="com.reyco.dasbx.portal.model.domain.VideoComment">
+        select * from portal_video_comment where deleted=0 and videoId=#{videoId} and parentId=#{parentId} order by time
+    </select>
+    
+    <select id="listByRootId" resultType="com.reyco.dasbx.portal.model.domain.VideoComment">
+    	select * from portal_video_comment where deleted=0 and rootId = #{rootId} order by time
+    </select>
+    
+    <select id="countByRootId" resultType="java.lang.Integer">
+    	select count(1) from portal_video_comment where deleted=0 and rootId = #{rootId}
+    </select>
+    
+     <select id="getOneByRootId" resultType="com.reyco.dasbx.portal.model.domain.VideoComment">
+    	select * from portal_video_comment where deleted=0 and rootId = #{rootId} order by time limit 1
+    </select>
+    
+    <insert id="insert">
+    	insert into portal_video_comment
+    		(videoId,rootId,parentId,userId,nickname,userFaceUri,content,time,ip,province,city,district,address,gmtCreate,createBy,gmtModified,modifiedBy)
+    	values(#{videoId},#{rootId},#{parentId},#{userId},#{nickname},#{userFaceUri},#{content},#{time},#{ip},#{province},#{city},#{district},#{address},#{gmtCreate},#{createBy},#{gmtModified},#{modifiedBy});
+    	<selectKey resultType="long" keyProperty="id" order="AFTER">
+			select @@identity
+		</selectKey>
+    </insert>
+    
+    <update id="like">
+    	update portal_video_comment set likeQuantity=likeQuantity+#{like},gmtModified=#{gmtModified},modifiedBy=#{modifiedBy}
+    	where id=#{id}
+    </update>
+	
+	<update id="updateCommentQuantityByIds">
+    	update portal_video_comment set commentQuantity=commentQuantity+1
+    	where id in
+    	<foreach collection="commentIds" index="index" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+		
+</mapper>

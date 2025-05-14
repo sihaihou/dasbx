@@ -7,6 +7,7 @@ import com.reyco.dasbx.config.exception.core.BusinessException;
 import com.reyco.dasbx.config.service.BaseService;
 import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.model.domain.SysAccount;
+import com.reyco.dasbx.sync.exception.SyncException;
 import com.reyco.dasbx.user.core.model.dto.AccountBindDeveloperDto;
 import com.reyco.dasbx.user.core.model.dto.AccountListDto;
 import com.reyco.dasbx.user.core.model.dto.SysAccountInsertDto;
@@ -38,7 +39,7 @@ public interface SysAccountService extends BaseService<SysAccountInfoVO, Account
     
     SearchVO<SysAccountInfoVO> search(SysAccountSearchDto sysAccountSearchDto) throws IOException;
 	
-	int initElasticsearchSysAccount() throws IOException;
+	int initElasticsearchSysAccount() throws SyncException;
 	/**
 	 * 禁用启用
 	 * @param SysAccountDisableOrEnableDto

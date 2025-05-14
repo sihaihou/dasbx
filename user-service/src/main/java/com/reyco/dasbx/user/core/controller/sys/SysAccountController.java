@@ -22,6 +22,7 @@ import com.reyco.dasbx.commons.utils.encrypt.SecretKeyUtils;
 import com.reyco.dasbx.config.exception.core.BusinessException;
 import com.reyco.dasbx.es.core.search.SearchVO;
 import com.reyco.dasbx.model.domain.SysAccount;
+import com.reyco.dasbx.sync.exception.SyncException;
 import com.reyco.dasbx.user.core.model.dto.AccountBindDeveloperDto;
 import com.reyco.dasbx.user.core.model.dto.SysAccountInsertDto;
 import com.reyco.dasbx.user.core.model.dto.SysAccountRegisterDto;
@@ -40,7 +41,7 @@ public class SysAccountController {
 	private SysAccountService sysAccountService;
 	
 	@PostMapping("initElasticsearchSysAccount")
-	public Object initElasticsearchSysAccount() throws IOException {
+	public Object initElasticsearchSysAccount() throws SyncException {
 		int count = sysAccountService.initElasticsearchSysAccount();
 		return R.success(count);
 	}

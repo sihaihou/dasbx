@@ -8,9 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import com.github.pagehelper.PageHelper;
 
 /**
- * @program: store
  * @description: 分页配置
- * @author: cze
+ * @author: reyco
  * @create: 2019-12-09 13:57
  */
 @Configuration

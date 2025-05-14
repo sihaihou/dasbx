@@ -24,27 +24,34 @@ import com.rabbitmq.client.Channel;
 import com.reyco.dasbx.commons.utils.Dasbx;
 import com.reyco.dasbx.commons.utils.net.MultipartFileUtils;
 import com.reyco.dasbx.commons.utils.tools.vps.VpsUtils;
-import com.reyco.dasbx.config.rabbitmq.service.AbstractRabbitConsumerService;
-import com.reyco.dasbx.config.rabbitmq.service.RabbitMessageType;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
-import com.reyco.dasbx.model.msg.RabbitMessage;
-import com.reyco.dasbx.model.msg.VideoMessage;
 import com.reyco.dasbx.portal.dao.VideoDao;
 import com.reyco.dasbx.portal.model.domain.Video;
 import com.reyco.dasbx.portal.model.domain.po.VideoDecodePO;
+import com.reyco.dasbx.portal.model.msg.VideoMessage;
 import com.reyco.dasbx.portal.service.SysMessageService;
+import com.reyco.dasbx.rabbitmq.model.RabbitMessage;
+import com.reyco.dasbx.rabbitmq.service.AbstractRabbitConsumerService;
+import com.reyco.dasbx.rabbitmq.service.RabbitMessageType;
+import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
 
 @Service
 public class VideoDecodeRabbitConsumerService extends AbstractRabbitConsumerService{
 
+	
 	private static final Logger logger = LoggerFactory.getLogger(VideoDecodeRabbitConsumerService.class);
 
 	@Autowired
 	private VideoDao videoDao;
 	@Autowired
 	private SysMessageService sysMessageService;
+	
+	@Autowired
+	public VideoDecodeRabbitConsumerService(RedisUtil redisUtil) {
+		super(redisUtil);
+	}
 
 	@RabbitHandler
 	@RabbitListener(bindings = @QueueBinding(

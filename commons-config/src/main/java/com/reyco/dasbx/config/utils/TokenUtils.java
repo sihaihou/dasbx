@@ -10,10 +10,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
 import com.reyco.dasbx.commons.utils.net.RequestUtils;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
-import com.reyco.dasbx.config.redis.RedisUtil;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.Constants;
 import com.reyco.dasbx.model.vo.SysAccountToken;
+import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
 
 /**
  * SessionUtils

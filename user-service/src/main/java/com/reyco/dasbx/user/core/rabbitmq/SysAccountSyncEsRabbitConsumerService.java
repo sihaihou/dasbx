@@ -15,27 +15,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.rabbitmq.client.Channel;
-import com.reyco.dasbx.config.rabbitmq.service.AbstractRabbitConsumerService;
-import com.reyco.dasbx.config.rabbitmq.service.RabbitMessageType;
-import com.reyco.dasbx.es.core.sync.AbstractSyncElasticsearchService;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.OperationType;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
-import com.reyco.dasbx.model.msg.RabbitMessage;
-import com.reyco.dasbx.model.msg.SysAccountSyncEsMessage;
+import com.reyco.dasbx.rabbitmq.model.RabbitMessage;
+import com.reyco.dasbx.rabbitmq.service.AbstractRabbitConsumerService;
+import com.reyco.dasbx.rabbitmq.service.RabbitMessageType;
+import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
+import com.reyco.dasbx.sync.es.ElasticsearchSync;
+import com.reyco.dasbx.user.core.model.msg.SysAccountSyncEsMessage;
 import com.reyco.dasbx.user.core.service.SysMessageService;
+import com.reyco.dasbx.user.core.service.es.sysAccount.SysAccountSyncElasticsearchServiceImpl;
 
 @Service
 public class SysAccountSyncEsRabbitConsumerService extends AbstractRabbitConsumerService{
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(AccountRegisterRabbitConsumerService.class);
 	
 	@Autowired
 	private SysMessageService sysMessageService;
 	
-	@Resource(name="sysAccountSyncElasticsearchService")
-	private AbstractSyncElasticsearchService syncElasticsearchService;
+	@Resource(name=SysAccountSyncElasticsearchServiceImpl.SYNC_NAME)
+	private ElasticsearchSync<Long,Integer> elasticsearchSync;
+	
+	@Autowired
+	public SysAccountSyncEsRabbitConsumerService(RedisUtil redisUtil) {
+		super(redisUtil);
+	}
 	
 	@RabbitHandler
 	@RabbitListener(bindings = @QueueBinding(
@@ -51,9 +58,9 @@ public class SysAccountSyncEsRabbitConsumerService extends AbstractRabbitConsume
 		SysAccountSyncEsMessage sysAccountSyncEsMessage = (SysAccountSyncEsMessage)rabbitMessage;
 		OperationType type = sysAccountSyncEsMessage.getType();
 		if(OperationType.CREATE==type || OperationType.UPDATE==type) {
-			syncElasticsearchService.incrementUpdateSyncElasticsearch(sysAccountSyncEsMessage.getAccountId());
+			elasticsearchSync.incrementUpdateSync(()->sysAccountSyncEsMessage.getAccountId());
 		}else if(OperationType.DELETE==type) {
-			syncElasticsearchService.incrementDeleteSyncElasticsearch(sysAccountSyncEsMessage.getAccountId());
+			elasticsearchSync.incrementDeleteSync(()->sysAccountSyncEsMessage.getAccountId());
 		}
 	}
 

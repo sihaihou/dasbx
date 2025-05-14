@@ -19,7 +19,7 @@ public class ResourceHandlerConfiguration {
 	
 	@Bean
 	@ConditionalOnMissingBean(ResourceHandler.class)
-	public ResourceHandler SimpleResourceHandler() {
+	public ResourceHandler simpleResourceHandler() {
 		return new SimpleResourceHandler();
 	}
 	

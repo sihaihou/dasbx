@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reyco.dasbx.portal.dao.CountryDao">
+	
+	<select id="getById" resultType="com.reyco.dasbx.portal.model.domain.Country">
+        select * from portal_country where id=#{id};
+    </select>
+	
+	<select id="list" resultType="com.reyco.dasbx.portal.model.domain.Country">
+		select * from portal_country order by id;
+	</select>
+	
+	<select id="listByCategoryId" resultType="com.reyco.dasbx.portal.model.domain.Country">
+		select countryId as id,countryName as name from portal_category_country where categoryId = #{categoryId} order by ordered;
+	</select>
+	
+</mapper>

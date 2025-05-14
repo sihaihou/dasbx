@@ -18,7 +18,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import com.reyco.dasbx.commons.domain.R;
 import com.reyco.dasbx.config.exception.core.ArgumentException;
 import com.reyco.dasbx.config.exception.core.AuthenticationException;
-import com.reyco.dasbx.config.redis.RedisUtil;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.login.core.model.dto.ConfirmQRcodeDto;
 import com.reyco.dasbx.login.core.model.dto.EmailLoginDto;
@@ -31,6 +30,7 @@ import com.reyco.dasbx.login.core.service.LoginService;
 import com.reyco.dasbx.login.core.service.ScanQRCodeService;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.vo.SysAccountToken;
+import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
 
 @RestController
 @RequestMapping("/sys")

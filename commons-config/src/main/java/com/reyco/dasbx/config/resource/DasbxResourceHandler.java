@@ -5,11 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.reyco.dasbx.commons.utils.DictionaryOrderUtils;
-import com.reyco.dasbx.config.rabbitmq.service.RabbitProducrService;
 import com.reyco.dasbx.id.core.IdGenerator;
 import com.reyco.dasbx.model.constants.MethodType;
 import com.reyco.dasbx.model.constants.RabbitConstants;
-import com.reyco.dasbx.model.msg.SysLogRabbitmqMessage;
+import com.reyco.dasbx.rabbitmq.service.RabbitProducrService;
 import com.reyco.dasbx.resource.core.handler.ResourceHandler;
 import com.reyco.dasbx.resource.core.model.ResourceDefinition;
 

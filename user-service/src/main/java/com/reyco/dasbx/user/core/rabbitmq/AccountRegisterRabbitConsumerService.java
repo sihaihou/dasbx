@@ -15,26 +15,33 @@ import org.springframework.stereotype.Service;
 import com.rabbitmq.client.Channel;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
-import com.reyco.dasbx.config.rabbitmq.service.AbstractRabbitConsumerService;
-import com.reyco.dasbx.config.rabbitmq.service.RabbitMessageType;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
-import com.reyco.dasbx.model.msg.AccountRegisterMessage;
-import com.reyco.dasbx.model.msg.RabbitMessage;
+import com.reyco.dasbx.rabbitmq.model.RabbitMessage;
+import com.reyco.dasbx.rabbitmq.service.AbstractRabbitConsumerService;
+import com.reyco.dasbx.rabbitmq.service.RabbitMessageType;
+import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
 import com.reyco.dasbx.user.core.model.dto.SysAccountRegisterDto;
+import com.reyco.dasbx.user.core.model.msg.AccountRegisterMessage;
 import com.reyco.dasbx.user.core.service.SysMessageService;
 import com.reyco.dasbx.user.core.service.sys.SysAccountService;
 
 @Service
 public class AccountRegisterRabbitConsumerService extends AbstractRabbitConsumerService{
 	
+
 	private static final Logger logger = LoggerFactory.getLogger(AccountRegisterRabbitConsumerService.class);
 	
 	@Autowired
 	public SysAccountService  accountService;
 	@Autowired
 	private SysMessageService sysMessageService;
+	
+	@Autowired
+	public AccountRegisterRabbitConsumerService(RedisUtil redisUtil) {
+		super(redisUtil);
+	}
 	
 	@RabbitHandler
 	@RabbitListener(bindings=@QueueBinding(

@@ -17,11 +17,11 @@ public class Test {
 	}
 }
 @FunctionalInterface
-interface Arrayfactory{
+interface ArrayFactory{
 	int[] createIntArray(int len);
 }
 class IntArrays{
-	public static int[] createIntArray(int len,Arrayfactory arrayfactory) {
+	public static int[] createIntArray(int len,ArrayFactory arrayfactory) {
 		return arrayfactory.createIntArray(len);
 	}
 }

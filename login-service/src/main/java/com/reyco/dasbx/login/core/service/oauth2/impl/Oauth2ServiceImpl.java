@@ -8,13 +8,13 @@ import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
 import com.reyco.dasbx.config.exception.core.ExceptionCode;
-import com.reyco.dasbx.config.redis.RedisUtil;
 import com.reyco.dasbx.login.core.feign.ApplicationFeignClientService;
 import com.reyco.dasbx.login.core.model.domain.Application;
 import com.reyco.dasbx.login.core.service.LoginService;
 import com.reyco.dasbx.login.core.service.oauth2.Oauth2Service;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.vo.SysAccountToken;
+import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
 
 @Service
 public class Oauth2ServiceImpl implements Oauth2Service{
