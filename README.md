@@ -16,6 +16,8 @@
     - trim-spring-boot-starter：请求参数去前后空格的starter
     - lock-spring-boot-starter：分布式锁的starter
     - actuator-spring-boot-starter: 监控
+    - decrypt-spring-cloud-starter: 配置加密
+    - desensitize-spring-boot-starter: 脱敏
       
   - 相关服务：
     - common-service： 基础服务
