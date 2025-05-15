@@ -58,6 +58,10 @@
 			<artifactId>decrypt-spring-cloud-starter</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>desensitize-spring-boot-starter</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.alibaba.cloud</groupId>
 			<artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
 		</dependency>

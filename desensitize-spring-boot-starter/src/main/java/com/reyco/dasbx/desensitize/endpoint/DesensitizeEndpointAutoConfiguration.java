@@ -19,8 +19,8 @@ public class DesensitizeEndpointAutoConfiguration {
 	
 	@Bean
 	@ConditionalOnMissingBean(DesensitizeToolsIndicator.class)
-	public DesensitizeToolsIndicator esToolsIndicator() {
-		DesensitizeToolsIndicator esToolsIndicator = new DesensitizeToolsIndicator();
-		return esToolsIndicator;
+	public DesensitizeToolsIndicator desensitizeToolsIndicator() {
+		DesensitizeToolsIndicator desensitizeToolsIndicator = new DesensitizeToolsIndicator();
+		return desensitizeToolsIndicator;
 	}
 }

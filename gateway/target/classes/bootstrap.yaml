@@ -1,7 +1,0 @@
-spring:
-  main:
-    allow-bean-definition-overriding: true
-  application: 
-    name: dasbx-gateway
-  profiles:
-    active: dev

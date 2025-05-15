@@ -1,3 +1,7 @@
+# 自动配置
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.reyco.dasbx.decrypt.endpoint.DecryptEndpointAutoConfiguration
+
 # 事件监听器
 org.springframework.context.ApplicationListener=\
 com.reyco.dasbx.decrypt.listener.RegisterTextEncryptorListener

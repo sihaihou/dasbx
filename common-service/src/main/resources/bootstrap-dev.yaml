@@ -32,6 +32,10 @@ spring:
           - dataId: common-service-extension.yaml
             group: DASBX_GROUP
             refresh: true
+  security:
+    user:
+      name: admin
+      password: subixin
 management:
   endpoints:
     web:
@@ -43,3 +47,5 @@ management:
       show-details: always
     shutdown:
       enabled: false
+  security:
+    enabled: true
