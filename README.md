@@ -5,7 +5,8 @@
     - commons: 公共的工具类包
     - commons-model：公共的Model类
     - commons-config：公共的配置类
-
+    - sync: 同步
+      
   - 各种自定义starter包：
     - id-spring-boot-starter：全局唯一Id生成器starter
     - jwt-spring-boot-starter：Jwt生成token的starter
@@ -18,6 +19,8 @@
     - actuator-spring-boot-starter: 监控
     - decrypt-spring-cloud-starter: 配置加密
     - desensitize-spring-boot-starter: 脱敏
+    - rabbitmq-spring-boot-starter: rabbitmq
+    - redis-spring-cloud-starter: redis
       
   - 相关服务：
     - common-service： 基础服务
