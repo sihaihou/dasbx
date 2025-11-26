@@ -14,7 +14,6 @@ public class TestController {
 	
 	@Autowired
 	private IdGenerator<Long> idGenerator;
-	
 	@GetMapping
 	public Object test(String test){
 		Long generatorId = idGenerator.getGeneratorId();

@@ -1,7 +1,6 @@
 package com.reyco.dasbx.gateway.core.redis;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties.Pool;
@@ -62,7 +61,6 @@ public class RedisAutoConfiguration {
 	}
 	
 	@Configuration
-	@ConditionalOnBean(RedisTemplate.class)
 	public class RedisUtilAutoConfiguration {
 		
 		@Bean

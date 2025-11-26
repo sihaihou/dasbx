@@ -1,3 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.reyco.dasbx.oss.autoConfiguration.OssConfiguration,\
-com.reyco.dasbx.oss.endpoint.OssEndpointAutoConfiguration

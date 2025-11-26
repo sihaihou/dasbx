@@ -11,7 +11,7 @@
 	</select>
 	
 	<select id="listByCategoryId" resultType="com.reyco.dasbx.portal.model.domain.Year">
-		select yearId as id,yearName as name from portal_category_year where categoryId = #{categoryId} order by ordered limit 13;
+		select yearId as id,yearName as name from portal_category_year where categoryId = #{categoryId} order by ordered desc limit 13;
 	</select>
 	
 </mapper>

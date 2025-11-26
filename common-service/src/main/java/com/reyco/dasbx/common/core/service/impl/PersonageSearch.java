@@ -11,6 +11,7 @@ import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +22,12 @@ import com.reyco.dasbx.common.core.dao.sys.AreaDao;
 import com.reyco.dasbx.common.core.model.dto.personage.PersonageSearchDto;
 import com.reyco.dasbx.common.core.model.po.sys.PersonageElasticsearchDocument;
 import com.reyco.dasbx.common.core.model.vo.personage.PersonageInfoVO;
-import com.reyco.dasbx.commons.utils.net.CusAccessObjectUtil;
-import com.reyco.dasbx.commons.utils.net.IPToLongitudeAndLatitudeUtils;
-import com.reyco.dasbx.commons.utils.net.RequestUtils;
-import com.reyco.dasbx.commons.utils.net.IPToLongitudeAndLatitudeUtils.LongitudeLatitude;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
+import com.reyco.dasbx.commons.utils.net.CusAccessObjectUtil;
+import com.reyco.dasbx.commons.utils.net.IPToLongitudeAndLatitudeUtils;
+import com.reyco.dasbx.commons.utils.net.IPToLongitudeAndLatitudeUtils.LongitudeLatitude;
+import com.reyco.dasbx.commons.utils.net.RequestUtils;
 import com.reyco.dasbx.es.core.model.Aggregation;
 import com.reyco.dasbx.es.core.model.GeoPoint;
 import com.reyco.dasbx.es.core.search.AbstractSearch;
@@ -87,12 +88,18 @@ public class PersonageSearch extends AbstractSearch<PersonageInfoVO>{
 		LongitudeLatitude longitudeLatitude = IPToLongitudeAndLatitudeUtils.getLongitudeAndLatitude(ip);
 		personageSearchDto.setLatitude(longitudeLatitude.getLat());
 		personageSearchDto.setLongitude(longitudeLatitude.getLon());
+		// 1.按相关性评分降序
+		SearchSourceBuilder sarchSourceBuilder = searchRequest.source();
+		sarchSourceBuilder.sort("_score");
+		// 2.距离排序
 		if (personageSearchDto.getLatitude() != null || personageSearchDto.getLongitude() != null) {
 			searchRequest.source().sort(SortBuilders
 					.geoDistanceSort("location", personageSearchDto.getLatitude(), personageSearchDto.getLongitude())
 					.order(SortOrder.ASC)
 					.unit(DistanceUnit.KILOMETERS));
 		}
+		// 3.返回完整源文档
+		sarchSourceBuilder.fetchSource(true);
 	}
 	@Override
 	protected PersonageInfoVO processSearchHit(SearchHit searchHit) throws IOException {
@@ -106,7 +113,7 @@ public class PersonageSearch extends AbstractSearch<PersonageInfoVO>{
 		personageInfoVO.setLongitude(location.getLon());
 		Object[] sortValues = searchHit.getSortValues();
 		if (sortValues != null && sortValues.length > 0) {
-			personageInfoVO.setDistance(new BigDecimal((Double) sortValues[0]).setScale(2, BigDecimal.ROUND_HALF_UP));
+			personageInfoVO.setDistance(new BigDecimal((Double) sortValues[1]).setScale(2, BigDecimal.ROUND_HALF_UP));
 		}
 		return personageInfoVO;
 	}

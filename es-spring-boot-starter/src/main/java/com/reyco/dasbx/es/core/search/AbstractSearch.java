@@ -15,6 +15,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder.Field;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
@@ -247,6 +248,10 @@ public abstract class AbstractSearch<T> implements Search<T> {
 	 * @param searchDto
 	 */
 	protected void buildSort(SearchRequest searchRequest, SearchDto searchDto) {
+        // 1. 按相关性评分降序
+		SearchSourceBuilder sarchSourceBuilder = searchRequest.source();
+		sarchSourceBuilder.sort("_score");
+		// 2.其它排序
 		if(searchDto instanceof SortSearchDto) {
 			SortSearchDto sortSearchDto = (SortSearchDto)searchDto;
 			List<Sort> sorts = sortSearchDto.getSorts();
@@ -254,7 +259,8 @@ public abstract class AbstractSearch<T> implements Search<T> {
 				sorts.stream().forEach(sort->searchRequest.source().sort(sort.getField(), sort.getSortOrder()));
 			}
 		}
-		
+		// 3.返回完整源文档
+		sarchSourceBuilder.fetchSource(true);
 	}
 
 	/**

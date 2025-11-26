@@ -1,4 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.reyco.dasbx.desensitize.autoConfiguration.DesensitizeConfiguration,\
-com.reyco.dasbx.desensitize.utils.SpringContextUtils,\
-com.reyco.dasbx.desensitize.endpoint.DesensitizeEndpointAutoConfiguration

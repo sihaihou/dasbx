@@ -1,3 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.reyco.dasbx.lock.autoconfiguration.LockConfiguration,\
-com.reyco.dasbx.lock.endpoint.LockEndpointAutoConfiguration

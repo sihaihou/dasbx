@@ -1,0 +1,56 @@
+package com.reyco.test.dasbx.common.core.test.order;
+
+import java.math.BigDecimal;
+
+public class OrderItemRequest {
+    
+    private Long productId;
+    
+    private String productName;
+    
+    private String skuCode;
+    
+    private Integer quantity;
+    
+    private BigDecimal price;
+
+	public Long getProductId() {
+		return productId;
+	}
+
+	public void setProductId(Long productId) {
+		this.productId = productId;
+	}
+
+	public String getProductName() {
+		return productName;
+	}
+
+	public void setProductName(String productName) {
+		this.productName = productName;
+	}
+
+	public String getSkuCode() {
+		return skuCode;
+	}
+
+	public void setSkuCode(String skuCode) {
+		this.skuCode = skuCode;
+	}
+
+	public Integer getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(Integer quantity) {
+		this.quantity = quantity;
+	}
+
+	public BigDecimal getPrice() {
+		return price;
+	}
+
+	public void setPrice(BigDecimal price) {
+		this.price = price;
+	}
+}

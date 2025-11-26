@@ -2,15 +2,16 @@ package com.reyco.dasbx.portal.service.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 
@@ -60,6 +61,7 @@ import com.reyco.dasbx.portal.model.domain.vo.VideoProductionInfoVO;
 import com.reyco.dasbx.portal.model.domain.vo.YearListVO;
 import com.reyco.dasbx.portal.model.es.po.VideoElasticsearchDocument;
 import com.reyco.dasbx.portal.model.msg.VideoMessage;
+import com.reyco.dasbx.portal.monitor.HybridLoadMonitor;
 import com.reyco.dasbx.portal.service.CategoryService;
 import com.reyco.dasbx.portal.service.CountryService;
 import com.reyco.dasbx.portal.service.TypeService;
@@ -76,6 +78,11 @@ import com.reyco.dasbx.sync.exception.SyncException;
 public class VideoServiceImpl implements VideoService {
 
 	private static Logger logger = LoggerFactory.getLogger(VideoServiceImpl.class);
+	
+	private static final int MAX_BLOCKING_QUEUE_SIZE = 10000;
+	
+	private AtomicInteger roundRobinIndex = new AtomicInteger(0);
+	
 	@Autowired
 	private VideoDao videoDao;
 	@Autowired
@@ -104,25 +111,38 @@ public class VideoServiceImpl implements VideoService {
 	@Autowired
 	private ElasticsearchClient<VideoElasticsearchDocument> elasticsearchClient;
 	
-	private ExecutorService executor = new ThreadPoolExecutor(5,10,60,TimeUnit.SECONDS, 
-			new LinkedBlockingQueue<>(),
-			new ThreadFactory() {
-				LongAdder count = new LongAdder();
-				@Override
-				public Thread newThread(Runnable r) {
-					count.increment();
-					Thread t = new Thread(r);
-					t.setDaemon(true);
-					t.setName("com.reyco.dasbx.portal.playEventNotify-" + count.intValue());
-					return t;
-				}
-			}
-	);
+	private ExecutorService executor;
+	private int corePoolSize;
+	
 	private List<PlayEventNotify> playEventNotifys = new ArrayList<>();
-
+	private int playEventNotifySize;
+	
+	private HybridLoadMonitor loadMonitor;
+	
+	public VideoServiceImpl() {
+		int availableProcessors = Runtime.getRuntime().availableProcessors();
+		this.corePoolSize = availableProcessors;
+		this.playEventNotifySize = corePoolSize;
+		this.loadMonitor = new HybridLoadMonitor(playEventNotifys, MAX_BLOCKING_QUEUE_SIZE);
+		executor = new ThreadPoolExecutor(corePoolSize,corePoolSize,60,TimeUnit.SECONDS, 
+				new ArrayBlockingQueue<>(50),
+				new ThreadFactory() {
+					LongAdder count = new LongAdder();
+					@Override
+					public Thread newThread(Runnable r) {
+						count.increment();
+						Thread t = new Thread(r);
+						t.setDaemon(true);
+						t.setName("com.reyco.dasbx.portal.playEventNotify-" + count.intValue());
+						return t;
+					}
+				}
+		);
+		
+	}
 	@PostConstruct
 	public void init() {
-		for(int i=0;i<5;i++) {
+		for(int i=0;i<playEventNotifySize;i++) {
 			PlayEventNotify playEventNotify = new PlayEventNotify();
 			playEventNotifys.add(playEventNotify);
 			executor.execute(playEventNotify);
@@ -192,42 +212,75 @@ public class VideoServiceImpl implements VideoService {
 	@Override
 	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.PORTAL_VIDEO_INFO_PREFIX,key="#videoPlayEventDto.id")
 	public void addPlayEvent(VideoPlayEventDto videoPlayEventDto) {
+		// 记录请求
+        loadMonitor.recordRequest();
+        
 		PlayEvent playEvent = new PlayEvent();
 		playEvent.setVideoId(videoPlayEventDto.getId());
 		playEvent.setUserId(videoPlayEventDto.getUserId());
 		playEvent.setPlayTime(Dasbx.getCurrentTime());
-		playEventNotifys.get(new Random().nextInt(playEventNotifys.size())).addTask(playEvent);
+		PlayEventNotify playEventNotify = getLeastLoadedPlayEventNotify();
+		playEventNotify.addTask(playEvent);
 	}
 	
 	@Override
 	public void processPlay(List<PlayEvent> playEvents) {
 		Map<Long, Long> playTimeMap = playEvents.stream().collect(Collectors.groupingBy(PlayEvent::getVideoId,Collectors.counting()));
-		List<VideoPlayPO> videoPlayPOs = new ArrayList<>();
-		VideoPlayPO videoPlayPO = null;
-		for(Map.Entry<Long, Long> enter: playTimeMap.entrySet()) {
-			videoPlayPO = new VideoPlayPO();
-			videoPlayPO.setId(enter.getKey());
-			videoPlayPO.setPlayQuantity(enter.getValue().intValue());
-			videoPlayPOs.add(videoPlayPO);
-		}
-		videoDao.updatePlay(videoPlayPOs);
-		videoPlayPOs.stream().forEach(VideoPlayPO->{
+		
+		/*Lists.partition(new ArrayList<>(playTimeMap.entrySet()), 20).forEach(batch -> {
+        	List<VideoPlayPO> videoPlayPOs = new ArrayList<>();
+        	batch.forEach(entry -> {
+        		VideoPlayPO videoPlayPO = new VideoPlayPO();
+    			videoPlayPO.setId(entry.getKey());
+    			videoPlayPO.setPlayQuantity(entry.getValue().intValue());
+    			videoPlayPOs.add(videoPlayPO);
+        	});
+        	videoDao.updatePlay(videoPlayPOs);
+        	
+        	videoPlayPOs.stream().forEach(VideoPlayPO->{
+    			publishVideoAddEvent(VideoPlayPO.getId());
+    		});
+        });*/
+		
+		// 一次性批量更新，而不是分片
+	    List<VideoPlayPO> videoPlayPOs = playTimeMap.entrySet().stream()
+	        .map(entry -> {
+	            VideoPlayPO po = new VideoPlayPO();
+	            po.setId(entry.getKey());
+	            po.setPlayQuantity(entry.getValue().intValue());
+	            return po;
+	        })
+	        .collect(Collectors.toList());
+	    
+	    // 使用MyBatis批量更新
+	    videoDao.updatePlay(videoPlayPOs);
+	    
+	    videoPlayPOs.stream().forEach(VideoPlayPO->{
 			publishVideoAddEvent(VideoPlayPO.getId());
 		});
 	}
 	public class PlayEventNotify implements Runnable {
-		private BlockingQueue<PlayEvent> blockingQueue = new LinkedBlockingQueue<PlayEvent>();
-		public void addTask(PlayEvent playEvent) {
-			blockingQueue.add(playEvent);
+		private int maxBlockingQueueSize = 10000;
+		private BlockingQueue<PlayEvent> blockingQueue = new ArrayBlockingQueue<PlayEvent>(maxBlockingQueueSize);
+		private Long intervalTime = 1000L;
+		public PlayEventNotify() {
+		}
+		public boolean addTask(PlayEvent playEvent) {
+			try {
+		        return blockingQueue.offer(playEvent, 50, TimeUnit.MILLISECONDS);
+		    } catch (InterruptedException e) {
+		        Thread.currentThread().interrupt();
+		        return false;
+		    }
 		}
 		@Override
 		public void run() {
 			while (true) {
 				try {
-					long currentTimeMillis = System.currentTimeMillis();//1000
 					List<PlayEvent> playEvents = new ArrayList<>(100);
-					while ((System.currentTimeMillis() - 1000 < currentTimeMillis) && playEvents.size() < 100) {
-						PlayEvent playEvent = blockingQueue.poll(1000-(System.currentTimeMillis()-currentTimeMillis),TimeUnit.MILLISECONDS);
+					long startTime = System.currentTimeMillis();
+					while (playEvents.size()<100 && System.currentTimeMillis() - startTime < intervalTime) {
+						PlayEvent playEvent = blockingQueue.poll(1000-(System.currentTimeMillis()-startTime),TimeUnit.MILLISECONDS);
 						if (playEvent != null) {
 							playEvents.add(playEvent);
 						}
@@ -236,15 +289,53 @@ public class VideoServiceImpl implements VideoService {
 						process(playEvents);
 					}
 				} catch (Exception e) {
-
+					logger.error(e.getMessage());
+					e.printStackTrace();
 				}
 			}
 		}
 		public void process(List<PlayEvent> playEvents) {
 			videoService.processPlay(playEvents);
 		}
+		public BlockingQueue<PlayEvent> getBlockingQueue() {
+			return blockingQueue;
+		}
+		public int getMaxBlockingQueueSize() {
+			return maxBlockingQueueSize;
+		}
 	}
-
+	/**
+	 * 使用轮询+负载检查选择一个PlayEventNotify
+	 * @return
+	 */
+	public PlayEventNotify getLeastLoadedPlayEventNotify() {
+	    int startIndex = roundRobinIndex.getAndIncrement() % playEventNotifys.size();
+	    PlayEventNotify selected = playEventNotifys.get(startIndex);
+	    
+	    // 动态阈值：系统负载高时降低阈值
+	    double loadFactor = loadMonitor.getSystemLoadFactor(); // 0.0-1.0
+	    double dynamicThresholdRatio = 0.75 - (loadFactor * 0.25); // 75% ~ 50%
+	    int threshold = (int) (selected.getMaxBlockingQueueSize() * dynamicThresholdRatio);
+	    
+	    // 快速检查，如果队列不太满就直接返回
+	    if (selected.getBlockingQueue().size() < threshold) {
+	        return selected;
+	    }
+	    
+	    // 快速查找：检查接下来几个队列，避免全局遍历
+	    for (int i = 1; i < Math.min(3, playEventNotifys.size()); i++) {
+	        PlayEventNotify next = playEventNotifys.get((startIndex + i) % playEventNotifys.size());
+	        if (next.getBlockingQueue().size() < threshold) {
+	            return next;
+	        }
+	    }
+	    
+	    // 否则找真正的最小队列
+	    return playEventNotifys.stream()
+	            .min(Comparator.comparingInt(p -> p.getBlockingQueue().size()))
+	            .orElse(selected);
+	}
+	
 	public class PlayEvent extends ToString {
 		/**
 		 * 

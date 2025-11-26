@@ -1,3 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.reyco.dasbx.jwt.autoConfiguration.JwtConfiguration,\
-com.reyco.dasbx.jwt.endpoint.JwtEndpointAutoConfiguration

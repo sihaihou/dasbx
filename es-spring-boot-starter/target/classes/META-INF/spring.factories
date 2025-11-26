@@ -1,3 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.reyco.dasbx.es.autoconfiguration.ElasticsearchConfiguration,\
-com.reyco.dasbx.es.endpoint.EsEndpointAutoConfiguration
