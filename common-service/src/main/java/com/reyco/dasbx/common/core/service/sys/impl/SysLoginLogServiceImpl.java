@@ -93,14 +93,9 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
 		sysLoginLogDao.updateLogin(sysLoginLogLoginUpdatePO);
 	}
 	@Override
-	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_LOGINLOG_INFO_PREFIX,key="#sysLoginLogUpdateDto.id")
-	public void updateLogout(SysLoginLogLogoutUpdateDto sysLoginLogUpdateDto) {
-		SysLoginLogLogoutUpdatePO sysLoginLogUpdatePO = Convert.sourceToTarget(sysLoginLogUpdateDto, SysLoginLogLogoutUpdatePO.class);
-		SysLoginLog sysLoginLog = sysLoginLogDao.getByCode(sysLoginLogUpdateDto.getCode());
-		if(sysLoginLog==null) {
-			return;
-		}
-		sysLoginLogUpdatePO.setId(sysLoginLog.getId());
+	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_LOGINLOG_INFO_PREFIX,key="#sysLoginLogLogoutUpdateDto.id")
+	public void updateLogout(SysLoginLogLogoutUpdateDto sysLoginLogLogoutUpdateDto) {
+		SysLoginLogLogoutUpdatePO sysLoginLogUpdatePO = Convert.sourceToTarget(sysLoginLogLogoutUpdateDto, SysLoginLogLogoutUpdatePO.class);
 		sysLoginLogDao.updateLogout(sysLoginLogUpdatePO);
 	}
 	

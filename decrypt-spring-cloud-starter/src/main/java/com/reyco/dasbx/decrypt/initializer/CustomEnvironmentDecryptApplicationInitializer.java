@@ -28,6 +28,7 @@ import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.util.StringUtils;
 
 import com.reyco.dasbx.decrypt.CustomTextEncryptor;
+import com.reyco.dasbx.decrypt.constants.SecurityConstants;
 
 /**
  * 自定义环境解密初始化器
@@ -36,17 +37,14 @@ import com.reyco.dasbx.decrypt.CustomTextEncryptor;
  */
 public class CustomEnvironmentDecryptApplicationInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext>, Ordered{
 	private static Logger logger = LoggerFactory.getLogger(CustomEnvironmentDecryptApplicationInitializer.class);
+	
 	public static final String DECRYPTED_PROPERTY_SOURCE_NAME = "customDecrypted";
 	public static final String DECRYPTED_BOOTSTRAP_PROPERTY_SOURCE_NAME = "customDecryptedBootstrap";
+	
 	public static String ENCRYPTED_PROPERTY_PREFIX = "cipher{";
 	public static String ENCRYPTED_PROPERTY_SUFFIX = "}";
 	private TextEncryptor encryptor;
-	public CustomEnvironmentDecryptApplicationInitializer() {
-		this(new CustomTextEncryptor());
-	}
-	public CustomEnvironmentDecryptApplicationInitializer(TextEncryptor encryptor) {
-		setEncryptor(encryptor);
-	}
+	
 	public TextEncryptor getEncryptor() {
 		return encryptor;
 	}
@@ -60,6 +58,9 @@ public class CustomEnvironmentDecryptApplicationInitializer implements Applicati
 	@Override
 	public void initialize(ConfigurableApplicationContext applicationContext) {
 		ConfigurableEnvironment environment = applicationContext.getEnvironment();
+		
+		initTextEncryptor(environment);
+		
 		MutablePropertySources propertySources = environment.getPropertySources();
 		Set<String> found = new LinkedHashSet<>();
 		Map<String, Object> map = decrypt(propertySources);
@@ -74,6 +75,24 @@ public class CustomEnvironmentDecryptApplicationInitializer implements Applicati
 			}
 
 		}
+	}
+	/**
+	 * 初始化文本加密器
+	 * @param environment
+	 */
+	private void initTextEncryptor(ConfigurableEnvironment environment){
+	    String algorithmName = getProperty(environment, SecurityConstants.ALGORITHM_NAME, CustomTextEncryptor.DEFAULT_ALGORITHM_NAME);
+
+	    if (CustomTextEncryptor.AES_ALGORITHM_NAME.equalsIgnoreCase(algorithmName)) {
+	        String secret = getProperty(environment, SecurityConstants.SECRET, CustomTextEncryptor.DEFAULT_SECRET);
+	        setEncryptor(new CustomTextEncryptor(algorithmName, secret));
+	    } else if (CustomTextEncryptor.RSA_ALGORITHM_NAME.equalsIgnoreCase(algorithmName)) {
+	        String publicKey = getProperty(environment, SecurityConstants.PUBLIC_KEY, CustomTextEncryptor.DEFAULT_PUBLIC_KEY);
+	        String privateKey = getProperty(environment, SecurityConstants.PRIVATE_KEY, CustomTextEncryptor.DEFAULT_PRIVATE_KEY);
+	        setEncryptor(new CustomTextEncryptor(algorithmName, publicKey, privateKey));
+	    } else {
+	        throw new RuntimeException("Unsupported encryption algorithm: " + algorithmName + ". Only AES and RSA are supported.");
+	    }
 	}
 	private void insert(ApplicationContext applicationContext,
 			PropertySource<?> propertySource) {
@@ -217,4 +236,22 @@ public class CustomEnvironmentDecryptApplicationInitializer implements Applicati
         }
         return false;
     }
+	/**
+	 * 
+	 * @param env
+	 * @param key
+	 * @param defaultValue
+	 * @return
+	 */
+	private String getProperty(ConfigurableEnvironment env, String key, String defaultValue) {
+	    String value = env.getProperty(key);
+	    if (StringUtils.isEmpty(value)) {
+	    	if(key.equalsIgnoreCase(SecurityConstants.SECRET)
+	    		|| key.equalsIgnoreCase(SecurityConstants.PRIVATE_KEY)) {
+	    		logger.warn("未检测到安全密钥配置，正在使用默认密钥。请确保这不是生产环境！");
+	    	}
+	    	value = defaultValue;
+	    }
+	    return value;
+	}
 }

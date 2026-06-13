@@ -1,5 +1,7 @@
 package com.reyco.dasbx.gateway.core.redis;
 
+import javax.annotation.PreDestroy;
+
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
@@ -19,7 +21,9 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 @EnableConfigurationProperties(RedisProperties.class)
 public class RedisAutoConfiguration {
-
+	
+	private volatile LettuceConnectionFactory currentConnectionFactory;
+	
 	@Bean
 	@ConditionalOnMissingBean
 	public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
@@ -28,8 +32,10 @@ public class RedisAutoConfiguration {
 		}
 		RedisTemplate<String, Object> template = new RedisTemplate<>();
 		template.setConnectionFactory(factory);
+		
 		StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
 		GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer = new GenericJackson2JsonRedisSerializer();
+		
 		template.setKeySerializer(stringRedisSerializer);
 		template.setValueSerializer(genericJackson2JsonRedisSerializer);
 		template.setHashKeySerializer(stringRedisSerializer);
@@ -37,27 +43,37 @@ public class RedisAutoConfiguration {
 		template.afterPropertiesSet();
 		return template;
 	}
-
+	
 	@Bean
 	@RefreshScope
-	public RedisConnectionFactory redisConnectionFactory(RedisProperties redisProperties) {
-		RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(redisProperties.getHost(), redisProperties.getPort());
-		redisStandaloneConfiguration.setDatabase(redisProperties.getDatabase());
-		redisStandaloneConfiguration.setPassword(redisProperties.getPassword());
+	public LettuceConnectionFactory redisConnectionFactory(RedisProperties redisProperties) {
+		 // 关闭旧的连接工厂
+        if (currentConnectionFactory != null) {
+            currentConnectionFactory.destroy();
+        }
+        
+		RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisProperties.getHost(), redisProperties.getPort());
+		config.setDatabase(redisProperties.getDatabase());
+		config.setPassword(redisProperties.getPassword());
 		
-		GenericObjectPoolConfig<Object> genericObjectPoolConfig = new GenericObjectPoolConfig<Object>();
-		Pool pool = redisProperties.getJedis().getPool();
-		genericObjectPoolConfig.setMaxTotal(pool.getMaxActive());
-		genericObjectPoolConfig.setMaxWaitMillis(pool.getMaxWait().toMillis());
-		genericObjectPoolConfig.setMaxIdle(pool.getMaxIdle());
-		genericObjectPoolConfig.setMinIdle(pool.getMinIdle());
-		LettucePoolingClientConfiguration lettucePoolingClientConfiguration = LettucePoolingClientConfiguration
+		GenericObjectPoolConfig<Object> poolConfig = new GenericObjectPoolConfig<Object>();
+		Pool pool = redisProperties.getLettuce().getPool();
+		
+		poolConfig.setMaxTotal(pool.getMaxActive());
+		poolConfig.setMaxWaitMillis(pool.getMaxWait().toMillis());
+		poolConfig.setMaxIdle(pool.getMaxIdle());
+		poolConfig.setMinIdle(pool.getMinIdle());
+		
+		LettucePoolingClientConfiguration clientConfig = LettucePoolingClientConfiguration
 				.builder()
 				.commandTimeout(redisProperties.getTimeout())
-				.poolConfig(genericObjectPoolConfig)
+				.poolConfig(poolConfig)
 				.build();
-		RedisConnectionFactory redisConnectionFactory = new LettuceConnectionFactory(redisStandaloneConfiguration,lettucePoolingClientConfiguration);
-		return redisConnectionFactory;
+		
+		LettuceConnectionFactory  factory = new LettuceConnectionFactory(config,clientConfig);
+		factory.afterPropertiesSet();
+		currentConnectionFactory = factory;
+		return factory;
 	}
 	
 	@Configuration
@@ -69,7 +85,12 @@ public class RedisAutoConfiguration {
 			RedisUtil redisUtil = new RedisUtil(redisTemplate);
 			return redisUtil;
 		}
-		
 	}
-
+	
+	@PreDestroy
+    public void destroy() {
+        if (currentConnectionFactory != null) {
+            currentConnectionFactory.destroy();
+        }
+    }
 }

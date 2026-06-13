@@ -49,12 +49,15 @@ public class AggregationServiceImpl implements AggregationService {
 	
 	@Override
 	public List<List<Aggregations>> listAggregationsByCategoryId(Long categoryId) throws Exception {
+		if(categoryId==null) {
+			return null;
+		}
 		Callable<List<Aggregations>> countryTask= new Callable<List<Aggregations>>() {
 			@Override
 			public List<Aggregations> call() throws Exception {
 				List<CountryListVO> countryListVOs = countryService.listByCategoryId(categoryId);
 				CountryListVO country = new CountryListVO();
-				country.setId(-1L);
+				country.setId(null);
 				country.setName("全部地区");
 				countryListVOs.add(0, country);
 				return countryListVOs.stream().map(countryListVO->{
@@ -71,7 +74,7 @@ public class AggregationServiceImpl implements AggregationService {
 			public List<Aggregations> call() throws Exception {
 				List<TypeListVO> typeListVOs = typeService.listByCategoryId(categoryId);
 				TypeListVO type = new TypeListVO();
-				type.setId(-1L);
+				type.setId(null);
 				type.setName("全部类型");
 				typeListVOs.add(0, type);
 				return typeListVOs.stream().map(typeListVO->{
@@ -88,7 +91,7 @@ public class AggregationServiceImpl implements AggregationService {
 			public List<Aggregations> call() throws Exception {
 				List<YearListVO> yearListVOs = yearService.listByCategoryId(categoryId);
 				YearListVO year = new YearListVO();
-				year.setId(-1L);
+				year.setId(null);
 				year.setName("全部年份");
 				yearListVOs.add(0, year);
 				return yearListVOs.stream().map(yearListVO->{

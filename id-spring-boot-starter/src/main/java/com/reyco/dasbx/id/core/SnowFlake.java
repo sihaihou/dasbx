@@ -1,5 +1,9 @@
 package com.reyco.dasbx.id.core;
 
+import java.net.InetAddress;
+import java.security.SecureRandom;
+import java.util.Random;
+
 /**
  * 1位标识  + 41位时间截 + 5位机器标识    + 5位工作id  + 12位序列
  * @author reyco
@@ -51,6 +55,8 @@ public class SnowFlake {
 	 */
 	private long lastStmp = -1L;
 
+	private final Object lock = new Object();
+	
 	public SnowFlake(long machineId,long workId) {
 		if (workId > MAX_workId_NUM || workId < 0) {
 			throw new IllegalArgumentException("datacenterId can't be greater than MAX_DATACENTER_NUM or less than 0");
@@ -66,30 +72,32 @@ public class SnowFlake {
 	 *
 	 * @return
 	 */
-	public synchronized Long nextId() {
+	public Long nextId() {
 		long currStmp = getNewstmp();
 		if (currStmp < lastStmp) {
 			// 时钟倒流抛出异常
 			throw new RuntimeException("Clock moved backwards.  Refusing to generate id");
 		}
-		if (currStmp == lastStmp) {
-			// 相同毫秒内，序列号自增
-			sequence = (sequence + 1) & MAX_SEQUENCE;
-			// 同一毫秒的序列数已经达到最大
-			if (sequence == 0) {
-				currStmp = getNextMill(lastStmp);
+		synchronized (lock) {
+			if (currStmp == lastStmp) {
+				// 相同毫秒内，序列号自增
+				sequence = (sequence + 1) & MAX_SEQUENCE;
+				// 同一毫秒的序列数已经达到最大
+				if (sequence == 0) {
+					currStmp = getNextMill(lastStmp);
+				}
+			} else {
+				// 不同毫秒内，序列号置为0
+				sequence = 0L;
 			}
-		} else {
-			// 不同毫秒内，序列号置为0
-			sequence = 0L;
+	
+			lastStmp = currStmp;
+	
+			return (currStmp - START_STMP) << TIMESTMP_LEFT // 时间戳部分
+					| machineId << MACHINE_LEFT // 机器标识部分
+					| workId << WORKId_LEFT // 工作id部分
+					| sequence; // 序列号部分
 		}
-
-		lastStmp = currStmp;
-
-		return (currStmp - START_STMP) << TIMESTMP_LEFT // 时间戳部分
-				| machineId << MACHINE_LEFT // 机器标识部分
-				| workId << WORKId_LEFT // 工作id部分
-				| sequence; // 序列号部分
 	}
 	
 	/**
@@ -110,6 +118,9 @@ public class SnowFlake {
 	private long getNewstmp() {
 		return System.currentTimeMillis();
 	}
+	
+	
+	
 	
 	
 	/**

@@ -5,39 +5,44 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.reyco.dasbx.commons.exception.ArgumentException;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 import com.reyco.dasbx.commons.utils.Dasbx;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
-import com.reyco.dasbx.commons.utils.encrypt.SecretKeyUtils;
+import com.reyco.dasbx.commons.utils.encrypt.AESUtils;
+import com.reyco.dasbx.commons.utils.encrypt.RSAUtils;
 import com.reyco.dasbx.commons.utils.net.CusAccessObjectUtil;
 import com.reyco.dasbx.commons.utils.net.IPDataUtils;
+import com.reyco.dasbx.commons.utils.net.RequestUtils;
 import com.reyco.dasbx.commons.utils.random.RandomNumberUtils;
-import com.reyco.dasbx.config.exception.core.ArgumentException;
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.mail.MailEventListener;
 import com.reyco.dasbx.config.mail.MailEventListener.MailContent;
 import com.reyco.dasbx.config.mail.MailEventListener.MailEvent;
+import com.reyco.dasbx.config.rabbit.message.AccountRegisterMessage;
+import com.reyco.dasbx.config.rabbit.message.SysLoginLogLoginMessage;
+import com.reyco.dasbx.config.rabbit.message.SysLoginLogLogoutMessage;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.id.core.IdGenerator;
 import com.reyco.dasbx.login.core.feign.AccountFeignClientService;
 import com.reyco.dasbx.login.core.feign.FullnameFeignClientService;
 import com.reyco.dasbx.login.core.model.dto.EmailLoginDto;
 import com.reyco.dasbx.login.core.model.dto.PasswordLoginDto;
-import com.reyco.dasbx.login.core.model.msg.AccountRegisterMessage;
-import com.reyco.dasbx.login.core.model.msg.SysLoginLogLoginMessage;
-import com.reyco.dasbx.login.core.model.msg.SysLoginLogLogoutMessage;
 import com.reyco.dasbx.login.core.service.LoginService;
 import com.reyco.dasbx.login.core.service.authentication.AuthenticationInfo;
 import com.reyco.dasbx.login.core.service.authentication.AuthenticationToken;
 import com.reyco.dasbx.login.core.service.authentication.Authenticator;
 import com.reyco.dasbx.login.core.service.authentication.UsernamePasswordToken;
-import com.reyco.dasbx.login.core.utils.AESUtils;
+import com.reyco.dasbx.login.core.service.security.AesService;
+import com.reyco.dasbx.login.core.service.security.RsaService;
 import com.reyco.dasbx.model.constants.AccountType;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.Constants;
@@ -45,10 +50,12 @@ import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.domain.SysAccount;
 import com.reyco.dasbx.model.vo.SysAccountToken;
 import com.reyco.dasbx.rabbitmq.service.RabbitProducrService;
+import com.reyco.dasbx.rate.limit.annotation.SlidingWindowRateLimit;
 import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
 
 @Service
 public class LoginServiceImpl implements LoginService{
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	@Autowired
 	private Authenticator authenticator;
 	@Autowired
@@ -56,29 +63,47 @@ public class LoginServiceImpl implements LoginService{
 	@Autowired
 	private AccountFeignClientService accountFeignClientService;
 	@Autowired
-	private IdGenerator<Long> idGenerator;
+	private IdGenerator idGenerator;
 	@Autowired
 	private FullnameFeignClientService fullnameFeignClientService;
 	@Autowired
 	private RedisUtil redisUtil;
 	@Autowired
+	private RsaService rsaService;
+	@Autowired
+	private AesService aesService;
+	@Autowired
 	private ApplicationContext applicationContext;
-	
+	@Autowired
+	private LoginService loginService;
 	@Override
-	public SysAccountToken login(String t) throws AuthenticationException, ArgumentException {
-		String secretKey = SecretKeyUtils.getSecretKey();
-		String tokenJson = AESUtils.decrypt(t,secretKey);
-		PasswordLoginDto passwordLoginDto = JsonUtils.jsonToObj(tokenJson, PasswordLoginDto.class);
+	public SysAccountToken login(String token) throws AuthenticationException, ArgumentException {
+		PasswordLoginDto passwordLoginDto = decryptLoginDto(token);
 		if(StringUtils.isBlank(passwordLoginDto.getPassword()) || StringUtils.isBlank(passwordLoginDto.getUsername())) {
 			throw new ArgumentException("用户名密码不能为空...");
 		}
-		AuthenticationToken token = new UsernamePasswordToken(passwordLoginDto.getUsername(),passwordLoginDto.getPassword());
-		AuthenticationInfo info = authenticator.authenticate(token);
+		//基于账号限流
+		loginService.checkLoginRateLimit(passwordLoginDto.getUsername());
+		
+		AuthenticationToken authenticationToken = new UsernamePasswordToken(passwordLoginDto.getUsername(),passwordLoginDto.getPassword());
+		AuthenticationInfo info = authenticator.authenticate(authenticationToken);
 		SysAccountToken accountToken = Convert.sourceToTarget(info.getPrincipal(), SysAccountToken.class);
 		TokenUtils.createToken(accountToken);
 		publishLogin(accountToken);
 		return accountToken;
 	}
+	 /**
+     * 登录限流检查
+     */
+    @SlidingWindowRateLimit(
+        key = "#account",
+        name="account",
+        window = 60,
+        unit = TimeUnit.SECONDS,
+        maxRequests = 2
+    )
+    public void checkLoginRateLimit(String account) {
+    }
 	@Override
 	public void createEmailCode(String email) {
 		String verificationCode = RandomNumberUtils.randomNumber();
@@ -113,7 +138,7 @@ public class LoginServiceImpl implements LoginService{
 		if(account==null) {
 			//是否需要注册
 			AccountRegisterMessage accountRegisterMessage = new AccountRegisterMessage();
-			accountRegisterMessage.setUid(idGenerator.getGeneratorId()+"");
+			accountRegisterMessage.setUid(idGenerator.nextIdStr());
 			accountRegisterMessage.setNickname(fullnameFeignClientService.randomFullName().getFullname());
 			accountRegisterMessage.setType(AccountType.ACCOUNT_TYPE_BACK.getType());
 			account = Convert.sourceToTarget(accountRegisterMessage, SysAccount.class);
@@ -166,5 +191,26 @@ public class LoginServiceImpl implements LoginService{
 		sysLoginLogLogoutMessage.setModifiedBy(sysAccountToken.getId());
 		rabbitProducrService.send(RabbitConstants.LOG_EXCHANGE, RabbitConstants.LOG_LOGOUT_ROUTE_KEY, sysLoginLogLogoutMessage);
 	}
-	
+	/**
+	 * 解密
+	 * @param loginDto
+	 * @return
+	 * @throws Exception
+	 */
+	public PasswordLoginDto decryptLoginDto(String token){
+		try {
+			String publicKey = TokenUtils.getOption(RequestUtils.getHttpServletRequest(), Constants.PUBLIC_KEY);
+			String privateKey = rsaService.getPrivateKey(publicKey);
+			String encryptedAesKey = TokenUtils.getOption(RequestUtils.getHttpServletRequest(), Constants.SECRET);
+			String secretKey = RSAUtils.decrypt(encryptedAesKey, privateKey);
+			String tokenJson = AESUtils.decrypt(token,secretKey);
+			rsaService.deletePrivateKey(publicKey);
+			PasswordLoginDto passwordLoginDto = JsonUtils.jsonToObj(tokenJson, PasswordLoginDto.class);
+			return passwordLoginDto;
+		} catch (Exception e) {
+			logger.error("解密登录数据出错:",e);
+			e.printStackTrace();
+		}
+		return null;
+	}
 }

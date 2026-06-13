@@ -17,8 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import com.reyco.dasbx.commons.utils.convert.Convert;
-import com.reyco.dasbx.es.core.client.ElasticsearchClient;
-import com.reyco.dasbx.es.core.search.SearchVO;
+import com.reyco.dasbx.es.client.ElasticsearchClient;
+import com.reyco.dasbx.es.support.result.Result;
+import com.reyco.dasbx.es.support.template.SearchTemplate;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.user.core.constant.Constants;
 import com.reyco.dasbx.user.core.dao.sys.SysAccountDao;
@@ -36,7 +37,6 @@ import com.reyco.dasbx.user.core.model.po.sys.SysRoleReq;
 import com.reyco.dasbx.user.core.model.po.sys.SysRoleSelectPO;
 import com.reyco.dasbx.user.core.model.po.sys.SysRoleUpdatePO;
 import com.reyco.dasbx.user.core.model.vo.sys.SysRoleInfoVO;
-import com.reyco.dasbx.user.core.service.es.sysAccount.SysRoleSearch;
 import com.reyco.dasbx.user.core.service.sys.SysRoleMenuService;
 import com.reyco.dasbx.user.core.service.sys.SysRoleService;
 
@@ -58,8 +58,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Autowired
 	private ElasticsearchClient<SysRoleElasticsearchDocument> elasticsearchClient;
     @Autowired
-    private SysRoleSearch sysRoleSearch;
-    
+    private SearchTemplate searchTemplate;
     @Override
     @Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.USER_ROLE_COMMENT_INFO_PREFIX,key="#roleId")
     public SysRoleInfoVO get(Long roleId) {
@@ -73,16 +72,15 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
     @Override
 	public List<String> getSuggestion(String keyword) throws Exception {
-		List<String> suggestion = elasticsearchClient.getSuggestion(Constants.ROLE_INDEX_NAME, keyword);
+		List<String> suggestion = searchTemplate.suggest(Constants.ROLE_INDEX_NAME, keyword);
 		if (suggestion == null) {
 			suggestion = new ArrayList<>();
 		}
 		return suggestion;
 	}
     @Override
-    public SearchVO<SysRoleInfoVO> search(SysRoleSearchDto sysRoleSearchDto) throws IOException {
-    	logger.debug("role搜索");
-    	return sysRoleSearch.search(sysRoleSearchDto);
+    public Result<SysRoleInfoVO> search(SysRoleSearchDto sysRoleSearchDto) throws IOException {
+    	return searchTemplate.search(sysRoleSearchDto,SysRoleInfoVO.class);
     }
     @Override
     public List<SysRoleDto> select(SysRoleReq sysRoleReq) {

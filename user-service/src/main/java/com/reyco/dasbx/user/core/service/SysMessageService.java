@@ -1,6 +1,6 @@
 package com.reyco.dasbx.user.core.service;
 
-import com.reyco.dasbx.config.exception.core.BusinessException;
+import com.reyco.dasbx.commons.exception.BusinessException;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
 
 public interface SysMessageService  {

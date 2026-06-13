@@ -1,6 +1,5 @@
 package com.reyco.dasbx.id.autoConfiguration;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -18,22 +17,16 @@ import com.reyco.dasbx.id.properties.SnowFlakeProperties;
 @EnableConfigurationProperties(SnowFlakeProperties.class)
 public class IdGeneratorConfiguration {
 	
-	@Bean
-	@ConditionalOnMissingBean(SnowFlakeProperties.class)
-	public SnowFlakeProperties snowFlakeProperties() {
-		SnowFlakeProperties snowFlakeProperties = new SnowFlakeProperties();
-		return snowFlakeProperties;
-	}
-	
 	@Primary
 	@Bean(IdGenerator.DEFAULT_IDGENERATOR)
-	@ConditionalOnBean(SnowFlakeProperties.class)
+	@ConditionalOnMissingBean(IdGenerator.class)
 	public SnowflakeIdGenerator snowflakeIdGenerator(SnowFlakeProperties snowFlakeProperties) {
 		SnowflakeIdGenerator snowflakeIdGenerator = new SnowflakeIdGenerator(snowFlakeProperties);
 		return snowflakeIdGenerator;
 	}
 
 	@Bean(IdGenerator.UUID_IDGENERATOR)
+	@ConditionalOnMissingBean(name = IdGenerator.UUID_IDGENERATOR)
 	public UUIdGenerator uuIdGenerator() {
 		UUIdGenerator uuIdGenerator = new UUIdGenerator();
 		return uuIdGenerator;

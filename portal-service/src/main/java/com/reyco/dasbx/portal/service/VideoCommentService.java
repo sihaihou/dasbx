@@ -1,7 +1,7 @@
 package com.reyco.dasbx.portal.service;
 
 import com.github.pagehelper.PageInfo;
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 import com.reyco.dasbx.portal.model.domain.dto.VideCommentAnswerPageDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoCommentInsertDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoCommentLikeDto;

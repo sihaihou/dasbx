@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reyco.dasbx.commons.domain.R;
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
-import com.reyco.dasbx.es.core.search.SearchVO;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
+import com.reyco.dasbx.es.support.result.Result;
 import com.reyco.dasbx.model.constants.Constants;
 import com.reyco.dasbx.user.core.model.dto.sys.SysRoleDeleteDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysRoleDto;
@@ -75,7 +75,7 @@ public class SysRoleController {
 	@GetMapping("search")
 	// @RequiresPermissions("sys:role:list")
 	public Object list(SysRoleSearchDto sysRoleSearchDto) throws IOException {
-		SearchVO<SysRoleInfoVO> search = sysRoleService.search(sysRoleSearchDto);
+		Result<SysRoleInfoVO> search = sysRoleService.search(sysRoleSearchDto);
 		return R.success(search);
 	}
 

@@ -2,7 +2,7 @@ package com.reyco.dasbx.user.core.model.es.po;
 
 import java.util.List;
 
-import com.reyco.dasbx.es.core.client.ElasticsearchDocument;
+import com.reyco.dasbx.es.client.ElasticsearchDocument;
 
 public class SysAccountElasticsearchDocument implements ElasticsearchDocument{
 	private Long id;

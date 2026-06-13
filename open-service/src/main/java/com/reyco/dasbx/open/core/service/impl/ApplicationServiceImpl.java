@@ -1,6 +1,9 @@
 package com.reyco.dasbx.open.core.service.impl;
 
 import java.util.List;
+import java.util.UUID;
+
+import javax.annotation.Resource;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -11,10 +14,11 @@ import org.springframework.util.CollectionUtils;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.date.DateUtils;
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.utils.TokenUtils;
+import com.reyco.dasbx.id.core.IdGenerator;
 import com.reyco.dasbx.id.core.UUIdGenerator;
 import com.reyco.dasbx.model.dto.ListDto;
 import com.reyco.dasbx.model.vo.ListVO;
@@ -53,6 +57,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 	private ApplicationCategoryDao applicationCategoryDao;
 	@Autowired
 	private DeveloperApplicationDao developerApplicationDao;
+	
+	@Resource(name=IdGenerator.UUID_IDGENERATOR)
+	private IdGenerator idGenerator;
 	
 	@Override
 	public ApplicationInfoVO get(Long id) {
@@ -103,7 +110,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 	@Override
 	public ApplicationInfoVO insert(ApplicationInsertDto applicationInsertDto) throws AuthenticationException {
 		String clientId = RandomStringUtils.randomAlphabetic(16);
-		String clientSecret = UUIdGenerator.getUUId();
+		String clientSecret = idGenerator.nextIdStr();
 		ApplicationInsertPO applicationInsertPO = Convert.sourceToTarget(applicationInsertDto, ApplicationInsertPO.class);
 		applicationInsertPO.setClientId(clientId);
 		applicationInsertPO.setClientSecret(clientSecret);

@@ -1,3 +1,13 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.reyco.dasbx.es.autoconfiguration.ElasticsearchConfiguration,\
+com.reyco.dasbx.es.core.configuration.SearchConfiguration,\
+com.reyco.dasbx.es.core.configuration.query.SearchAdapterConfiguration,\
+com.reyco.dasbx.es.core.configuration.feature.FeatureConfiguration,\
+com.reyco.dasbx.es.core.configuration.result.PageConfiguration,\
+com.reyco.dasbx.es.core.configuration.metadata.MetadataConfiguration,\
+com.reyco.dasbx.es.core.configuration.query.SortConfiguration,\
+com.reyco.dasbx.es.core.configuration.query.GeoConfiguration,\
+com.reyco.dasbx.es.core.configuration.feature.AggregationConfiguration,\
+com.reyco.dasbx.es.core.configuration.query.RewriteConfiguration,\
+com.reyco.dasbx.es.core.configuration.validator.ValidatorConfiguration,\
+com.reyco.dasbx.es.support.configuration.template.TemplateConfiguration,\
 com.reyco.dasbx.es.endpoint.EsEndpointAutoConfiguration

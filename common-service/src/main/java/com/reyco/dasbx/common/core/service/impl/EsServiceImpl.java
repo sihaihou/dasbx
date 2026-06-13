@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.reyco.dasbx.common.core.service.EsService;
-import com.reyco.dasbx.es.core.client.ElasticsearchClient;
+import com.reyco.dasbx.es.client.ElasticsearchClient;
 
 @Service
 public class EsServiceImpl implements EsService{

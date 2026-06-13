@@ -2,8 +2,8 @@ package com.reyco.dasbx.common.core.model.po.sys;
 
 import java.util.List;
 
-import com.reyco.dasbx.es.core.client.ElasticsearchDocument;
-import com.reyco.dasbx.es.core.model.GeoPoint;
+import com.reyco.dasbx.es.client.ElasticsearchDocument;
+import com.reyco.dasbx.model.es.GeoPoint;
 
 public class SysAreaElasticsearchDocument implements ElasticsearchDocument{
 	private Long id;

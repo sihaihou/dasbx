@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.github.pagehelper.PageInfo;
 import com.reyco.dasbx.commons.domain.R;
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 import com.reyco.dasbx.portal.model.domain.dto.VideCommentAnswerPageDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoCommentInsertDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoCommentLikeDto;

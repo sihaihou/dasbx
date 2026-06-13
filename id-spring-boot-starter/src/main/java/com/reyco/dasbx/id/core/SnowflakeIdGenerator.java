@@ -10,7 +10,7 @@ import com.reyco.dasbx.id.properties.SnowFlakeProperties;
  * @author reyco
  *
  */
-public class SnowflakeIdGenerator implements IdGenerator<Long>, InitializingBean {
+public class SnowflakeIdGenerator implements IdGenerator, InitializingBean {
 
 	private SnowFlakeProperties snowFlakeProperties;
 
@@ -20,10 +20,26 @@ public class SnowflakeIdGenerator implements IdGenerator<Long>, InitializingBean
 		super();
 		this.snowFlakeProperties = snowFlakeProperties;
 	}
+	
+	public static String nextIdStr(String prefix) {
+		return prefix+nextIdStr(prefix);
+	}
+	
 	@Override
-	public Long getGeneratorId() {
+	public String nextIdStr() {
+		return String.valueOf(nextId());
+	}
+	@Override
+	public Long nextIdLong() {
+		return nextId();
+	}
+	/**
+	 * 如果业务明确需要原生 Long 类型，可以单独调用此方法
+	 */
+	public Long nextId() {
 		return snowFlake.nextId();
 	}
+	
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Long machineId = snowFlakeProperties.getMachineId();

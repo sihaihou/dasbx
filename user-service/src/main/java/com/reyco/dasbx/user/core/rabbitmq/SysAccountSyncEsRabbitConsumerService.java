@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.rabbitmq.client.Channel;
+import com.reyco.dasbx.config.rabbit.message.SysAccountSyncEsMessage;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.OperationType;
 import com.reyco.dasbx.model.constants.RabbitConstants;
@@ -24,7 +25,6 @@ import com.reyco.dasbx.rabbitmq.service.AbstractRabbitConsumerService;
 import com.reyco.dasbx.rabbitmq.service.RabbitMessageType;
 import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
 import com.reyco.dasbx.sync.es.ElasticsearchSync;
-import com.reyco.dasbx.user.core.model.msg.SysAccountSyncEsMessage;
 import com.reyco.dasbx.user.core.service.SysMessageService;
 import com.reyco.dasbx.user.core.service.es.sysAccount.SysAccountSyncElasticsearchServiceImpl;
 

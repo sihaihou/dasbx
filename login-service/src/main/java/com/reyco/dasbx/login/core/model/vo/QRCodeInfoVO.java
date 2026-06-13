@@ -8,6 +8,7 @@ public class QRCodeInfoVO implements InfoVO{
 	private String qrcode;
 	private Byte state;
 	private String code;
+	private String secretKey;
 	public String getDeviceId() {
 		return deviceId;
 	}
@@ -31,5 +32,11 @@ public class QRCodeInfoVO implements InfoVO{
 	}
 	public void setCode(String code) {
 		this.code = code;
+	}
+	public String getSecretKey() {
+		return secretKey;
+	}
+	public void setSecretKey(String secretKey) {
+		this.secretKey = secretKey;
 	}
 }

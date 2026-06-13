@@ -14,9 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reyco.dasbx.commons.domain.R;
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
-import com.reyco.dasbx.es.core.search.SearchVO;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
+import com.reyco.dasbx.es.support.result.Result;
 import com.reyco.dasbx.portal.model.domain.dto.VideoInsertDto;
+import com.reyco.dasbx.portal.model.domain.dto.VideoListSearchDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoPlayEventDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoReviewDto;
 import com.reyco.dasbx.portal.model.domain.dto.VideoSearchDto;
@@ -45,12 +46,12 @@ public class VideoController {
 	}
 	@GetMapping("search")
 	public Object search(VideoSearchDto videoSearchDto) throws IOException {
-		SearchVO<VideoListVO> searchVO = videoService.search(videoSearchDto);
+		Result<VideoListVO> searchVO = videoService.search(videoSearchDto);
 		return R.success(searchVO);
 	}
 	@GetMapping("searchBack")
-	public Object searchBack(VideoSearchDto videoSearchDto) throws IOException {
-		SearchVO<VideoListDetailVO> searchVO = videoService.searchBack(videoSearchDto);
+	public Object searchBack(VideoListSearchDto videoSearchDto) throws IOException {
+		Result<VideoListDetailVO> searchVO = videoService.searchBack(videoSearchDto);
 		return R.success(searchVO);
 	}
 	@PostMapping("init")

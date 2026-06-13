@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.reyco.dasbx.commons.utils.encrypt.AESUtils;
 import com.reyco.dasbx.gateway.core.sign.api.SecretService;
 
 @Service
@@ -36,8 +37,8 @@ public class SecretServiceImpl implements SecretService{
 	});
 	
 	private static Map<String,String> secretMap = new HashMap<>(); 
-	private final static String DEFAULT_SECREY_KEY = "reyco";
-	private final static String DEFAULT_SECREY_VALUE = "subixin";
+	private final static String DEFAULT_APPID = "subixin";
+	private final static String DEFAULT_SECREY = "d5a9b2c8f1e4";
 	
 	@PostConstruct
 	public void init() {
@@ -45,16 +46,16 @@ public class SecretServiceImpl implements SecretService{
 	}
 	
 	@Override
-	public String getSecret(String appkey) {
-		if(appkey.equalsIgnoreCase(DEFAULT_SECREY_KEY)) {
-			return DEFAULT_SECREY_VALUE;
+	public String getSecret(String appId) {
+		if(appId.equalsIgnoreCase(DEFAULT_APPID)) {
+			return DEFAULT_SECREY;
 		}
-		return secretMap.get(appkey);
+		return secretMap.get(appId);
 	}
 
 	@Override
-	public void saveSecret(String appkey, String secret) {
-		secretMap.put(appkey, secret);
+	public void saveSecret(String appId, String secret) {
+		secretMap.put(appId, secret);
 	}
 	@Override
 	public void clear() {
@@ -66,10 +67,9 @@ public class SecretServiceImpl implements SecretService{
 			try {
 				secretService.clear();
 				for(int i=0;i<20;i++) {
-					RandomStringUtils.randomAlphabetic(20);
-					String secretKey = RandomStringUtils.randomAlphabetic(10);
-					String secret = RandomStringUtils.randomAlphabetic(32);
-					secretService.saveSecret(secretKey, secret);
+					String appId = RandomStringUtils.randomAlphabetic(10);
+				    String secret = AESUtils.createSecret();
+					secretService.saveSecret(appId, secret);
 				}
 			}catch(Exception e){
 				log.error("###############生成密匙出错");

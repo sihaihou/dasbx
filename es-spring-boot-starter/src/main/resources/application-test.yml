@@ -1,0 +1,11 @@
+spring:
+  elasticsearch:
+    rest:
+      uris: 
+      - http://www.subixin.com:9200
+      username: elastic
+      password: GI0lNOf0FBepSR4ZWPAQ
+
+logging:
+  level:
+    root: debug

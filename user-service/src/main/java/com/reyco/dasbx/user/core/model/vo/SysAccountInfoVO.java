@@ -3,6 +3,7 @@ package com.reyco.dasbx.user.core.model.vo;
 import java.util.List;
 
 import com.reyco.dasbx.commons.utils.Dasbx;
+import com.reyco.dasbx.es.support.result.record.EsHighlightResult;
 import com.reyco.dasbx.model.vo.InfoVO;
 
 public class SysAccountInfoVO implements InfoVO {
@@ -10,7 +11,9 @@ public class SysAccountInfoVO implements InfoVO {
 	private String uid;
 	private Long developerId;
 	private String faceUri;
+	@EsHighlightResult
 	private String nickname;
+	@EsHighlightResult
 	private String username;
 	private Byte state;
 	private Byte type;
@@ -18,7 +21,9 @@ public class SysAccountInfoVO implements InfoVO {
 	private Byte gender;
 	private Long birthday;
 	private String birthdayDesc;
+	@EsHighlightResult
 	private String phone;
+	@EsHighlightResult
 	private String email;
 	private String address;
 	private String remark;

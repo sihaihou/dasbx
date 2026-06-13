@@ -2,8 +2,8 @@ package com.reyco.dasbx.user.core.service.es.sysAccount;
 
 import org.springframework.context.annotation.Bean;
 
-import com.reyco.dasbx.es.core.client.ElasticsearchClient;
-import com.reyco.dasbx.es.core.client.ElasticsearchDocument;
+import com.reyco.dasbx.es.client.ElasticsearchClient;
+import com.reyco.dasbx.es.client.ElasticsearchDocument;
 import com.reyco.dasbx.sync.es.ElasticsearchSync;
 import com.reyco.dasbx.user.core.dao.sys.SysAccountDao;
 

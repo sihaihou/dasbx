@@ -7,16 +7,17 @@ import java.util.UUID;
  * @author reyco
  *
  */
-public class UUIdGenerator implements IdGenerator<String> {
+public class UUIdGenerator implements IdGenerator {
 	
 	@Override
-	public String getGeneratorId() {
-		return getGeneratorId("");
+	public String nextIdStr() {
+		return getUUId();
 	}
-	public static String getUUId() {
-		return UUID.randomUUID().toString().replace("-", "");
-	}
-	public static String getGeneratorId(String prefix) {
+	public String nextIdStr(String prefix) {
 		return prefix+getUUId();
+	}
+	
+	private static String getUUId() {
+		return UUID.randomUUID().toString().replace("-", "");
 	}
 }

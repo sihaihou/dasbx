@@ -9,7 +9,7 @@ import com.reyco.dasbx.common.core.model.dto.personage.PersonageSearchDto;
 import com.reyco.dasbx.common.core.model.dto.personage.PersonageUpdateDto;
 import com.reyco.dasbx.common.core.model.vo.personage.PersonageInfoVO;
 import com.reyco.dasbx.config.service.BaseService;
-import com.reyco.dasbx.es.core.search.SearchVO;
+import com.reyco.dasbx.es.support.result.Result;
 import com.reyco.dasbx.model.dto.ListDto;
 import com.reyco.dasbx.model.vo.ListVO;
 
@@ -43,5 +43,5 @@ public interface PersonageService extends BaseService<PersonageInfoVO, ListVO, L
 	 * @param keyword
 	 * @return
 	 */
-	SearchVO<PersonageInfoVO> search(PersonageSearchDto personageSearchDto) throws Exception;
+	Result<PersonageInfoVO> search(PersonageSearchDto personageSearchDto) throws Exception;
 }

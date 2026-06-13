@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.reyco.dasbx.commons.domain.R;
-import com.reyco.dasbx.config.exception.core.BusinessException;
+import com.reyco.dasbx.commons.exception.BusinessException;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
 import com.reyco.dasbx.portal.feign.SysMessageFeignClient;
 import com.reyco.dasbx.portal.service.SysMessageService;

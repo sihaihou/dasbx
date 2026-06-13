@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
 public class TrackFilter implements GlobalFilter, Ordered {
 	private static Logger logger = LoggerFactory.getLogger(TrackFilter.class);
 	@Autowired
-	IdGenerator<Long> idGenerator;
+	IdGenerator idGenerator;
 
 	@Override
 	public int getOrder() {
@@ -33,7 +33,7 @@ public class TrackFilter implements GlobalFilter, Ordered {
 		String parentSpanId = headers.getFirst("parentSpanId");
 		String spanId = headers.getFirst("spanId");
 		if (StringUtils.isBlank(trackId)) {
-			trackId = idGenerator.getGeneratorId().toString();
+			trackId = idGenerator.nextIdStr();
 			parentSpanId = trackId;
 			spanId = parentSpanId;
 		}

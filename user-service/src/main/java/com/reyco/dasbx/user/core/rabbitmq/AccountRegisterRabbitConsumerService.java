@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.rabbitmq.client.Channel;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
+import com.reyco.dasbx.config.rabbit.message.AccountRegisterMessage;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
@@ -23,7 +24,6 @@ import com.reyco.dasbx.rabbitmq.service.AbstractRabbitConsumerService;
 import com.reyco.dasbx.rabbitmq.service.RabbitMessageType;
 import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
 import com.reyco.dasbx.user.core.model.dto.SysAccountRegisterDto;
-import com.reyco.dasbx.user.core.model.msg.AccountRegisterMessage;
 import com.reyco.dasbx.user.core.service.SysMessageService;
 import com.reyco.dasbx.user.core.service.sys.SysAccountService;
 

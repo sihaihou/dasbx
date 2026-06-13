@@ -10,11 +10,11 @@ import com.reyco.dasbx.login.core.service.SysService;
 public class SysServiceImpl implements SysService {
 
 	@Autowired
-	private IdGenerator<Long> idGenerator;
+	private IdGenerator idGenerator;
 	@Override
 	public Long getCode(Long code) {
 		if(code==null) {
-			code = idGenerator.getGeneratorId();
+			code = idGenerator.nextIdLong();
 		}
 		return code;
 	}

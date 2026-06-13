@@ -4,7 +4,7 @@ public interface Constants {
 	//静态资源
 	String STATIC_RESOURCE_PATTERN = "\\.(html|css|js|map|png|jpg|jpeg|gif|woff2|woff)$";
 	//签名相关
-	String DASBX_KEY = "Dasbx-Key";
+	String DASBX_APPID = "Dasbx-AppId";
 	
 	String DASBX_NONCE = "Dasbx-Nonce";
 	
@@ -14,7 +14,7 @@ public interface Constants {
 	
 	String DASBX_SIGNATURE = "Dasbx-Signature";
 	
-	
+	//
 	String CODE_NAME = "dasbx-code";
 	
 	String TOKEN_NAME = "dasbx-token";

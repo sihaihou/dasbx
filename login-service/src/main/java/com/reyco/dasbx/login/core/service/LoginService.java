@@ -2,8 +2,8 @@ package com.reyco.dasbx.login.core.service;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.reyco.dasbx.config.exception.core.ArgumentException;
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
+import com.reyco.dasbx.commons.exception.ArgumentException;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 import com.reyco.dasbx.login.core.model.dto.EmailLoginDto;
 import com.reyco.dasbx.model.vo.SysAccountToken;
 
@@ -16,7 +16,7 @@ public interface LoginService {
 	 * @throws ArgumentException
 	 * @throws AuthenticationException
 	 */
-	SysAccountToken login(String t) throws ArgumentException,AuthenticationException;
+	SysAccountToken login(String token) throws ArgumentException,AuthenticationException;
 	
 	/**
 	 * 创建EmailCode
@@ -36,5 +36,7 @@ public interface LoginService {
 	Boolean isLogin() throws ArgumentException,AuthenticationException;
 	
 	void logout(HttpServletRequest request) throws AuthenticationException ;
+
+	void checkLoginRateLimit(String username);
 	
 }

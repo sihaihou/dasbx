@@ -21,23 +21,26 @@ public class IndexDesensitizeHandler implements DesensitizeHandler{
 		if (StringUtils.isEmpty(value)) {
 			return null;
 		}
-		DesensitizeType.IndexDesensitizeType  indexDesensitizeType =  (DesensitizeType.IndexDesensitizeType)type;
-		int start = indexDesensitizeType.getStart() < 0 ? 0 : indexDesensitizeType.getStart() > value.length() ? value.length() : indexDesensitizeType.getStart();
-		int end = indexDesensitizeType.getEnd() > value.length() ? value.length() : indexDesensitizeType.getEnd();
-		if(start <= end) {
-			StringBuilder sb = new StringBuilder();
-			for(int i=0;i<start;i++) {
-				sb.append(value.charAt(i));
-			}
-			for(int i=start;i<end;i++) {
-				sb.append("*");
-			}
-			for(int i=end;i<value.length();i++) {
-				sb.append(value.charAt(i));
-			}
-			return sb.toString();
+		DesensitizeType.IndexDesensitizeType  indexType =  (DesensitizeType.IndexDesensitizeType)type;
+		int len = value.length();
+	    int start = Math.max(0, indexType.getStart());
+	    int end = Math.min(len, indexType.getEnd());
+	    //
+	    if (start >= len || start >= end) {
+	    	throw new RuntimeException("start or end config error");
+	    }
+	    
+		StringBuilder sb = new StringBuilder();
+		for(int i=0;i<start;i++) {
+			sb.append(value.charAt(i));
 		}
-		throw new RuntimeException("start or end error");
+		for(int i=start;i<end;i++) {
+			sb.append("*");
+		}
+		for(int i=end;i<value.length();i++) {
+			sb.append(value.charAt(i));
+		}
+		return sb.toString();
 	}
 	
 }

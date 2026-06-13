@@ -2,12 +2,17 @@ package com.reyco.dasbx.portal.model.domain.vo;
 
 import java.math.BigDecimal;
 
+import com.reyco.dasbx.es.support.result.record.EsHighlightResult;
 import com.reyco.dasbx.model.vo.ListVO;
 
 public class VideoListDetailVO implements ListVO{
 	private Long id;
+	
+	@EsHighlightResult
 	private String name;
+	@EsHighlightResult
 	private String description;
+	
 	private Long categoryId;
 	private String categoryName;
 	private Long countryId;

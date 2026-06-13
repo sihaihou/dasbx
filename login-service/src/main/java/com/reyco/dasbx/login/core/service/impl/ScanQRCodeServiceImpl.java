@@ -2,7 +2,7 @@ package com.reyco.dasbx.login.core.service.impl;
 
 import org.springframework.stereotype.Service;
 
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 import com.reyco.dasbx.login.core.model.dto.ScanQRCodeDto;
 import com.reyco.dasbx.login.core.model.vo.ScanQRCodeInfoVo;
 import com.reyco.dasbx.login.core.service.ScanQRCodeService;

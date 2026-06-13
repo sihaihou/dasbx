@@ -11,8 +11,8 @@ import com.reyco.dasbx.common.core.dao.sys.SysEsErrorDao;
 import com.reyco.dasbx.common.core.model.po.sys.SysEsErrorInsertPO;
 import com.reyco.dasbx.common.core.service.sys.SysEsErrorService;
 import com.reyco.dasbx.commons.utils.Dasbx;
-import com.reyco.dasbx.es.core.event.ElasticSearcchErrorEvent;
-import com.reyco.dasbx.es.core.event.ElasticSearcchErrorEvent.ProcessFailureMessage;
+import com.reyco.dasbx.es.client.ElasticSearcchErrorEvent;
+import com.reyco.dasbx.es.client.ElasticSearcchErrorEvent.ProcessFailureMessage;
 import com.reyco.dasbx.model.domain.SysEsError;
 
 @Service

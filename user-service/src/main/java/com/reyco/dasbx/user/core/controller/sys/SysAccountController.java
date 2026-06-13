@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,14 +18,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reyco.dasbx.commons.domain.R;
+import com.reyco.dasbx.commons.exception.BusinessException;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
 import com.reyco.dasbx.commons.utils.encrypt.AESUtils;
+import com.reyco.dasbx.commons.utils.encrypt.RSAUtils;
 import com.reyco.dasbx.commons.utils.encrypt.SecretKeyUtils;
-import com.reyco.dasbx.config.exception.core.BusinessException;
-import com.reyco.dasbx.es.core.search.SearchVO;
+import com.reyco.dasbx.es.support.result.Result;
 import com.reyco.dasbx.model.domain.SysAccount;
 import com.reyco.dasbx.sync.exception.SyncException;
 import com.reyco.dasbx.user.core.model.dto.AccountBindDeveloperDto;
+import com.reyco.dasbx.user.core.model.dto.RegisterDto;
 import com.reyco.dasbx.user.core.model.dto.SysAccountInsertDto;
 import com.reyco.dasbx.user.core.model.dto.SysAccountRegisterDto;
 import com.reyco.dasbx.user.core.model.dto.SysAccountUpdateDto;
@@ -31,14 +35,20 @@ import com.reyco.dasbx.user.core.model.dto.sys.SysAccountDeleteDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysAccountDisableOrEnableDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysAccountSearchDto;
 import com.reyco.dasbx.user.core.model.vo.SysAccountInfoVO;
+import com.reyco.dasbx.user.core.service.security.RsaService;
 import com.reyco.dasbx.user.core.service.sys.SysAccountService;
 
 @RestController
 @RequestMapping("/sys/account")
 public class SysAccountController {
-
+	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	@Autowired
 	private SysAccountService sysAccountService;
+	
+	@Autowired
+	private RsaService rsaService;
 	
 	@PostMapping("initElasticsearchSysAccount")
 	public Object initElasticsearchSysAccount() throws SyncException {
@@ -81,7 +91,7 @@ public class SysAccountController {
 	}
 	@GetMapping("search")
     public Object search(SysAccountSearchDto sysAccountSearchDto) throws IOException {
-		SearchVO<SysAccountInfoVO> search = sysAccountService.search(sysAccountSearchDto);
+		Result<SysAccountInfoVO> search = sysAccountService.search(sysAccountSearchDto);
         return R.success(search);
     }
 	@PostMapping("register")
@@ -158,5 +168,28 @@ public class SysAccountController {
 	public Object bindDeveloper(@RequestBody AccountBindDeveloperDto accountBindDeveloperDto) throws BusinessException {
 		sysAccountService.bindDeveloper(accountBindDeveloperDto);
 		return R.success();
+	}
+	
+	/**
+	 * 解密
+	 * @param registerDto
+	 * @return
+	 * @throws Exception
+	 */
+	public SysAccountRegisterDto decryptRegisterDto(RegisterDto registerDto){
+		try {
+			String publicKey = registerDto.getPublicKey();
+			String privateKey = rsaService.getPrivateKey(publicKey);
+			String encryptedAesKey = registerDto.getEncryptedAesKey();
+			String secretKey = RSAUtils.decrypt(encryptedAesKey, privateKey);
+			String tokenJson = AESUtils.decrypt(registerDto.getUserInfo(),secretKey);
+			rsaService.deletePrivateKey(publicKey);
+			SysAccountRegisterDto passwordLoginDto = JsonUtils.jsonToObj(tokenJson, SysAccountRegisterDto.class);
+			return passwordLoginDto;
+		} catch (Exception e) {
+			logger.error("解密注册数据出错:",e);
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

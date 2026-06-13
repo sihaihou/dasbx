@@ -28,10 +28,10 @@ import com.reyco.dasbx.common.core.model.vo.sys.AreaInfoVO;
 import com.reyco.dasbx.common.core.model.vo.sys.AreaListVO;
 import com.reyco.dasbx.common.core.service.AreaService;
 import com.reyco.dasbx.commons.utils.convert.Convert;
-import com.reyco.dasbx.es.core.client.ElasticsearchClient;
-import com.reyco.dasbx.es.core.model.GeoPoint;
+import com.reyco.dasbx.es.client.ElasticsearchClient;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.domain.Area;
+import com.reyco.dasbx.model.es.GeoPoint;
 
 @Service
 public class AreaServiceImpl implements AreaService {

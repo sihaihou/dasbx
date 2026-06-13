@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.reyco.dasbx.commons.utils.convert.Convert;
-import com.reyco.dasbx.es.core.client.ElasticsearchClient;
-import com.reyco.dasbx.es.core.client.ElasticsearchDocument;
+import com.reyco.dasbx.es.client.ElasticsearchClient;
+import com.reyco.dasbx.es.client.ElasticsearchDocument;
 import com.reyco.dasbx.portal.constant.Constants;
 import com.reyco.dasbx.portal.dao.VideoDao;
 import com.reyco.dasbx.portal.dao.VideoProductionDao;

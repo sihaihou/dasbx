@@ -2,14 +2,26 @@ package com.reyco.dasbx.common.core.model.vo.personage;
 
 import java.math.BigDecimal;
 
+import com.reyco.dasbx.es.support.result.record.EsGeoDistanceResult;
+import com.reyco.dasbx.es.support.result.record.EsHighlightResult;
+import com.reyco.dasbx.model.es.GeoPoint;
 import com.reyco.dasbx.model.vo.InfoVO;
 
 public class PersonageInfoVO implements InfoVO {
+	
 	private Long id;
+	
+	@EsHighlightResult
 	private String name;
+	@EsHighlightResult
 	private String code;
-	private Byte gender;
+	@EsHighlightResult
 	private String masterpiece;
+	
+	@EsGeoDistanceResult
+	private Double distance;
+	
+	private Byte gender;
 	private Long provinceId;
 	private String provinceDesc;
 	private Long cityId;
@@ -18,7 +30,7 @@ public class PersonageInfoVO implements InfoVO {
 	private String districtDesc;
 	private BigDecimal longitude; 
 	private BigDecimal latitude;
-	private BigDecimal distance;
+	private GeoPoint location;
 	private String remark;
 	public Long getId() {
 		return id;
@@ -98,10 +110,16 @@ public class PersonageInfoVO implements InfoVO {
 	public void setLatitude(BigDecimal latitude) {
 		this.latitude = latitude;
 	}
-	public BigDecimal getDistance() {
+	public GeoPoint getLocation() {
+		return location;
+	}
+	public void setLocation(GeoPoint location) {
+		this.location = location;
+	}
+	public Double getDistance() {
 		return distance;
 	}
-	public void setDistance(BigDecimal distance) {
+	public void setDistance(Double distance) {
 		this.distance = distance;
 	}
 	public String getRemark() {

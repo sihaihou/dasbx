@@ -1,7 +1,7 @@
 package com.reyco.dasbx.open.core.service;
 
 import com.github.pagehelper.PageInfo;
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 import com.reyco.dasbx.config.service.BaseService;
 import com.reyco.dasbx.model.dto.ListDto;
 import com.reyco.dasbx.model.vo.ListVO;

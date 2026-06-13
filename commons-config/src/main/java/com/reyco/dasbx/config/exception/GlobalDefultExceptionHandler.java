@@ -1,6 +1,7 @@
 package com.reyco.dasbx.config.exception;
 
 import java.io.IOException;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.sql.SQLException;
 
 import org.slf4j.Logger;
@@ -11,8 +12,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.reyco.dasbx.commons.domain.R;
-import com.reyco.dasbx.config.exception.core.DasbxException;
-import com.reyco.dasbx.config.exception.core.strategy.DelegationExceptionStrategy;
+import com.reyco.dasbx.commons.exception.DasbxException;
+import com.reyco.dasbx.commons.exception.strategy.DelegationExceptionStrategy;
 
 @ControllerAdvice
 public class GlobalDefultExceptionHandler {
@@ -28,36 +29,38 @@ public class GlobalDefultExceptionHandler {
 		logger.error(ex.toString());
 		ex.printStackTrace();
 		try {
+			// 解包 UndeclaredThrowableException
+            Throwable targetException = getTargetException(ex);
 			// 自定义异常...
-			if(ex instanceof DasbxException) {
-				DasbxException dasbxException = (DasbxException)ex; 
+			if(targetException instanceof DasbxException) {
+				DasbxException dasbxException = (DasbxException)targetException; 
 				return delegationExceptionStrategy.getExceptionMessage(dasbxException);
 			}
 			// 数组溢出异常
-			if(ex instanceof ArrayIndexOutOfBoundsException) {
-				return getArrayIndexOutOfBoundsException(ex);
+			if(targetException instanceof ArrayIndexOutOfBoundsException) {
+				return getArrayIndexOutOfBoundsException(targetException);
 			}
 			// 数字转换异常
-			if(ex instanceof NumberFormatException) {
-				return getNumberFormatException(ex);
+			if(targetException instanceof NumberFormatException) {
+				return getNumberFormatException(targetException);
 			}
 			// 非法参数
-			if(ex instanceof IllegalArgumentException) {
-				return getIllegalArgumentException(ex);
+			if(targetException instanceof IllegalArgumentException) {
+				return getIllegalArgumentException(targetException);
 			}
 			// 空指针异常
-			if(ex instanceof NullPointerException) {
-				return getNullPointerException(ex);
+			if(targetException instanceof NullPointerException) {
+				return getNullPointerException(targetException);
 			}
 			// SQL语句异常
-			if(ex instanceof SQLException) {
-				return getSQLException(ex);
+			if(targetException instanceof SQLException) {
+				return getSQLException(targetException);
 			}
 			// IO输入输出异常
-			if(ex instanceof IOException) {
-				return getIOException(ex);
+			if(targetException instanceof IOException) {
+				return getIOException(targetException);
 			}
-			return getException(ex);
+			return getException(targetException);
 		} catch (Exception e) {
 			return getException(e);
 		}
@@ -67,7 +70,7 @@ public class GlobalDefultExceptionHandler {
 	 * @param ex
 	 * @return
 	 */
-	private R getIllegalArgumentException(Exception ex) {
+	private R getIllegalArgumentException(Throwable ex) {
 		logger.error("非法参数异常：" + ex.getMessage());
 		IllegalArgumentException illegalArgumentException = (IllegalArgumentException) ex;
 		return R.fail("非法参数异常：" + "msg:" + illegalArgumentException.getMessage(),"未知异常,请联系管理员...");
@@ -77,7 +80,7 @@ public class GlobalDefultExceptionHandler {
 	 * @param ex
 	 * @return
 	 */
-	private R getNullPointerException(Exception ex) {
+	private R getNullPointerException(Throwable ex) {
 		logger.error("空指针异常：" + ex.getMessage());
 		NullPointerException nullPointerException = (NullPointerException) ex;
 		return R.fail("空指针异常：" + "msg:" + nullPointerException.getMessage(),"未知异常,请联系管理员...");
@@ -87,7 +90,7 @@ public class GlobalDefultExceptionHandler {
 	 * @param ex
 	 * @return
 	 */
-	private R getSQLException(Exception ex) {
+	private R getSQLException(Throwable ex) {
 		logger.error("SQL语句异常：" + ex.getMessage());
 		SQLException qQLException = (SQLException) ex;
 		return R.fail("SQL语句异常：" + "msg:" + qQLException.getMessage(),"未知异常,请联系管理员...");
@@ -97,7 +100,7 @@ public class GlobalDefultExceptionHandler {
 	 * @param ex
 	 * @return
 	 */
-	private R getNumberFormatException(Exception ex) {
+	private R getNumberFormatException(Throwable ex) {
 		logger.error("数字转换异常：" + ex.getMessage());
 		NumberFormatException numberFormatException = (NumberFormatException) ex;
 		return R.fail("数字转换异常：" + "msg:" + numberFormatException.getMessage(),"未知异常,请联系管理员...");
@@ -107,7 +110,7 @@ public class GlobalDefultExceptionHandler {
 	 * @param ex
 	 * @return
 	 */
-	private R getArrayIndexOutOfBoundsException(Exception ex) {
+	private R getArrayIndexOutOfBoundsException(Throwable ex) {
 		logger.error("数组溢出异常：" + ex.getMessage());
 		ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException = (ArrayIndexOutOfBoundsException) ex;
 		return R.fail("数组溢出异常：" + "msg:" + arrayIndexOutOfBoundsException.getMessage(),"未知异常,请联系管理员...");
@@ -117,7 +120,7 @@ public class GlobalDefultExceptionHandler {
 	 * @param ex
 	 * @return
 	 */
-	private R getIOException(Exception ex) {
+	private R getIOException(Throwable ex) {
 		logger.error("IO输入输出异常：" + ex.getMessage());
 		IOException iOException = (IOException) ex;
 		return R.fail("IO输入输出异常：" + "msg:" + iOException.getMessage(),"未知异常,请联系管理员...");
@@ -127,8 +130,19 @@ public class GlobalDefultExceptionHandler {
 	 * @param ex
 	 * @return
 	 */
-	private R getException(Exception ex) {
+	private R getException(Throwable ex) {
 		logger.error("系统异常：" + ex);
-		return R.fail("系统异常：msg:" + ex.getMessage(),"未知异常,请联系管理员...");
+		return R.fail(ex.getMessage(),"未知异常,请联系管理员...");
 	}
+	
+	/**
+     * 获取真实的异常（解包 UndeclaredThrowableException）
+     */
+    private Throwable getTargetException(Exception ex) {
+        if (ex instanceof UndeclaredThrowableException) {
+            UndeclaredThrowableException undeclaredEx = (UndeclaredThrowableException) ex;
+            return undeclaredEx.getUndeclaredThrowable();
+        }
+        return ex;
+    }
 }

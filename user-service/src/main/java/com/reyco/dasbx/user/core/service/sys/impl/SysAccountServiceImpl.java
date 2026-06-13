@@ -13,14 +13,16 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import com.reyco.dasbx.commons.exception.BusinessException;
 import com.reyco.dasbx.commons.utils.Dasbx;
 import com.reyco.dasbx.commons.utils.PasswordUtils;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.encrypt.SimpleHash;
-import com.reyco.dasbx.config.exception.core.BusinessException;
+import com.reyco.dasbx.config.rabbit.message.SysAccountSyncEsMessage;
 import com.reyco.dasbx.config.utils.TokenUtils;
-import com.reyco.dasbx.es.core.client.ElasticsearchClient;
-import com.reyco.dasbx.es.core.search.SearchVO;
+import com.reyco.dasbx.es.client.ElasticsearchClient;
+import com.reyco.dasbx.es.support.result.Result;
+import com.reyco.dasbx.es.support.template.SearchTemplate;
 import com.reyco.dasbx.id.core.IdGenerator;
 import com.reyco.dasbx.lock.annotation.Lock;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
@@ -42,7 +44,6 @@ import com.reyco.dasbx.user.core.model.dto.sys.SysAccountDeleteDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysAccountDisableOrEnableDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysAccountSearchDto;
 import com.reyco.dasbx.user.core.model.es.po.SysAccountElasticsearchDocument;
-import com.reyco.dasbx.user.core.model.msg.SysAccountSyncEsMessage;
 import com.reyco.dasbx.user.core.model.po.AccountBindDeveloperPO;
 import com.reyco.dasbx.user.core.model.po.AccountInsertPO;
 import com.reyco.dasbx.user.core.model.po.sys.SysAccountDeletePO;
@@ -52,24 +53,22 @@ import com.reyco.dasbx.user.core.model.po.sys.SysAccountUpdatePO;
 import com.reyco.dasbx.user.core.model.vo.AccountListVO;
 import com.reyco.dasbx.user.core.model.vo.SysAccountInfoVO;
 import com.reyco.dasbx.user.core.service.FullnameService;
-import com.reyco.dasbx.user.core.service.es.sysAccount.SysAccountSearch;
 import com.reyco.dasbx.user.core.service.es.sysAccount.SysAccountSyncElasticsearchServiceImpl;
 import com.reyco.dasbx.user.core.service.sys.SysAccountService;
 import com.reyco.dasbx.user.core.service.sys.SysUserRoleService;
 
 @Service
+@SuppressWarnings("all")
 public class SysAccountServiceImpl implements SysAccountService {
 
 	@Autowired
 	private SysAccountDao accountDao;
 	@Autowired
-	private IdGenerator<Long> idGenerator;
+	private IdGenerator idGenerator;
 	@Autowired
 	private SysUserRoleService sysUserRoleService;
 	@Autowired
 	private ElasticsearchClient<SysAccountElasticsearchDocument> elasticsearchClient;
-	@Autowired
-	private SysAccountSearch sysAccountSearch;
 	@Autowired
 	private RabbitProducrService rabbitProducrService;
 	@Autowired
@@ -77,6 +76,9 @@ public class SysAccountServiceImpl implements SysAccountService {
 	
 	@Resource(name=SysAccountSyncElasticsearchServiceImpl.SYNC_NAME)
 	private ElasticsearchSync<Long,Integer> elasticsearchSync;
+	
+	@Autowired
+	private SearchTemplate searchTemplate;
 	
 	@Override
 	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.USER_ACCOUNT_COMMENT_INFO_PREFIX,key="#id")
@@ -103,15 +105,15 @@ public class SysAccountServiceImpl implements SysAccountService {
 	}
 	@Override
 	public List<String> getSuggestion(String keyword) throws Exception {
-		List<String> suggestion = elasticsearchClient.getSuggestion(Constants.ACCOUNT_INDEX_NAME, keyword);
+		List<String> suggestion = searchTemplate.suggest(Constants.ACCOUNT_INDEX_NAME, keyword);
 		if (suggestion == null) {
 			suggestion = new ArrayList<>();
 		}
 		return suggestion;
 	}
 	@Override
-	public SearchVO<SysAccountInfoVO> search(SysAccountSearchDto sysAccountSearchDto) throws IOException {
-		return sysAccountSearch.search(sysAccountSearchDto);
+	public Result<SysAccountInfoVO> search(SysAccountSearchDto sysAccountSearchDto) throws IOException {
+		return searchTemplate.search(sysAccountSearchDto, SysAccountInfoVO.class);
 	}
 	@Override
 	public int initElasticsearchSysAccount() throws SyncException {
@@ -131,7 +133,7 @@ public class SysAccountServiceImpl implements SysAccountService {
 		}
 		AccountInsertPO accountInsertPO = Convert.sourceToTarget(sysAccountRegisterDto, AccountInsertPO.class);
 		if(StringUtils.isBlank(accountInsertPO.getUid())) {
-			accountInsertPO.setUid(idGenerator.getGeneratorId()+"");
+			accountInsertPO.setUid(idGenerator.nextIdStr());
 		}
 		SysAccount account = accountDao.getByUid(accountInsertPO.getUid());
 		if(account!=null) {

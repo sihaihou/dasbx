@@ -1,5 +1,6 @@
 package com.reyco.dasbx.commons.utils;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class Page<T> {
@@ -8,6 +9,13 @@ public class Page<T> {
 	private Integer pageSize;
 	private Integer pages;
 	private Integer total;
+	//scrollId
+	private String scrollId;
+	/**
+	 * 下一页游标
+	 */
+	private Object[] nextSearchAfter;
+	
 	public List<T> getList() {
 		return list;
 	}
@@ -43,5 +51,23 @@ public class Page<T> {
 		if(pageSize!=null) {
 			this.pages = (total%pageSize)==0?(total/pageSize):(total/pageSize)+1;
 		}
+	}
+	public String getScrollId() {
+		return scrollId;
+	}
+	public void setScrollId(String scrollId) {
+		this.scrollId = scrollId;
+	}
+	public Object[] getNextSearchAfter() {
+		return nextSearchAfter;
+	}
+	public void setNextSearchAfter(Object[] nextSearchAfter) {
+		this.nextSearchAfter = nextSearchAfter;
+	}
+	@Override
+	public String toString() {
+		return "Page [list=" + list + ", pageNum=" + pageNum + ", pageSize=" + pageSize + ", pages=" + pages
+				+ ", total=" + total + ", scrollId=" + scrollId + ", nextSearchAfter="
+				+ Arrays.toString(nextSearchAfter) + "]";
 	}
 }

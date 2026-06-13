@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.reyco.dasbx.commons.utils.DictionaryOrderUtils;
+import com.reyco.dasbx.config.rabbit.message.SysLogRabbitmqMessage;
 import com.reyco.dasbx.id.core.IdGenerator;
 import com.reyco.dasbx.model.constants.MethodType;
 import com.reyco.dasbx.model.constants.RabbitConstants;
@@ -19,12 +20,12 @@ public class DasbxResourceHandler implements ResourceHandler{
 	private RabbitProducrService rabbitProducrService;
 	
 	@Autowired 
-	private IdGenerator<Long> idGenerator;
+	private IdGenerator idGenerator;
 	
 	@Override
 	public void handler(ResourceDefinition reycoResource) {
 		String token = reycoResource.getToken();
-		String correlationDataId = idGenerator.getGeneratorId().toString();
+		String correlationDataId = idGenerator.nextIdStr();
 		if(StringUtils.isBlank(token)) {
 			token = correlationDataId;
 		}

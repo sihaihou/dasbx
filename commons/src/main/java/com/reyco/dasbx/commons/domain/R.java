@@ -38,11 +38,11 @@ public class R<T> extends ToString {
 	 */
 	private T data;
 	/**
-	 * 失败原因/前端看的
+	 * 失败原因/后端看的
 	 */
 	private String dataMsg;
 	/**
-	 * 失败原因/后端看的
+	 * 失败原因/前端看的
 	 */
 	private String msg;
 

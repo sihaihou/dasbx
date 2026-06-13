@@ -70,7 +70,7 @@ public class RedisUtil {
 	public void set(String key, String value) {
 		valueOperations.set(key, value, 60 * 30L, TimeUnit.SECONDS);
 	}
-
+	
 	/**
 	 * 添加string类型的缓存...
 	 * 
@@ -109,6 +109,9 @@ public class RedisUtil {
 	}
 	public void expire(String key,long timeout, TimeUnit unit) {
 		redisTemplate.expire(key, timeout, unit);
+	}
+	public Long incr(String key) {
+		return valueOperations.increment(key,1);
 	}
 	/**
 	 * delete删除key缓存

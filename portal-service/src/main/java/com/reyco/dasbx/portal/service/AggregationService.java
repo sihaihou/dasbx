@@ -3,8 +3,6 @@ package com.reyco.dasbx.portal.service;
 import java.util.List;
 import java.util.Map;
 
-import com.reyco.dasbx.es.core.model.Aggregation;
-
 public interface AggregationService {
 	
 	List<Aggregations> listCategory(Integer size);
@@ -24,6 +22,22 @@ public interface AggregationService {
 		}
 		public void setType(Byte type) {
 			this.type = type;
+		}
+	}
+	public class Aggregation{
+		private Long id;
+		private String value;
+		public Long getId() {
+			return id;
+		}
+		public void setId(Long id) {
+			this.id = id;
+		}
+		public String getValue() {
+			return value;
+		}
+		public void setValue(String value) {
+			this.value = value;
 		}
 	}
 }

@@ -25,19 +25,27 @@ public abstract class AbstractRabbitConsumerService implements RabbitConsumerSer
 	
 	@Override
 	public void handler(RabbitMessage rabbitMessage, Channel channel, Message message) {
+		long deliveryTag = message.getMessageProperties().getDeliveryTag();
 		RabbitMessageType rabbitMessageType = getRabbitMessageType();
+		
+		String setKey = AbstractRabbitConsumerService.RABBIT_CORRELATIONDATA_ID_TYPE_PREFIX+rabbitMessageType.getType();
+		String msgId = rabbitMessage.getCorrelationDataId();
 		try {
-			if(redisUtil.isMember(AbstractRabbitConsumerService.RABBIT_CORRELATIONDATA_ID_TYPE_PREFIX+rabbitMessageType.getType(),rabbitMessage.getCorrelationDataId())) {
-				channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+			// 1. 判断是否重复消费过
+			if(redisUtil.isMember(setKey,msgId)) {
+				logger.warn("【消息消费】检测到重复消息，直接拦截丢弃。类型:{},ID: {},消息详情:{}",rabbitMessageType.getType(),rabbitMessage, rabbitMessage.getCorrelationDataId());
+				channel.basicAck(deliveryTag, false);
 				return;
 			}
+			// 2. 执行真正的业务
 			doHandler(rabbitMessage);
-			redisUtil.add(AbstractRabbitConsumerService.RABBIT_CORRELATIONDATA_ID_TYPE_PREFIX+rabbitMessageType.getType(),rabbitMessage.getCorrelationDataId());
-			channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+			// 3. 业务成功，塞入你的 Redis Set 集合中持久化防重
+			redisUtil.add(setKey,msgId);
+			
+			channel.basicAck(deliveryTag, false);
 			logger.debug("【消息消费】消息消费成功,类型:{},消息{}",rabbitMessageType.getType(),rabbitMessage);
 		} catch(Exception e) {
 			logger.error("【消息异常处理】消息消费失败,出现异常,消息类型:{},消息详情:{},异常信息:{}", rabbitMessageType.getType(),rabbitMessage,e.getMessage());
-			e.printStackTrace();
 			handlerException(e, rabbitMessage, channel, message);
 		} 
 	}
@@ -49,34 +57,44 @@ public abstract class AbstractRabbitConsumerService implements RabbitConsumerSer
 	 * @param message
 	 */
 	public void handlerException(Exception e, RabbitMessage rabbitMessage, Channel channel, Message message) {
+		long deliveryTag = message.getMessageProperties().getDeliveryTag();
 		RabbitMessageType rabbitMessageType = getRabbitMessageType();
+
+		String msgId = rabbitMessage.getCorrelationDataId();
+		String retryKey = rabbitMessageType.getRetryKey();
 		try {
-			boolean hasKey = redisUtil.hasKey(rabbitMessageType.getRetryKey(), rabbitMessage.getCorrelationDataId());
+			boolean hasKey = redisUtil.hasKey(retryKey,msgId);
 			if(!hasKey) {
-				redisUtil.put(rabbitMessageType.getRetryKey(), rabbitMessage.getCorrelationDataId(), 1+"");
-				channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+				// 第一次失败：初始化重试次数为 1
+				redisUtil.put(retryKey, msgId, "1");
+				logger.warn("【消息重试】消费发生异常，开始第 1 次重试。消息类型:{},ID: {},消息详情:{}",rabbitMessageType.getType(), msgId,rabbitMessage);
+				channel.basicNack(deliveryTag, false, true);
+				return;
 			}
-			String retry = redisUtil.hget(rabbitMessageType.getRetryKey(), rabbitMessage.getCorrelationDataId());
+			// 已经重试过了，读取并自增次数
+			String retry = redisUtil.hget(retryKey, msgId);
 			Integer retries = Integer.parseInt(retry);
+			
 			if(retries<rabbitMessageType.getRetryTime()) {
 				retries += 1;
-				redisUtil.put(rabbitMessageType.getRetryKey(), rabbitMessage.getCorrelationDataId(),retries.toString());
-				channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+				redisUtil.put(retryKey, msgId, retries.toString());
+				logger.warn("【消息重试】消费发生异常，消息类型:{},开始第 {} 次重试,ID: {},消息详情:{}", rabbitMessageType.getType(),retries, msgId,rabbitMessage);
+				channel.basicNack(deliveryTag, false, true);
 			}else {
 				try {
-					logger.info("【消息异常处理】消息消费失败,添加到人工处理消息,消息类型:{},消息详情:{}", rabbitMessageType.getType(),rabbitMessage);
+					logger.info("【消息异常处理】消息重试耗尽，开始推进人工介入留痕池...,消息类型:{},ID: {},消息详情:{}", rabbitMessageType.getType(),msgId,rabbitMessage);
 					handlerExceptionRabbitMessage(rabbitMessage,e);
 				} catch (Exception e1) {
-					logger.error("【消息异常处理】消息消费失败,添加到人工处理消息失败,消息类型:{},消息详情:{},异常消息:{}",rabbitMessageType.getType(),rabbitMessage,e1.getMessage());
-					e1.printStackTrace();
+					logger.error("【消息异常处理】严重错误：推进人工留痕池也失败了！消息类型:{},ID: {},消息详情:{},异常消息:{}",rabbitMessageType.getType(),msgId,rabbitMessage,e1.getMessage());
+					e.printStackTrace();
 				}finally {
-					redisUtil.delete(rabbitMessageType.getRetryKey(), rabbitMessage.getCorrelationDataId());
-					channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, false);
+					redisUtil.delete(retryKey, msgId);
+					channel.basicNack(deliveryTag, false, false);
 				}
 			}
 		} catch (IOException e1) {
 			logger.error("【消息异常处理】消息消费失败,处理异常失败,消息类型:{},消息详情:{},异常消息:{}",rabbitMessageType.getType(),rabbitMessage,e1.getMessage());
-			e1.printStackTrace();
+			e.printStackTrace();
 		}
 	}
 	/**

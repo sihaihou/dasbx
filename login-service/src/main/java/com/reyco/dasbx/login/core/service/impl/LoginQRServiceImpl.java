@@ -15,6 +15,7 @@ import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.id.core.IdGenerator;
 import com.reyco.dasbx.login.core.model.vo.QRCodeInfoVO;
 import com.reyco.dasbx.login.core.service.LoginQRService;
+import com.reyco.dasbx.login.core.service.security.AesService;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.QRCodeType;
 import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
@@ -22,10 +23,11 @@ import com.reyco.dasbx.redis.auto.configuration.RedisUtil;
 @Service
 public class LoginQRServiceImpl implements LoginQRService {
 	@Autowired
-	private IdGenerator<Long> idGenerator;
+	private IdGenerator idGenerator;
 	@Autowired
 	private RedisUtil redisUtil;
-	
+	@Autowired
+	private AesService aesService;
 	@Override
 	public QRCodeInfoVO getQRCodeInfo(String qrcode) {
 		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
@@ -33,33 +35,36 @@ public class LoginQRServiceImpl implements LoginQRService {
 		String code = TokenUtils.getCodeString(request);
 		QRCodeInfoVO qrCodeInfoVO = null;
 		if(StringUtils.isBlank(qrcode)) {
-			qrcode = idGenerator.getGeneratorId().toString();
+			qrcode = idGenerator.nextIdStr();
+			String secret = aesService.getSecret();
 			qrCodeInfoVO = new QRCodeInfoVO();
 			qrCodeInfoVO.setQrcode(qrcode);
 			qrCodeInfoVO.setDeviceId(deviceId);
 			qrCodeInfoVO.setState(QRCodeType.UNSCAN.getState());
 			qrCodeInfoVO.setCode(code);
+			qrCodeInfoVO.setSecretKey(secret);
 			redisUtil.set(CachePrefixConstants.QR_CODE_LOGIN_QRID_PREFIX+qrcode, JsonUtils.objToJson(qrCodeInfoVO), 1*60*1000, TimeUnit.MILLISECONDS);
-		}
-		if(qrCodeInfoVO!=null) {
 			return qrCodeInfoVO;
 		}
 		String qrCodeInfoVOJson = redisUtil.get(CachePrefixConstants.QR_CODE_LOGIN_QRID_PREFIX+qrcode);
 		if(StringUtils.isBlank(qrCodeInfoVOJson)) {
+			String secret = aesService.getSecret();
 			qrCodeInfoVO = new QRCodeInfoVO();
 			qrCodeInfoVO.setQrcode(qrcode);
 			qrCodeInfoVO.setDeviceId(deviceId);
 			qrCodeInfoVO.setState(QRCodeType.EXPIRED.getState());
+			qrCodeInfoVO.setSecretKey(secret);
 			return qrCodeInfoVO;
 		}
-		qrCodeInfoVO = JsonUtils.jsonToObj(qrCodeInfoVOJson, QRCodeInfoVO.class);
-		if(!qrCodeInfoVO.getDeviceId().equals(deviceId)) {
+		QRCodeInfoVO temp = JsonUtils.jsonToObj(qrCodeInfoVOJson, QRCodeInfoVO.class);
+		if(!temp.getDeviceId().equals(deviceId)) {
 			qrCodeInfoVO = new QRCodeInfoVO();
 			qrCodeInfoVO.setQrcode(qrcode);
 			qrCodeInfoVO.setDeviceId(deviceId);
 			qrCodeInfoVO.setState(QRCodeType.EXPIRED.getState());
+			qrCodeInfoVO.setSecretKey(temp.getSecretKey());
 			return qrCodeInfoVO;
 		}
-		return qrCodeInfoVO;
+		return temp;
 	}
 }

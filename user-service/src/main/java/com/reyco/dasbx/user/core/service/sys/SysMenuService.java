@@ -3,7 +3,7 @@ package com.reyco.dasbx.user.core.service.sys;
 import java.util.List;
 import java.util.Map;
 
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 import com.reyco.dasbx.user.core.model.dto.sys.SysMenuDeleteDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysMenuDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysMenuInsertDto;

@@ -12,8 +12,8 @@ import org.springframework.util.CollectionUtils;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 import com.reyco.dasbx.commons.utils.convert.Convert;
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.constants.ReviewStateType;

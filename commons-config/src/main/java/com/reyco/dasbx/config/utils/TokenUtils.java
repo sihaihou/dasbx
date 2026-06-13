@@ -7,9 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
 import com.reyco.dasbx.commons.utils.net.RequestUtils;
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.Constants;
 import com.reyco.dasbx.model.vo.SysAccountToken;
@@ -254,7 +254,7 @@ public class TokenUtils {
 	 * @param optionName
 	 * @return
 	 */
-	private static String getOption(HttpServletRequest request,String optionName) {
+	public static String getOption(HttpServletRequest request,String optionName) {
 		String option = RequestUtils.getHeaderOptional(request, optionName, null);
 		if(option==null) {
 			option = RequestUtils.getCookieOptional(request, optionName, null);

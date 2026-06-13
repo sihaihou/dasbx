@@ -20,14 +20,14 @@ public class FeignRequestInterceptor implements RequestInterceptor {
 	
 	private static Logger logger = LoggerFactory.getLogger(FeignRequestInterceptor.class);
 	@Autowired
-	IdGenerator<Long> idGenerator;
+	private IdGenerator idGenerator;
 	@Override
 	public void apply(feign.RequestTemplate template) {
 		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 		if (requestAttributes != null) {
 			HttpServletRequest request = requestAttributes.getRequest();
 			String parentSpanId = request.getHeader("spanId");
-			String spanId = idGenerator.getGeneratorId().toString();           
+			String spanId = idGenerator.nextIdStr();           
 			Enumeration<String> headerNames = request.getHeaderNames();
 			while(headerNames.hasMoreElements()) {
 				String headerElementName = headerNames.nextElement();

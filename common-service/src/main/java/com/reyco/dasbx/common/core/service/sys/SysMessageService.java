@@ -6,7 +6,7 @@ import com.reyco.dasbx.common.core.model.dto.sys.message.SysMessageSelectDto;
 import com.reyco.dasbx.common.core.model.dto.sys.message.SysMessageUpdateHandleDto;
 import com.reyco.dasbx.common.core.model.dto.sys.message.SysMessageUpdateReadDto;
 import com.reyco.dasbx.common.core.model.vo.sys.message.SysMessageInfoVO;
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
 
 public interface SysMessageService {

@@ -2,6 +2,10 @@ package com.reyco.dasbx.model.constants;
 
 public interface CachePrefixConstants {
 	/**
+	 * 公钥私钥
+	 */
+	String RSA_PRIVATE = "dasbx:rsa:";
+	/**
 	 * 登录用户名
 	 */
 	String USER_LOGIN_UID = "dasbx:login:uid:";

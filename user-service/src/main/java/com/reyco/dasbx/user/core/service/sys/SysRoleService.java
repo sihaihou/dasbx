@@ -3,7 +3,7 @@ package com.reyco.dasbx.user.core.service.sys;
 import java.io.IOException;
 import java.util.List;
 
-import com.reyco.dasbx.es.core.search.SearchVO;
+import com.reyco.dasbx.es.support.result.Result;
 import com.reyco.dasbx.user.core.model.dto.sys.SysRoleDeleteDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysRoleDto;
 import com.reyco.dasbx.user.core.model.dto.sys.SysRoleInsertDto;
@@ -36,7 +36,7 @@ public interface SysRoleService {
      * @param sysRolePageDto
      * @return
      */
-    SearchVO<SysRoleInfoVO> search(SysRoleSearchDto sysRoleSearchDto) throws IOException;
+    Result<SysRoleInfoVO> search(SysRoleSearchDto sysRoleSearchDto) throws IOException;
     
     /**
      * 列表查询

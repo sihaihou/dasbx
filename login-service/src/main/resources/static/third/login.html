@@ -169,307 +169,298 @@
 <script type="text/javascript" src="../js/jquery-3.2.1.js"></script>
 <script type="text/javascript" src="../js/jQuery.md5.js"></script>
 <script type="text/javascript" src="../js/crypto.js"></script>
+<script type="text/javascript" src="../js/aes.js"></script>
+<script type="text/javascript" src="../js/jsencrypt.min.js"></script>
+<script type="text/javascript" src="../js/rsa.js"></script>
 <script type="text/javascript" src="../js/reyco.js"></script>
 <script type="text/javascript" src="../js/fingerprint2.js"></script>
 
 
 <script type="text/javascript">
-	const systemInfo = {
-		//baseUrl: "http://www.dasbx.com/api",
-		baseUrl: "http://www.subixin.com/api",
-		deviceId: localStorage.getItem('deviceId'),
-		deviceType: "PC",
-	 	codeName: "dasbx-code",
-		dasbxKey: "reyco",
-		dasbxNonce: "subixin",
-		iv: CryptoJS.enc.Utf8.parse('1234567812345678')
+	const SYSTEM = {
+	    //baseUrl: "http://www.dasbx.com/api",
+	    baseUrl: "http://www.subixin.com/api",
+	    deviceType: "PC",
+	    codeName: "dasbx-code",
+	    appId: "subixin",
+	    get nonce() { return Utils.generateNonce();},
+	    get deviceId() { return localStorage.getItem('deviceId'); },
+	    get code() { return localStorage.getItem(this.codeName); },
+	    set code(val) { localStorage.setItem(this.codeName, val); },
+	    clearCode() { localStorage.removeItem(this.codeName); }
 	};
-	/* 根据参数名获取参数值*/
-	function getQueryString(name) {
-		var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-		var r = window.location.search.substr(1).match(reg);
-		if (r != null)
-			return unescape(r[2]);
-		return null;
-	}
-	$(function() {
-		//window.addEventListener('resize', initResize);
-		//initResize();
-		createFingerprint();
-		loadCode();
-		loadApplication();
-	})
-	function loadCode(){
-		const params = {
-			code: localStorage.getItem(systemInfo.codeName),
-			time: new Date().getTime()
-		};
-		const config = {
-			method: "GET",
-			url: systemInfo.baseUrl+"/login/sys/code",
-			dasbxDeviceId: systemInfo.deviceId,
-			dasbxDeviceType: systemInfo.deviceType,
-			dasbxAccept: "false",
-			dasbxCode: params.code,
-			dasbxKey: systemInfo.dasbxKey,
-			dasbxNonce: systemInfo.dasbxNonce,
-			dasbxTimestamp: new Date().getTime(),
-			dasbxContentSignature: paramSign(params)
-		};
-		$.ajax({
-			type : config.method,
-			dataType : "json",
-			url : config.url,
-			headers: {
-				"dasbx-deviceId": config.dasbxDeviceId,
-				"dasbx-deviceType": config.dasbxDeviceType,
-		        "dasbx-accept": config.dasbxAccept,
-		        "dasbx-code": config.dasbxCode,
-		        "dasbx-key": config.dasbxKey,
-		        "dasbx-nonce": config.dasbxNonce,
-		        "dasbx-Timestamp": config.dasbxTimestamp,
-		        "dasbx-content-signature": config.dasbxContentSignature,
-		        "dasbx-Signature": sign(config)
-		    },
-			data : params,
-			success : function(data) {
-				var flag = data.success;
-				if (flag) {
-					localStorage.setItem(systemInfo.codeName,data.data);
-				} 
-			},
-			error : function() {
-			}
-		});
-	}
-	function loadApplication() {
-		const params = {
-			clientId: getQueryString("client_id"),
-			time: new Date().getTime()
-		};
-		const config = {
-			method: "GET",
-			url: systemInfo.baseUrl+"/open/application/getByClientId",
-			dasbxDeviceId: systemInfo.deviceId,
-			dasbxDeviceType: systemInfo.deviceType,
-			dasbxAccept: "false",
-			dasbxCode: localStorage.getItem(systemInfo.codeName),
-			dasbxKey: systemInfo.dasbxKey,
-			dasbxNonce: systemInfo.dasbxNonce,
-			dasbxTimestamp: new Date().getTime(),
-			dasbxContentSignature: paramSign(params)
-		};
-		$.ajax({
-			type : config.method,
-			dataType : "json",
-			url : config.url,
-			headers: {
-				"dasbx-deviceId": config.dasbxDeviceId,
-				"dasbx-deviceType": config.dasbxDeviceType,
-				"dasbx-accept": config.dasbxAccept,
-		        "dasbx-code": config.dasbxCode,
-		        "dasbx-key": config.dasbxKey,
-		        "dasbx-nonce": config.dasbxNonce,
-		        "dasbx-Timestamp": config.dasbxTimestamp,
-		        "dasbx-content-signature": config.dasbxContentSignature,
-		        "dasbx-Signature": sign(config)
-		    },
-			data : params,
-			success : function(data) {
-				var flag = data.success;
-				if (flag) {
-					$("#application").text(data.data.name);
-					$('#application').attr('href', data.data.domainUri);
-				} else {
-				}
-			},
-			error : function() {
-			}
-		});
+	
+	const Utils = {
+		/* 根据参数名获取参数值*/
+		getQueryString: (name) => {
+			var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+			var r = window.location.search.substr(1).match(reg);
+			if (r != null)
+				return unescape(r[2]);
+			return null;
+		},
+		/* 参数签名*/
+	    paramSign: (params) => {
+		    let serialize = Utils.getSerialize(params);
+		    return $.md5(serialize).toUpperCase();
+		},
+	    getSerialize: (params) => {
+		    const map = Utils.getObjToMap(params);
+		    let serialize = "";
+		    if (map.size > 0) {
+		        let keys = Object.keys(params)
+		        keys.sort();
+		        for (let i = 0; i < keys.length; i++) {
+		            let key = keys[i];
+		            serialize += key + "=" + map.get(key) + "&";
+		        }
+		    }
+		    return serialize.substring(0, serialize.length - 1);
+		},
+	    getObjToMap: (object) => {
+		    const map = new Map();
+		    Object.entries(object).forEach(([key, value]) => {
+		        map.set(key, value);
+		    });
+		    return map;
+		},
+	    /**
+		 * 接口签名
+		 * @param {*} config   
+		 */
+		sign: (config) => {
+			const url = config.url.replace("/api", "")
+		    const serialize = [config.method.toUpperCase(),url,config.dasbxTimestamp,config.dasbxNonce,config.dasbxContentSignature].join('|');
+		    let salt = Utils.saltGenerator();
+		    let source = salt+serialize;
+		    return $.md5(source).toUpperCase();
+		},
+		/**
+		 * 生成指定长度的随机纯文本字符串 (字母+数字)
+		 * @param length 长度，默认 16 位
+		 */
+		 generateNonce: (length = 16) => {
+		    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		    let result = '';
+		    
+		    // 使用更安全的浏览器加密随机数 API
+		    const array = new Uint8Array(length);
+		    window.crypto.getRandomValues(array);
+		    
+		    for (let i = 0; i < length; i++) {
+		        // 取模运算，确保索引落在 chars 范围内
+		        result += chars.charAt(array[i] % chars.length);
+		    }
+		    
+		    return result;
+		},
+		/**
+		 * salt
+		 */
+		saltGenerator: () => {
+		    const _factor = [0x5f, 0x2d, 0x1a]; 
+
+		    const _p1 = () => {
+		        const _base = Math.pow(2, 4) - 6; 
+		        return [0x64, 0x35, 0x61, 0x39].map(x => String.fromCharCode(x)).join('');
+		    };
+		    const _p2 = () => {
+		        const _keys = [0x62, 0x32, 0x63, 0x38];
+		        return _keys.reduce((acc, curr) => acc + String.fromCharCode(curr ^ (_factor[1] & 0x0)), "");
+		    };
+		    const _p3 = () => {
+		        const _buf = (16315620).toString(16);
+		        return [102, 49, 101, 52].map(c => String.fromCharCode(c)).join('');
+		    };
+		    const salt = () => {
+		        const _p = _p1();
+		        const _q = _p2();
+		        const _r = _p3();
+		        return `${_p}${_q}${_r}`;
+		    };
+		    return salt();
+		},
+		
+		isMobile: () => {
+		  const userAgentInfo = navigator.userAgent;
+		  const mobileAgents = ['Android', 'iPhone', 'SymbianOS', 'Windows Phone', 'iPad', 'iPod'];
+		  for (let i = 0; i < mobileAgents.length; i++) {
+			if (userAgentInfo.indexOf(mobileAgents[i]) > 0) {
+		      	return true;
+		    }
+		  }
+		  return false;
+		},
+		/**
+		 * 创建设备Id
+		 */
+		createFingerprint: () => {
+		 	const fingerprint = Fingerprint2.get((components) => { 
+		       const values = components.map(component => component.value);
+		       const murmur = Fingerprint2.x64hash128(values.join(''), 31);
+		       localStorage.setItem('deviceId', murmur);
+		    });
+		},
+		 /**
+		  *
+		  */
+	    showMessage: (message) => {
+			$(".submit").css("margin-top","10px")
+			$("#msg").removeClass("displayNoneClass");
+			$("#msg").addClass("displayBlockClass");
+			$("#message").html(message);
+		},
+		cleanMessage: () => {
+			$(".submit").css("margin-top","20px")
+			$("#msg").removeClass("displayBlockClass");
+			$("#msg").addClass("displayNoneClass");
+			$("#message").html("");
+		}
 	}
 	
-	function login() {
-		const loginInfo = {
-			username: $("#username").val(),
-			password: $.md5($("#password").val())
-		};
-		const secretKey = getLoginSecretKey();
-		const sourceLoginInfoJson = getSourceLoginInfoJson(loginInfo);
-		const secretRegisterInfoString = encrypt(sourceLoginInfoJson,secretKey);
-		const params = {
-			redirect_uri: getQueryString("redirect_uri"),
-			t: secretRegisterInfoString,
-			time: new Date().getTime()
-		};
-		const code = localStorage.getItem(systemInfo.codeName);
-		const config = {
-			method: "POST",
-			url: systemInfo.baseUrl+"/login/oauth2/login",
-			dasbxDeviceId: systemInfo.deviceId,
-			dasbxDeviceType: systemInfo.deviceType,
-			dasbxAccept: "false",
-			dasbxCode: code,
-			dasbxKey: systemInfo.dasbxKey,
-			dasbxNonce: systemInfo.dasbxNonce,
-			dasbxTimestamp: new Date().getTime(),
-			dasbxContentSignature: paramSign(params)
-		};
-		$.ajax({
-			type : config.method,
-			dataType : "json",
-			url : config.url,
-			headers: {
-				"dasbx-deviceId": config.dasbxDeviceId,
-				"dasbx-deviceType": config.dasbxDeviceType,
-				"dasbx-accept": config.dasbxAccept,
-		        "dasbx-code": config.dasbxCode,
-		        "dasbx-key": config.dasbxKey,
-		        "dasbx-nonce": config.dasbxNonce,
-		        "dasbx-Timestamp": config.dasbxTimestamp,
-		        "dasbx-content-signature": config.dasbxContentSignature,
-		        "dasbx-Signature": sign(config)
-		    },
-			data : params,
-			success : function(data) {
-				var flag = data.success;
-				if (flag && data.code!="211") {
-					localStorage.removeItem(systemInfo.codeName);
-					loadCode();
-					window.location.replace(data.data);
-				} else {
-					showMessage(data.dataMsg);
-				}
-			},
-			error : function() {
-			}
-		});
-	}
-	function showMessage(message){
-		$(".submit").css("margin-top","10px")
-		$("#msg").removeClass("displayNoneClass");
-		$("#msg").addClass("displayBlockClass");
-		$("#message").html(message);
-	}
-	function cleanMessage(){
-		$(".submit").css("margin-top","20px")
-		$("#msg").removeClass("displayBlockClass");
-		$("#msg").addClass("displayNoneClass");
-		$("#message").html("");
-	}
-	function paramSign(params){
-	    let serialize = getSerialize(params);
-	    return $.md5(serialize).toUpperCase();
-	}
-	/**
-	 * 接口签名
-	 * @param {*} config   
-	 */
-	function sign(config){
-	    let url = config.url.replace("/api", "");
-	    let serialize = config.dasbxNonce+"Dasbx-Key="+config.dasbxKey+"&Dasbx-Timestamp="+config.dasbxTimestamp
-	    +"&Dasbx-Nonce="+config.dasbxNonce+"&Dasbx-Content-Signature="+config.dasbxContentSignature+"&url="+url;
-	    return $.md5(serialize).toUpperCase();
-	}
-	 function getSerialize(params){
-	    const map = objToMap(params);
-	    let serialize = "";
-	    if (map.size > 0) {
-	        let keys = Object.keys(params)
-	        keys.sort();
-	        for (let i = 0; i < keys.length; i++) {
-	            let key = keys[i];
-	            serialize += key + "=" + map.get(key) + "&";
-	        }
+	const API = {
+	    request: (method, url, params = {}, needCode = true, customHeaders = {}) => {
+	        return new Promise((resolve, reject) => {
+	            const code = needCode ? SYSTEM.code : null;
+	            
+	            const config = {
+                    method, 
+                    url: SYSTEM.baseUrl + url,
+                    dasbxDeviceId: SYSTEM.deviceId,
+                    dasbxDeviceType: SYSTEM.deviceType,
+                    dasbxAccept: "false",
+                    dasbxCode: code,
+                    dasbxAppId: SYSTEM.appId,
+                    dasbxNonce: SYSTEM.nonce,
+                    dasbxTimestamp: Date.now(),
+                    dasbxContentSignature: Utils.paramSign(params)
+                };
+	            const defaultHeaders = {
+                    "dasbx-deviceId": config.dasbxDeviceId,
+                    "dasbx-deviceType": config.dasbxDeviceType,
+                    "dasbx-accept": config.dasbxAccept,
+                    "dasbx-code": config.dasbxCode,
+                    "dasbx-appId": config.dasbxAppId,
+                    "dasbx-nonce": config.dasbxNonce,
+                    "dasbx-timestamp": config.dasbxTimestamp,
+                    "dasbx-content-signature": config.dasbxContentSignature,
+                    "dasbx-Signature": Utils.sign(config)
+                };
+	            const headers = { ...defaultHeaders, ...customHeaders };
+	            
+	            $.ajax({
+	                type: method, 
+	                dataType: "json", 
+	                url: config.url,
+	                headers: headers, 
+	                data: params,
+	                success: resolve,
+	                error: (xhr, status, error) => reject({ error, status })
+	            });
+	        });
 	    }
-	    return serialize.substring(0, serialize.length - 1);
-	}
-	 function objToMap(object){
-	    const map = new Map();
-	    Object.entries(object).forEach(([key, value]) => {
-	        map.set(key, value);
+	};
+		            
+	// 初始化
+	$(function() {
+		Utils.createFingerprint(); // 保持原函数
+	    loadCode();
+	    loadApplication();
+	});	
+		            
+	// 业务函数
+	async function loadCode() {
+	    const res = await API.request("GET", "/login/sys/code", {
+	        code: SYSTEM.code,
+	        time: Date.now()
 	    });
-	    return map;
-	}
-	function getLoginSecretKey(){
-		const code = localStorage.getItem(systemInfo.codeName);
-	    let secreyKey = code.substring(0,16);
-	    secreyKey = "1234567890123456";
-	    return secreyKey;
-	}
-	function getSourceLoginInfoJson(loginInfo){
-	    const sourceLoginInfoJson = '{"username":"'+loginInfo.username+'","password":"'+loginInfo.password+'"}';
-	    return sourceLoginInfoJson;
-	}
-	/**
-	 * AES对称加密
-	 * @param {Object} source 明文参数
-	 * @param {Object} key  密匙
-	 */
-	function encrypt(source,key) {
-		key = CryptoJS.enc.Utf8.parse(key);
-	    // 明文参数
-	    const str = CryptoJS.enc.Utf8.parse(source)
-	    // 加密
-	    const encryptedData = CryptoJS.AES.encrypt(str, key, {
-	        mode: CryptoJS.mode.ECB, // AES加密模式
-	        padding: CryptoJS.pad.Pkcs7 // 填充方式
-	    })
-	    return CryptoJS.enc.Base64.stringify(encryptedData.ciphertext) // 返回base64格式密文
-	}
-	 /**
-	 * AES对称解密
-	 * @param {Object} ciphertext 加密参数
-	 * @param {Object} key  密匙
-	 */
-	function decrypt(ciphertext,key) {
-		key = CryptoJS.enc.Utf8.parse(key);
-	    // base64格式密文转换
-	    const base64 = CryptoJS.enc.Base64.parse(ciphertext)
-	    const str = CryptoJS.enc.Base64.stringify(base64)
-	    // 解密
-	    const decryptedData = CryptoJS.AES.decrypt(str, key, {
-	        mode: CryptoJS.mode.ECB, // AES加密模式
-	        padding: CryptoJS.pad.Pkcs7 // 填充方式
-	    })
-	    return CryptoJS.enc.Utf8.stringify(decryptedData).toString() // 返回明文
-	}
-	/**
-	 * 创建设备Id
-	 */
-	function createFingerprint(){
-	 	const fingerprint = Fingerprint2.get((components) => { 
-	       const values = components.map(component => component.value);
-	       const murmur = Fingerprint2.x64hash128(values.join(''), 31);
-	       localStorage.setItem('deviceId', murmur);
-	    });
-	}
-	/*function initResize() {
-	    var windowWidth = window.innerWidth;
-	    console.log(windowWidth);
-	    let isMobile = true;
-	    let show = true;
-	    if(isMobile || windowWidth < 800){
-	    	show = false;
-	    	$("#accredit").toggle(show);
-	    	$("#layTop").attr("style","display:grid;grid-template-columns: 1fr 98fr 1fr;");
-	    	$("#layMiddle").attr("style","display:grid;grid-template-columns: 1fr 98fr 1fr;");
-	    	$("#layInner").attr("style","display:grid;grid-template-columns: 98fr 1fr 1fr;");
-	    }else{
-	    	show = true;
-	    	$("#accredit").toggle(show);
+	    if (res.success && res.data) {
+	    	SYSTEM.code = res.data;
 	    }
+	    return res;
+	}	            
+	/**
+	*
+	*/
+	async function loadApplication() {
+	    const clientId = Utils.getQueryString("client_id");
+	    if (!clientId) return;
 	    
-	}
-	function isMobile() {
-	  const userAgentInfo = navigator.userAgent;
-	  const mobileAgents = ['Android', 'iPhone', 'SymbianOS', 'Windows Phone', 'iPad', 'iPod'];
-	  for (let i = 0; i < mobileAgents.length; i++) {
-		if (userAgentInfo.indexOf(mobileAgents[i]) > 0) {
-	      	return true;
+	    const res = await API.request("GET", "/open/application/getByClientId", {
+	        clientId, time: Date.now()
+	    });
+	    
+	    if (res.success && res.data) {
+	        $("#application").text(res.data.name).attr('href', res.data.domainUri);
 	    }
-	  }
-	  return false;
-	}*/
+	}
+
+	async function login() {
+	    const loginInfo = {
+	        username: $("#username").val(),
+	        password: CryptoJS.MD5($("#password").val()).toString()
+	    };
+		
+	    const encryptedLoginInfo = await getEncryptedLoginInfo(loginInfo);
+	    
+	    console.log(encryptedLoginInfo)
+	    const res = await API.request("POST", "/login/oauth2/login",
+	    	{
+		        redirect_uri: Utils.getQueryString("redirect_uri"),
+		        t: encryptedLoginInfo.token,
+		        time: Date.now()
+	    	},
+	    	true,
+	    	{
+	    		'dasbx-secret': encryptedLoginInfo.encryptedAesKey,
+	            'dasbx-publicKey': encryptedLoginInfo.publicKey
+	    	}
+	    );
+	    if (res.success && res.code !== "211") {
+	        SYSTEM.clearCode();
+	        await loadCode();
+	        window.location.replace(res.data);
+	    } else {
+	        Utils.showMessage(res.dataMsg);
+	    }
+	}
+	
+	async function getEncryptedLoginInfo(loginInfo){
+		// 获取AES密钥
+		const aesSecretKey = await getAESSecretKey();
+		//
+		const sourceLoginInfoJson = JSON.stringify(loginInfo);
+		// 加密登录信息
+		const encryptedLoginInfoString = encryptAes(sourceLoginInfoJson,aesSecretKey);
+		// 获取RSA公钥
+		const publicKey = await getLoginPublicKey();
+		// 用RSA加密AES密钥
+		const encryptedAesKey = encryptRsa(aesSecretKey,publicKey);
+		return {
+	        publicKey: publicKey,
+	        encryptedAesKey: encryptedAesKey,
+	        token: encryptedLoginInfoString
+	    };
+	}
+	/**
+	 * 获取密钥
+	 */
+	async function getAESSecretKey(){
+	    const res = await API.request("GET", "/login/sys/getSecret");
+	    if (res.success && res.data) {
+	       return res.data;
+	    }
+	}
+	/**
+	 * 获取公钥
+	 */
+	async function getLoginPublicKey(){
+	    const res = await API.request("GET", "/login/sys/getPublicKey");
+	    if (res.success && res.data) {
+	       return res.data;
+	    }
+	}
+	
 </script>
 </head>
 <body>
@@ -492,12 +483,12 @@
 	            <form class="form">
 	              <div class="input">
 	                <div class="input1">
-	                  <input id="username" class="username" placeholder="请输入用户名" onfocus="cleanMessage()"/>
+	                  <input id="username" class="username" placeholder="请输入用户名" onfocus="Utils.cleanMessage()"/>
 	                </div>
 	              </div>
 	              <div class="input">
 	                <div class="input1">
-	                  <input id="password" type="password"  class="username" placeholder="请输入密码" onfocus="cleanMessage()"/>
+	                  <input id="password" type="password"  class="username" placeholder="请输入密码" onfocus="Utils.cleanMessage()"/>
 	                </div>
 	              </div>
 	              <div id="msg" class="message displayNoneClass">

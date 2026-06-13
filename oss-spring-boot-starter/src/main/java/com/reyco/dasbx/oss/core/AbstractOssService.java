@@ -6,9 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
-import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,19 @@ public abstract class AbstractOssService implements OssService {
 	public static final String SPOT = ".";
 	public static final String SEMICOLON = ";";
 	
-	public static final SimpleDateFormat FORMAT = new SimpleDateFormat("yyyyMMddHHmmsss");
+	public static final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+	
+	protected static final OssParameter DEFAULT_PARAMETER = () -> "";
+	
+	@Override
+	public String upload(MultipartFile file) throws OssException {
+		return upload(file, DEFAULT_PARAMETER);
+	}
+
+	@Override
+	public String upload(String base64) throws OssException {
+		return upload(base64, DEFAULT_PARAMETER);
+	}
 	/**
 	 * 获取rootPath
 	 * @param basePath
@@ -110,18 +122,24 @@ public abstract class AbstractOssService implements OssService {
 	 * @return
 	 */
 	private String getFileName(String filename,String extension,OssParameter ossParameter) {
-		String fileName = ossParameter.getFileName(filename, extension);
-		if(StringUtils.hasLength(fileName)) {
-			return fileName;
-		}
-		String newFilename = null;
-		if(ossParameter!=null) {
-			newFilename = ossParameter.getFilename(filename);
-		}
-		if(StringUtils.hasLength(newFilename)) {
-			filename = newFilename;
-		}
-		return filename + LINES + FORMAT.format(new Date()) + extension;
+		// 1. 防御：如果 parameter 为空，直接用空对象兜底，彻底杜绝 NPE
+	    ossParameter = (ossParameter == null) ? DEFAULT_PARAMETER : ossParameter;
+	    
+	    String fileName = ossParameter.getFileName(filename, extension);
+	    
+	    // 2. 关键判断：只有当用户真正“定制了新名字”时（即返回值不等于原文件名+后缀），才直接返回
+	    if (StringUtils.hasLength(fileName) && !fileName.equals(filename + extension)) {
+	        return fileName;
+	    }
+	    
+	    // 3. 如果用户只是想改纯文件名部分
+	    String newFilename = ossParameter.getFilename(filename);
+	    if (StringUtils.hasLength(newFilename)) {
+	        filename = newFilename;
+	    }
+	    
+	    // 4. 线程安全的时间戳拼接
+	    return filename + LINES + LocalDateTime.now().format(FORMAT) + extension;
 	}
 	/**
 	 * 文件访问地址
@@ -188,11 +206,11 @@ public abstract class AbstractOssService implements OssService {
 		String base64String = base64.split(COMMA)[1];
 		byte[] bytes = Base64.getDecoder().decode(base64String);
 		// 处理数据
-		for (int i = 0; i < bytes.length; ++i) {
+		/*for (int i = 0; i < bytes.length; ++i) {
 			if (bytes[i] < 0) {
 				bytes[i] += 256;
 			}
-		}
+		}*/
 		OutputStream os = null;
 		try {
 			os = new BufferedOutputStream(new FileOutputStream(new File(rootPath, fileName)));
@@ -212,8 +230,7 @@ public abstract class AbstractOssService implements OssService {
 		}
 	}
 	protected String getRandomFilename() {
-		String fileName = FORMAT.format(new Date());
-		return fileName;
+		return LocalDateTime.now().format(FORMAT);
 	}
 }
 

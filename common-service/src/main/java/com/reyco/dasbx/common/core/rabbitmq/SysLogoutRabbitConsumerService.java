@@ -14,12 +14,13 @@ import org.springframework.stereotype.Service;
 
 import com.rabbitmq.client.Channel;
 import com.reyco.dasbx.common.core.dao.sys.SysLoginLogDao;
+import com.reyco.dasbx.common.core.model.domain.sys.SysLoginLog;
 import com.reyco.dasbx.common.core.model.dto.sys.SysLoginLogLogoutUpdateDto;
-import com.reyco.dasbx.common.core.model.msg.SysLoginLogLogoutMessage;
 import com.reyco.dasbx.common.core.service.sys.SysLoginLogService;
 import com.reyco.dasbx.common.core.service.sys.SysMessageService;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
+import com.reyco.dasbx.config.rabbit.message.SysLoginLogLogoutMessage;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
@@ -59,6 +60,11 @@ public class SysLogoutRabbitConsumerService extends AbstractRabbitConsumerServic
 	protected void doHandler(RabbitMessage rabbitMessage) throws Exception {
 		SysLoginLogLogoutMessage sysLoginLogLogoutMessage = (SysLoginLogLogoutMessage)rabbitMessage;
 		SysLoginLogLogoutUpdateDto sysLoginLogLogoutUpdateDto = Convert.sourceToTarget(sysLoginLogLogoutMessage, SysLoginLogLogoutUpdateDto.class);
+		SysLoginLog sysLoginLog = sysLoginLogDao.getByCode(sysLoginLogLogoutUpdateDto.getCode());
+		if(sysLoginLog==null) {
+			return;
+		}
+		sysLoginLogLogoutUpdateDto.setId(sysLoginLog.getId());
 		sysLoginLogService.updateLogout(sysLoginLogLogoutUpdateDto);
 	}
 	

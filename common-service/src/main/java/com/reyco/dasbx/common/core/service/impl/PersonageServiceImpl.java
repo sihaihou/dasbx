@@ -44,20 +44,27 @@ import com.reyco.dasbx.common.core.model.po.personage.PersonageUpdatePO;
 import com.reyco.dasbx.common.core.model.po.sys.PersonageElasticsearchDocument;
 import com.reyco.dasbx.common.core.model.vo.personage.PersonageInfoVO;
 import com.reyco.dasbx.common.core.service.PersonageService;
+import com.reyco.dasbx.commons.exception.ArgumentException;
+import com.reyco.dasbx.commons.exception.BusinessException;
 import com.reyco.dasbx.commons.utils.Dasbx;
 import com.reyco.dasbx.commons.utils.convert.Convert;
+import com.reyco.dasbx.commons.utils.net.CusAccessObjectUtil;
+import com.reyco.dasbx.commons.utils.net.IPToLongitudeAndLatitudeUtils;
+import com.reyco.dasbx.commons.utils.net.IPToLongitudeAndLatitudeUtils.LongitudeLatitude;
+import com.reyco.dasbx.commons.utils.net.RequestUtils;
 import com.reyco.dasbx.commons.utils.random.RandomUtils;
-import com.reyco.dasbx.config.exception.core.ArgumentException;
-import com.reyco.dasbx.config.exception.core.BusinessException;
 import com.reyco.dasbx.config.utils.CodeUtils;
-import com.reyco.dasbx.es.core.client.ElasticsearchClient;
-import com.reyco.dasbx.es.core.model.GeoPoint;
-import com.reyco.dasbx.es.core.search.SearchVO;
+import com.reyco.dasbx.es.client.ElasticsearchClient;
+import com.reyco.dasbx.es.core.query.suggest.SuggestService;
+import com.reyco.dasbx.es.support.annotation.sort.EsSortType;
+import com.reyco.dasbx.es.support.result.Result;
+import com.reyco.dasbx.es.support.template.SearchTemplate;
 import com.reyco.dasbx.model.constants.CachePrefixInfoConstants;
 import com.reyco.dasbx.model.domain.Area;
 import com.reyco.dasbx.model.domain.Fullname;
 import com.reyco.dasbx.model.domain.Personage;
 import com.reyco.dasbx.model.dto.ListDto;
+import com.reyco.dasbx.model.es.GeoPoint;
 import com.reyco.dasbx.model.vo.ListVO;
 
 @Service
@@ -75,9 +82,13 @@ public class PersonageServiceImpl implements PersonageService {
 	private GirlNameDao girlNameDao;
 	@Autowired
 	private SurnameDao surnameDao;
+
 	@Autowired
-	private PersonageSearch personageSearch;
-	
+	private SuggestService suggestService;
+
+	@Autowired
+	private SearchTemplate searchTemplate;
+
 	private Set<String> filter;
 
 	public static ThreadPoolExecutor executor;
@@ -89,6 +100,7 @@ public class PersonageServiceImpl implements PersonageService {
 		executor = new ThreadPoolExecutor(coreProcessors, coreProcessors * 3, 60, TimeUnit.SECONDS,
 				new LinkedBlockingQueue<>(1000), new ThreadFactory() {
 					LongAdder count = new LongAdder();
+
 					@Override
 					public Thread newThread(Runnable r) {
 						count.increment();
@@ -130,7 +142,7 @@ public class PersonageServiceImpl implements PersonageService {
 	public int randomPersonage() throws IOException {
 		List<Personage> all = personageDao.getAll();
 		for (Personage personage : all) {
-			filter.add( personage.getName());
+			filter.add(personage.getName());
 		}
 		List<String> masterpieces = Arrays.asList("香港演员", "澳门演员", "台湾演员", "大陆演员", "群众演员", "人民群众");
 		int sc = surnameDao.getCount();
@@ -222,9 +234,8 @@ public class PersonageServiceImpl implements PersonageService {
 
 	private boolean exit(String name, Set<String> ns) {
 		List<Personage> tps;
-		return filter.add(name)
-				&& (ns.contains(name) || ((tps = personageDao.getList(name)) != null && tps.size() > 0
-						&& ns.add(tps.get(0).getName()) && tps.size() < 1));
+		return filter.add(name) && (ns.contains(name) || ((tps = personageDao.getList(name)) != null && tps.size() > 0
+				&& ns.add(tps.get(0).getName()) && tps.size() < 1));
 	}
 
 	private Fullname randomMaleFullname(int surnameCount, int maleCount, int girlCount, Map<Long, String> surnameMap,
@@ -371,20 +382,38 @@ public class PersonageServiceImpl implements PersonageService {
 	}
 
 	@Override
-	public List<String> getSuggestion(String keyword) throws IOException {
-		List<String> suggestion = elasticsearchClient.getSuggestion("personage", keyword);
+	public List<String> getSuggestion(String keyword) throws Exception {
+		List<String> suggestion = searchTemplate.suggest("personage", keyword);
 		if (suggestion == null) {
 			suggestion = new ArrayList<>();
 		}
 		return suggestion;
 	}
+
 	@Override
-	public SearchVO<PersonageInfoVO> search(PersonageSearchDto personageSearchDto) throws Exception {
-		return personageSearch.search(personageSearchDto);
+	public Result<PersonageInfoVO> search(PersonageSearchDto personageSearchDto) throws Exception {
+		String ip = CusAccessObjectUtil.getIpAddress(RequestUtils.getHttpServletRequest());
+		LongitudeLatitude longitudeLatitude = IPToLongitudeAndLatitudeUtils.getLongitudeAndLatitude(ip);
+		personageSearchDto.getSortParam()
+				.setType(EsSortType.GEO_DISTANCE)
+				.setLatitude(longitudeLatitude.getLat())
+				.setLongitude(longitudeLatitude.getLon())
+				.setUnit("km");
+		;
+		Result<PersonageInfoVO> search = searchTemplate.search(personageSearchDto, PersonageInfoVO.class);
+		
+		search.getPage().getList().parallelStream().forEach(personageInfoVO -> {
+			personageInfoVO.setProvinceDesc(areaDao.getById(personageInfoVO.getProvinceId()).getName());
+			personageInfoVO.setCityDesc(areaDao.getById(personageInfoVO.getCityId()).getName());
+			personageInfoVO.setDistrictDesc(areaDao.getById(personageInfoVO.getDistrictId()).getName());
+			personageInfoVO.setLatitude(personageInfoVO.getLocation().getLat());
+			personageInfoVO.setLongitude(personageInfoVO.getLocation().getLon());
+		});
+		return search;
 	}
 
 	@Override
-	@Cacheable(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_PERSONAGE_INFO_PREFIX,key="#id")
+	@Cacheable(cacheManager = "redisCacheManager", value = CachePrefixInfoConstants.COMMON_PERSONAGE_INFO_PREFIX, key = "#id")
 	public PersonageInfoVO get(Long id) {
 		Personage personage = personageDao.getById(id);
 		PersonageInfoVO personageInfoVO = Convert.sourceToTarget(personage, PersonageInfoVO.class);
@@ -397,7 +426,7 @@ public class PersonageServiceImpl implements PersonageService {
 	}
 
 	@Override
-	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_PERSONAGE_INFO_PREFIX,key="#personageUpdateDto.id")
+	@CacheEvict(cacheManager = "redisCacheManager", value = CachePrefixInfoConstants.COMMON_PERSONAGE_INFO_PREFIX, key = "#personageUpdateDto.id")
 	public void update(PersonageUpdateDto personageUpdateDto) {
 		PersonageUpdatePO personageUpdatePO = Convert.sourceToTarget(personageUpdateDto, PersonageUpdatePO.class);
 		personageDao.update(personageUpdatePO);
@@ -433,7 +462,8 @@ public class PersonageServiceImpl implements PersonageService {
 		personageElasticsearchDocument.setProvinceId(personageInsertPO.getProvinceId());
 		personageElasticsearchDocument.setCityId(personageInsertPO.getCityId());
 		personageElasticsearchDocument.setDistrictId(personageInsertPO.getDistrictId());
-		personageElasticsearchDocument.setLocation(new GeoPoint(personageInsertPO.getLatitude(), personageInsertPO.getLongitude()));
+		personageElasticsearchDocument
+				.setLocation(new GeoPoint(personageInsertPO.getLatitude(), personageInsertPO.getLongitude()));
 		personageElasticsearchDocument.setRemark(personageElasticsearchDocument.getName());
 		Set<String> suggestionSet = new HashSet<>();
 		suggestionSet.add(personageElasticsearchDocument.getName());
@@ -446,7 +476,7 @@ public class PersonageServiceImpl implements PersonageService {
 	}
 
 	@Override
-	@CacheEvict(cacheManager="redisCacheManager",value=CachePrefixInfoConstants.COMMON_PERSONAGE_INFO_PREFIX,key="#personageDeleteDto.id")
+	@CacheEvict(cacheManager = "redisCacheManager", value = CachePrefixInfoConstants.COMMON_PERSONAGE_INFO_PREFIX, key = "#personageDeleteDto.id")
 	public void delete(PersonageDeleteDto personageDeleteDto) {
 		PersonageDeletePO personageDeletePO = Convert.sourceToTarget(personageDeleteDto, PersonageDeletePO.class);
 		personageDao.deleteById(personageDeletePO);

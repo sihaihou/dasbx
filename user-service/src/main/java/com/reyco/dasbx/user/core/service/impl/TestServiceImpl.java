@@ -12,14 +12,14 @@ import com.reyco.dasbx.user.core.service.TestService;
 @Service
 public class TestServiceImpl implements TestService{
 	@Autowired
-	private IdGenerator<Long> idGenerator;
+	private IdGenerator idGenerator;
 	
 	@Autowired
 	private JwtUtils jwtUtils;
 	
 	@Override
 	public String test(String test) {
-		System.err.println(test + idGenerator.getGeneratorId());
+		System.err.println(test + idGenerator.nextIdStr());
 		return "ok";
 	}
 	@Override

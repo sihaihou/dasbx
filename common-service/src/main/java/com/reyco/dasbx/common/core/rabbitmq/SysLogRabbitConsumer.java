@@ -14,11 +14,11 @@ import org.springframework.stereotype.Service;
 
 import com.rabbitmq.client.Channel;
 import com.reyco.dasbx.common.core.model.dto.sys.SysLogInsertDto;
-import com.reyco.dasbx.common.core.model.msg.SysLogRabbitmqMessage;
 import com.reyco.dasbx.common.core.service.sys.SysLogService;
 import com.reyco.dasbx.common.core.service.sys.SysMessageService;
 import com.reyco.dasbx.commons.utils.convert.Convert;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
+import com.reyco.dasbx.config.rabbit.message.SysLogRabbitmqMessage;
 import com.reyco.dasbx.model.constants.CachePrefixConstants;
 import com.reyco.dasbx.model.constants.RabbitConstants;
 import com.reyco.dasbx.model.dto.SysMessageInsertDto;
@@ -38,10 +38,20 @@ public class SysLogRabbitConsumer extends AbstractRabbitConsumerService{
 	@Autowired
 	private SysMessageService sysMessageService;
 	
+	private static final RabbitMessageType MESSAGE_TYPE_CONFIG = new RabbitMessageType() {
+		@Override
+		public byte getType() { return 6; }
+		@Override
+		public String getRetryKey() { return CachePrefixConstants.SYS_LOG_RETRY; }
+		@Override
+		public int getRetryTime() { return 3; } // 明确暴露重试上限
+	};
+	
 	@Autowired
 	public SysLogRabbitConsumer(RedisUtil redisUtil) {
 		super(redisUtil);
 	}
+	
 	@RabbitHandler
 	@RabbitListener(bindings = @QueueBinding(
 			exchange = @Exchange(value = RabbitConstants.LOG_EXCHANGE, type = ExchangeTypes.DIRECT, durable = "true", autoDelete = "false"), 
@@ -53,9 +63,11 @@ public class SysLogRabbitConsumer extends AbstractRabbitConsumerService{
 
 	@Override
 	protected void doHandler(RabbitMessage rabbitMessage) throws Exception {
-		SysLogRabbitmqMessage sysLogRabbitmqMessage = (SysLogRabbitmqMessage)rabbitMessage;
-		SysLogInsertDto sysLogInsertDto = Convert.sourceToTarget(sysLogRabbitmqMessage, SysLogInsertDto.class);
-		SysLogService.insert(sysLogInsertDto);
+		if (rabbitMessage instanceof SysLogRabbitmqMessage) {
+			SysLogRabbitmqMessage sysLogRabbitmqMessage = (SysLogRabbitmqMessage)rabbitMessage;
+			SysLogInsertDto sysLogInsertDto = Convert.sourceToTarget(sysLogRabbitmqMessage, SysLogInsertDto.class);
+			SysLogService.insert(sysLogInsertDto);
+		}
 	}
 	
 	@Override
@@ -73,17 +85,7 @@ public class SysLogRabbitConsumer extends AbstractRabbitConsumerService{
 	
 	@Override
 	protected RabbitMessageType getRabbitMessageType() {
-		RabbitMessageType rabbitMessageType = new RabbitMessageType() {
-			@Override
-			public byte getType() {
-				return 6;
-			}
-			@Override
-			public String getRetryKey() {
-				return CachePrefixConstants.SYS_LOG_RETRY;
-			}
-		};
-		return rabbitMessageType;
+		return MESSAGE_TYPE_CONFIG;
 	}
 
 

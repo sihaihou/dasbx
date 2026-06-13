@@ -2,7 +2,7 @@ package com.reyco.dasbx.portal.model.es.po;
 
 import java.util.List;
 
-import com.reyco.dasbx.es.core.client.ElasticsearchDocument;
+import com.reyco.dasbx.es.client.ElasticsearchDocument;
 
 /**
  * 视频Document对象

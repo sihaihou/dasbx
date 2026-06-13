@@ -5,8 +5,8 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
 import com.reyco.dasbx.config.utils.TokenUtils;
 import com.reyco.dasbx.login.core.model.dto.ConfirmQRcodeDto;
 import com.reyco.dasbx.login.core.model.vo.QRCodeInfoVO;

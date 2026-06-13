@@ -8,6 +8,10 @@ public interface Constants {
 	
 	String LOG_API = "/sys/log/**";
 	
+	String SECRET = "dasbx-secret";
+	
+	String PUBLIC_KEY = "dasbx-publicKey";
+	
 	String ACCEPT_NAME = "dasbx-accept";
 	
 	String DEVICE_ID_NAME = "dasbx-deviceId";

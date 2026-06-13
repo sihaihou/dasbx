@@ -1,6 +1,6 @@
 package com.reyco.dasbx.login.core.service.authentication;
 
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 
 /**
  * 正在认证

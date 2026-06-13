@@ -6,7 +6,7 @@ public interface Oauth2Service {
 	
 	boolean authorize(String clientId,String redirectUri,String responseType) throws Exception;
 	
-	JSONObject createToken(String t) throws Exception;
+	JSONObject createToken(String token) throws Exception;
 	
 	JSONObject accessToken(String clientId, String clientSecret, String redirectUri, String code,String grantType) throws Exception;
 	

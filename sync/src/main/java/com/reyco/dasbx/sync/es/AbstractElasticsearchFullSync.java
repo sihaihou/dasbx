@@ -5,9 +5,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.reyco.dasbx.es.core.client.ElasticsearchClient;
-import com.reyco.dasbx.es.core.client.ElasticsearchDocument;
-import com.reyco.dasbx.es.core.exception.ElasticsearchException;
+import com.reyco.dasbx.es.client.ElasticsearchClient;
+import com.reyco.dasbx.es.client.ElasticsearchDocument;
+import com.reyco.dasbx.es.core.exception.SearchException;
 import com.reyco.dasbx.sync.exception.SyncException;
 
 /**
@@ -49,7 +49,7 @@ public abstract class AbstractElasticsearchFullSync<E extends ElasticsearchDocum
 	protected void handlerFullSyncException(Exception e) {
 		String indexName = getIndexName();
 		logger.error("【ES全量同步】全量同步失败,索引:{},异常信息:{}",indexName,e.getMessage());
-		throw new ElasticsearchException(e);
+		throw new SearchException("【ES全量同步】全量同步失败,索引:"+indexName,e);
 	}
 	/**
 	 * 获取所有名称

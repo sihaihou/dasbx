@@ -16,6 +16,6 @@ public interface ApiSignature {
 	 * @param serverHttpRequest
 	 * @return
 	 */
-	String getSign(ServerHttpRequest serverHttpRequest) throws SignatureException;
+	String sign(ServerHttpRequest serverHttpRequest) throws SignatureException;
 	
 }

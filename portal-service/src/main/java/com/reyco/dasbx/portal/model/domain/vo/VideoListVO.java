@@ -1,15 +1,20 @@
 package com.reyco.dasbx.portal.model.domain.vo;
 
+import com.reyco.dasbx.es.support.result.record.EsHighlightResult;
 import com.reyco.dasbx.model.vo.ListVO;
 
 public class VideoListVO implements ListVO {
 	private long id;
 	private Long categoryId;
 	private Long vipId;
-	private String name;
 	private String portraitCoverUrl;
 	private String landscapeCoverUrl;
+	
+	@EsHighlightResult
+	private String name;
+	@EsHighlightResult
 	private String description;
+	
 	public long getId() {
 		return id;
 	}

@@ -30,11 +30,11 @@ public class OssController {
 	@Autowired
 	private DasbxConfig dasbxConfig;
 	@Autowired
-	private IdGenerator<Long> idGenerator;
+	private IdGenerator idGenerator;
 	
 	@PostMapping("upload")
 	public Object upload(@RequestParam("file") MultipartFile file) throws OssException {
-		Long id = idGenerator.getGeneratorId();
+		Long id = idGenerator.nextIdLong();
 		final String filename = id.toString();
 		String url = ossService.upload(file, new OssParameter() {
 			@Override
@@ -47,7 +47,7 @@ public class OssController {
 	}
 	@PostMapping("uploadImage")
 	public Object uploadImage(@RequestParam("file") MultipartFile file) throws OssException {
-		Long id = idGenerator.getGeneratorId();
+		Long id = idGenerator.nextIdLong();
 		final String filename = id.toString();
 		String url = ossService.upload(file, new OssParameter() {
 			@Override
@@ -60,7 +60,7 @@ public class OssController {
 	}
 	@PostMapping("uploadVideo")
 	public Object uploadVideo(@RequestParam("file") MultipartFile file) throws OssException, IOException {
-		Long id = idGenerator.getGeneratorId();
+		Long id = idGenerator.nextIdLong();
 		final String filename = id.toString();
 		String url = ossService.upload(file, new OssParameter() {
 			@Override
@@ -103,7 +103,7 @@ public class OssController {
 	}
 	@PostMapping("uploadCover")
 	public Object uploadCover(@RequestParam("file") MultipartFile file,String rc) throws OssException {
-		Long id = idGenerator.getGeneratorId();
+		Long id = idGenerator.nextIdLong();
 		final String filename = id.toString();
 		String url = ossService.upload(file, new OssParameter() {
 			@Override

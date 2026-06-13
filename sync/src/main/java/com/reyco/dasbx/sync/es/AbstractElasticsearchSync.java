@@ -6,9 +6,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.reyco.dasbx.es.core.client.ElasticsearchClient;
-import com.reyco.dasbx.es.core.client.ElasticsearchDocument;
-import com.reyco.dasbx.es.core.exception.ElasticsearchException;
+import com.reyco.dasbx.es.client.ElasticsearchClient;
+import com.reyco.dasbx.es.client.ElasticsearchDocument;
+import com.reyco.dasbx.es.core.exception.SearchException;
 import com.reyco.dasbx.sync.exception.SyncException;
 
 /**
@@ -62,7 +62,7 @@ public abstract class AbstractElasticsearchSync<T,E extends ElasticsearchDocumen
 	protected void handlerIncrementUpdateException(Exception e, T primaryKeyId) {
 		String indexName = getIndexName();
 		logger.error("【ES增量更新】增量更新失败,索引:{},异常信息:{},主键:{}", indexName, e.getMessage(), primaryKeyId);
-		throw new ElasticsearchException(e);
+		throw new SearchException("【ES增量更新】增量更新失败,索引:"+indexName+",主键:"+primaryKeyId,e);
 	}
 
 	@Override
@@ -97,7 +97,7 @@ public abstract class AbstractElasticsearchSync<T,E extends ElasticsearchDocumen
 	protected void handlerIncrementDeleteException(Exception e, T primaryKey) {
 		String indexName = getIndexName();
 		logger.error("【ES增量删除】增量删除失败,索引:{},异常信息:{},主键:{}", indexName, e.getMessage(), primaryKey);
-		throw new ElasticsearchException(e);
+		throw new SearchException("【ES增量删除】增量删除失败,索引:"+indexName+",主键:"+primaryKey,e);
 	}
 	/**
 	 * 获取ElasticsearchDocument对象

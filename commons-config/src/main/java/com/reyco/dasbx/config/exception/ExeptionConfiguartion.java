@@ -5,10 +5,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.reyco.dasbx.config.exception.core.strategy.ArgumentExceptionStrategy;
-import com.reyco.dasbx.config.exception.core.strategy.AuthenticationExceptionStrategy;
-import com.reyco.dasbx.config.exception.core.strategy.BusinessExceptionStrategy;
-import com.reyco.dasbx.config.exception.core.strategy.DelegationExceptionStrategy;
+import com.reyco.dasbx.commons.exception.strategy.ArgumentExceptionStrategy;
+import com.reyco.dasbx.commons.exception.strategy.AuthenticationExceptionStrategy;
+import com.reyco.dasbx.commons.exception.strategy.BusinessExceptionStrategy;
+import com.reyco.dasbx.commons.exception.strategy.DelegationExceptionStrategy;
 
 @Configuration
 @ConditionalOnProperty(name="reyco.dasbx.exception.enabled",matchIfMissing=true)
@@ -43,7 +43,5 @@ public class ExeptionConfiguartion {
 	public BusinessExceptionStrategy businessExceptionStrategy() {
 		return new BusinessExceptionStrategy();
 	}
-	
-	
 	
 }

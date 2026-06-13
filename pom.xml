@@ -424,6 +424,16 @@
 				<artifactId>decrypt-spring-cloud-starter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>lua-spring-boot-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>rate-limiter-spring-boot-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	
@@ -457,6 +467,8 @@
 		<module>redis-spring-cloud-starter</module>
 		<module>rabbitmq-spring-boot-starter</module>
 		<module>decrypt-spring-cloud-starter</module>
+		<module>lua-spring-boot-starter</module>
+		<module>rate-limiter-spring-boot-starter</module>
 	</modules>
 
 </project>

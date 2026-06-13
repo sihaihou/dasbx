@@ -22,9 +22,9 @@ public class DesensitizeConfiguration {
 	
 	@Bean
 	@Primary
-	public DesensitizeHandler delegateDesensiteHandler(List<DesensitizeHandler> desensitizeHandlers){
+	public DesensitizeHandler delegateDesensiteHandler(List<DesensitizeHandler> desensitizeHandlers,DesensitizeHandler defaultDesensitizeHandler){
 		 DelegateDesensitizeHandler delegateDesensiteHandler = new DelegateDesensitizeHandler();
-		 delegateDesensiteHandler.setDesensiteHandlers(desensitizeHandlers);
+		 delegateDesensiteHandler.setDesensiteHandlers(desensitizeHandlers,defaultDesensitizeHandler);
 		 return delegateDesensiteHandler;
 	}
 	
@@ -32,8 +32,9 @@ public class DesensitizeConfiguration {
 	public DesensitizeHandler indexDesensitizeHandler(){
 		return new IndexDesensitizeHandler();
 	}
-	@Bean
-	public DesensitizeHandler expressionDesensitizeHandler(){
+	
+	@Bean("defaultDesensitizeHandler")
+	public DesensitizeHandler defaultDesensitizeHandler(){
 		return new DefaultExpressionDesensitizeHandler();
 	}
 }

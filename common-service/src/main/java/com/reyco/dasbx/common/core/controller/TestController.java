@@ -13,10 +13,10 @@ import com.reyco.dasbx.id.core.IdGenerator;
 public class TestController {
 	
 	@Autowired
-	private IdGenerator<Long> idGenerator;
+	private IdGenerator idGenerator;
 	@GetMapping
 	public Object test(String test){
-		Long generatorId = idGenerator.getGeneratorId();
+		Long generatorId = idGenerator.nextIdLong();
 		System.err.println(test+":"+generatorId);
 		return "ok";
 	}

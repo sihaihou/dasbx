@@ -1,6 +1,5 @@
 package com.reyco.dasbx.jwt.autoConfiguration;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,17 +19,10 @@ import io.jsonwebtoken.Jwts;
 public class JwtConfiguration {
 	
 	@Bean
-	@ConditionalOnMissingBean(JwtProperties.class)
-	public JwtProperties JwtProperties() {
-		JwtProperties JwtProperties = new JwtProperties();
-		return JwtProperties;
-	}
-	
-	@Bean
-	@ConditionalOnBean(JwtProperties.class)
 	@ConditionalOnMissingBean(JwtUtils.class)
 	public JwtUtils jwtUtils(JwtProperties JwtProperties) {
 		JwtUtils jwtUtils = new JwtUtils(JwtProperties);
 		return jwtUtils;
 	}
+	
 }

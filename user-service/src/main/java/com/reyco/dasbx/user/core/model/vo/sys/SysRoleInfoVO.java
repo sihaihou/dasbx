@@ -3,10 +3,14 @@ package com.reyco.dasbx.user.core.model.vo.sys;
 import java.util.List;
 
 import com.reyco.dasbx.commons.utils.Dasbx;
+import com.reyco.dasbx.es.support.result.record.EsHighlightResult;
 import com.reyco.dasbx.model.vo.InfoVO;
 
 public class SysRoleInfoVO implements InfoVO{
+	
     private Long id;
+    
+    @EsHighlightResult
     private String name;
     
     private List<Long> menuIdList;

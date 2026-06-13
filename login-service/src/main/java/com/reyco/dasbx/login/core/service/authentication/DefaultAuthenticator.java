@@ -3,7 +3,7 @@ package com.reyco.dasbx.login.core.service.authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 
 /**
  * 默认的认证器实现

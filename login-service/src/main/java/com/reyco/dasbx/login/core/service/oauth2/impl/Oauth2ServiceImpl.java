@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.reyco.dasbx.commons.exception.ExceptionCode;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
-import com.reyco.dasbx.config.exception.core.ExceptionCode;
 import com.reyco.dasbx.login.core.feign.ApplicationFeignClientService;
 import com.reyco.dasbx.login.core.model.domain.Application;
 import com.reyco.dasbx.login.core.service.LoginService;
@@ -45,8 +45,8 @@ public class Oauth2ServiceImpl implements Oauth2Service{
 	}
 
 	@Override
-	public JSONObject createToken(String t) throws Exception {
-		SysAccountToken accountToken = loginService.login(t);
+	public JSONObject createToken(String token) throws Exception {
+		SysAccountToken accountToken = loginService.login(token);
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("token", accountToken.getToken());
 		return jsonObject;

@@ -14,7 +14,7 @@ public class JwtProperties{
 	/**
 	 * 密匙
 	 */
-	private String jwtSecert = "U2tqk9Pk27vdRnWh9mqj5i26i6vG5N69nWmsp4I3G41DSX02BMqhRMwgc6CJtgiV";
+	private String jwtSecret = "U2tqk9Pk27vdRnWh9mqj5i26i6vG5N69nWmsp4I3G41DSX02BMqhRMwgc6CJtgiV";
 	
 	/**
 	 * 算法名称 ，@See SignatureAlgorithm
@@ -26,11 +26,11 @@ public class JwtProperties{
 	 */
 	private Long expires = DEFALUT_EXPIRE_TIME;
 	
-	public String getJwtSecert() {
-		return jwtSecert;
+	public String getJwtSecret() {
+		return jwtSecret;
 	}
-	public void setJwtSecert(String jwtSecert) {
-		this.jwtSecert = jwtSecert;
+	public void setJwtSecret(String jwtSecret) {
+		this.jwtSecret = jwtSecret;
 	}
 	public String getAlgorithmName() {
 		return algorithmName;

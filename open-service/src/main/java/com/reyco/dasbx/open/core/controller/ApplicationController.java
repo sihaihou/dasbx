@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.github.pagehelper.PageInfo;
 import com.reyco.dasbx.commons.domain.R;
-import com.reyco.dasbx.config.exception.core.AuthenticationException;
+import com.reyco.dasbx.commons.exception.AuthenticationException;
 import com.reyco.dasbx.open.core.model.domain.Application;
 import com.reyco.dasbx.open.core.model.dto.ApplicationDeleteDto;
 import com.reyco.dasbx.open.core.model.dto.ApplicationImproveDto;
