@@ -4,7 +4,12 @@ import org.elasticsearch.action.search.SearchRequest;
 
 import com.reyco.dasbx.es.core.query.SearchContext;
 
-public class AliasInterceptor implements SearchRequestInterceptor {
+public class AliasInterceptor implements SearchRequestCustomizer<SearchRequest> {
+
+	@Override
+	public Class<SearchRequest> support() {
+		return SearchRequest.class;
+	}
 
 	@Override
 	public void apply(SearchContext context, SearchRequest request) {

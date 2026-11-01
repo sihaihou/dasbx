@@ -16,6 +16,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.reyco.dasbx.oss.core.exception.OssException;
+import com.reyco.dasbx.oss.utils.FileHashUtils;
 import com.reyco.dasbx.oss.utils.MultipartFileUtils;
 
 public abstract class AbstractOssService implements OssService {
@@ -232,5 +233,50 @@ public abstract class AbstractOssService implements OssService {
 	protected String getRandomFilename() {
 		return LocalDateTime.now().format(FORMAT);
 	}
+	
+	/**
+     * 1. 增加统一获取/计算 Hash 的方法
+     */
+    protected String getOrCalculateHash(MultipartFile file, OssParameter ossParameter) throws OssException {
+        // 如果前端在 parameter 里传了 hash，直接使用；否则后端主动计算
+        if (ossParameter != null && StringUtils.hasLength(ossParameter.getFileHash())) {
+            return ossParameter.getFileHash();
+        }
+        try {
+            return FileHashUtils.getHash(file);
+        } catch (Exception e) {
+            logger.error("Calculate file hash failed", e);
+            throw new OssException("Calculate file hash failed: " + e.getMessage());
+        }
+    }
+    /**
+     * 2. 【新增】获取/计算 Base64 的 Hash
+     */
+    protected String getOrCalculateHash(String base64, OssParameter ossParameter) throws OssException {
+        if (ossParameter != null && StringUtils.hasLength(ossParameter.getFileHash())) {
+            return ossParameter.getFileHash();
+        }
+        try {
+            return FileHashUtils.getBase64Hash(base64);
+        } catch (Exception e) {
+            logger.error("Calculate Base64 hash failed", e);
+            throw new OssException("Calculate base64 hash failed: " + e.getMessage());
+        }
+    }
+    /**
+     * 3. 增加 Hash 去重校验钩子（可由子类或业务数据库实现）
+     * @return 如果已存在返回文件访问 URL，不存在返回 null
+     */
+    protected String checkHashAndGetUrl(String fileHash) {
+        // 默认不处理秒传，若有数据库可在此处/子类中查询数据库:
+        // select file_url from sys_file_metadata where file_hash = #{fileHash}
+        return null; 
+    }
+    /**
+     * 4. 文件上传保存后的 Hash 存库钩子
+     */
+    protected void saveFileMetadata(String fileHash, String url, String fileName, long fileSize) {
+        // 上传成功后将 hash -> url 映射存入 Redis 或数据库
+    }
 }
 

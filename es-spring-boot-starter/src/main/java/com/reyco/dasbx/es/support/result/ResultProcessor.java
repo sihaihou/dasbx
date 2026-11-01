@@ -1,10 +1,7 @@
 package com.reyco.dasbx.es.support.result;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.util.StringUtils;
 
 import com.reyco.dasbx.commons.utils.Page;
 import com.reyco.dasbx.es.core.result.SearchResult;
@@ -30,13 +27,7 @@ public class ResultProcessor {
 	}
 
 	public <T> Result<T> process(SearchResult<T> search, List<FacetDefinition> defs) {
-		Map<String,Class<? extends FacetLabelProvider>> providerMap = new HashMap<>();
-		defs.stream().forEach(facetDefinition->{
-			String field = facetDefinition.getField();
-			String name = StringUtils.hasText(field) ? field : facetDefinition.getName();
-			providerMap.put(name, facetDefinition.getProviderClass());
-		});
-		return process(search, providerMap);
+		 return process(search, facetConverter.resolveProviders(defs));
 	}
 	
 	public <T> Result<T> process(SearchResult<T> search, Map<String,Class<? extends FacetLabelProvider>> providerMap) {

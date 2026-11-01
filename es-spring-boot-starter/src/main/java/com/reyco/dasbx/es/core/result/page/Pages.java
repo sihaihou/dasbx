@@ -1,5 +1,7 @@
 package com.reyco.dasbx.es.core.result.page;
 
+import org.elasticsearch.common.unit.TimeValue;
+
 public class Pages {
 	
 	public static final Integer DEFAULT_PAGE_NUM = 1;
@@ -33,9 +35,20 @@ public class Pages {
 	/**
 	 * scroll
 	 */
+	public static ScrollPageDefinition scroll(int pageSize){
+		return new ScrollPageDefinition()
+				.setPageSize(pageSize);
+	}
+
 	public static ScrollPageDefinition scroll(String scrollId,int pageSize){
 		return new ScrollPageDefinition()
 				.setScrollId(scrollId)
 				.setPageSize(pageSize);
+	}
+	public static ScrollPageDefinition scroll(String scrollId,int pageSize,String keepAlive){
+		return new ScrollPageDefinition()
+				.setScrollId(scrollId)
+				.setPageSize(pageSize)
+				.setKeepAlive(TimeValue.parseTimeValue(keepAlive, "scroll keepAlive"));
 	}
 }

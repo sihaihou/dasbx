@@ -2,6 +2,7 @@ package com.reyco.dasbx.es.support.annotation.metadata.parser;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -10,6 +11,7 @@ import org.springframework.util.StringUtils;
 import com.reyco.dasbx.es.support.annotation.EsIndex;
 import com.reyco.dasbx.es.support.annotation.aggregation.EsAgg;
 import com.reyco.dasbx.es.support.annotation.aggregation.EsAggs;
+import com.reyco.dasbx.es.support.annotation.execptio.SearchAnnotationException;
 import com.reyco.dasbx.es.support.annotation.highlight.EsHighlightField;
 import com.reyco.dasbx.es.support.annotation.metadata.AggregationMetadata;
 import com.reyco.dasbx.es.support.annotation.metadata.AnnotationMetadata;
@@ -36,50 +38,66 @@ public class AnnotationMetadataParser {
 			metadata.setIndex(StringUtils.hasText(esIndex.index()) ? esIndex.index() : clazz.getSimpleName());
 		}
 
-		Class<?> current = clazz;
-		while (current != null && current != Object.class) {
-			for (Field field : current.getDeclaredFields()) {
-				
-				field.setAccessible(true);
-				
-				EsRouting routing = AnnotatedElementUtils.findMergedAnnotation(field, EsRouting.class);
-				if (routing != null) {
-					metadata.getRoutings().add(new RoutingMetadata(field,routing));
-				}
-				
-				EsQuery query = AnnotatedElementUtils.findMergedAnnotation(field, EsQuery.class);
-				if (query != null) {
-					metadata.getQueries().add(new QueryMetadata(field, query));
-				}
-				
-				EsSource source = AnnotatedElementUtils.findMergedAnnotation(field, EsSource.class);
-				if (routing != null) {
-					metadata.getSources().add(new SourceMetadata(field,source));
-				}
-				
-				EsPage page = AnnotatedElementUtils.findMergedAnnotation(field, EsPage.class);
-				if (page != null) {
-					metadata.getPages().add(new PageMetadata(field,page));
-				}
-
-				EsSort sort = AnnotatedElementUtils.findMergedAnnotation(field, EsSort.class);
-				if (sort != null) {
-					metadata.getSorts().add(new SortMetadata(field, sort));
-				}
-
-				EsHighlightField highlight = AnnotatedElementUtils.findMergedAnnotation(field, EsHighlightField.class);
-				if (highlight != null) {
-					metadata.getHighlights().add(new HighlightMetadata(field, highlight));
-				}
-
-				Set<EsAgg> aggs = AnnotatedElementUtils.getMergedRepeatableAnnotations(field, EsAgg.class,EsAggs.class);
-				if (!aggs.isEmpty()) {
-					metadata.getAggregations().add(new AggregationMetadata(field, new ArrayList<>(aggs)));
-				}
+		for (Field field : getFieldsInHierarchy(clazz)) {
+			
+			field.setAccessible(true);
+			
+			EsRouting routing = AnnotatedElementUtils.findMergedAnnotation(field, EsRouting.class);
+			if (routing != null) {
+				metadata.getRoutings().add(new RoutingMetadata(field,routing));
 			}
-			current = current.getSuperclass();
-		}
+			
+			EsQuery query = AnnotatedElementUtils.findMergedAnnotation(field, EsQuery.class);
+			if (query != null) {
+				metadata.getQueries().add(new QueryMetadata(field, query));
+			}
+			
+			EsSource source = AnnotatedElementUtils.findMergedAnnotation(field, EsSource.class);
+			if (source != null) {
+				metadata.getSources().add(new SourceMetadata(field,source));
+			}
+			
+			EsPage page = AnnotatedElementUtils.findMergedAnnotation(field, EsPage.class);
+			if (page != null) {
+				metadata.getPages().add(new PageMetadata(field,page));
+			}
 
+			EsSort sort = AnnotatedElementUtils.findMergedAnnotation(field, EsSort.class);
+			if (sort != null) {
+				metadata.getSorts().add(new SortMetadata(field, sort));
+			}
+
+			EsHighlightField highlight = AnnotatedElementUtils.findMergedAnnotation(field, EsHighlightField.class);
+			if (highlight != null) {
+				metadata.getHighlights().add(new HighlightMetadata(field, highlight));
+			}
+
+			Set<EsAgg> aggs = AnnotatedElementUtils.getMergedRepeatableAnnotations(field, EsAgg.class,EsAggs.class);
+			if (!aggs.isEmpty()) {
+				metadata.getAggregations().add(new AggregationMetadata(field, new ArrayList<>(aggs)));
+			}
+		}
+		if (metadata.getPages().size() > 1) {
+		    throw new SearchAnnotationException(
+		            "Only one @EsPage field is allowed: " + clazz.getName());
+		}
+		if (metadata.getRoutings().size() > 1) {
+		    throw new SearchAnnotationException(
+		            "Only one @EsRouting field is allowed: " + clazz.getName());
+		}	
 		return metadata;
+	}
+	
+	
+	private static List<Field> getFieldsInHierarchy(Class<?> clazz) {
+	    List<Field> fields = new ArrayList<>();
+	    Class<?> current = clazz;
+	    while (current != null && current != Object.class) {
+	        for (Field field : current.getDeclaredFields()) {
+	            fields.add(field);
+	        }
+	        current = current.getSuperclass();
+	    }
+	    return fields;
 	}
 }

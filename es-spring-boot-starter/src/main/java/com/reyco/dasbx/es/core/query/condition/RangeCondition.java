@@ -13,6 +13,7 @@ public class RangeCondition extends AbstractCondition {
 	private Object lt;
 
 	public RangeCondition(String field) {
+		this.field = field;
 	}
 	
 	@Override

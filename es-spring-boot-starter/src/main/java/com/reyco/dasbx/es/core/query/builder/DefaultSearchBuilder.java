@@ -21,6 +21,7 @@ import com.reyco.dasbx.es.core.query.sort.SortDefinition;
 import com.reyco.dasbx.es.core.result.SearchResult;
 import com.reyco.dasbx.es.core.result.mapper.ResultMapper;
 import com.reyco.dasbx.es.core.result.page.PageDefinition;
+import com.reyco.dasbx.es.core.result.page.ScrollPageDefinition;
 
 public class DefaultSearchBuilder<T> implements SearchBuilder<T> {
 	/**
@@ -184,7 +185,9 @@ public class DefaultSearchBuilder<T> implements SearchBuilder<T> {
 	@Override
 	public SearchResult<T> search() {
 		SearchContext context = new SearchContext(clazz, index, query, condition, profile, explain);
-		SearchResponse response = engine.execute(context);
+		SearchResponse response = isScrollContinuation()
+				? engine.scroll(context)
+				: engine.execute(context);
 		try {
 			return mapper.map(context, response, clazz);
 		} catch (Exception e) {
@@ -195,7 +198,11 @@ public class DefaultSearchBuilder<T> implements SearchBuilder<T> {
 	@Override
 	public CompletableFuture<SearchResult<T>> searchAsync() {
 		SearchContext context = new SearchContext(clazz, index, query, condition, profile, explain);
-		return engine.executeAsync(context).thenApply(response -> {
+		CompletableFuture<SearchResponse> responseFuture = isScrollContinuation()
+				? engine.scrollAsync(context)
+				: engine.executeAsync(context);
+
+		return responseFuture.thenApply(response -> {
 			try {
 				return mapper.map(context, response, clazz);
 			} catch (Exception e) {
@@ -205,8 +212,24 @@ public class DefaultSearchBuilder<T> implements SearchBuilder<T> {
 	}
 
 	@Override
+	public boolean clearScroll(String scrollId) {
+		return engine.clearScroll(scrollId);
+	}
+
+	@Override
 	public ReactiveSearchBuilder<T> reactive() {
 		return new DefaultReactiveSearchBuilder<>(clazz, engine, mapper, index, query, condition, profile, explain);
+	}
+
+	private boolean isScrollContinuation() {
+		PageDefinition page = query.getPage();
+
+		if (!(page instanceof ScrollPageDefinition)) {
+			return false;
+		}
+
+		String scrollId = ((ScrollPageDefinition) page).getScrollId();
+		return scrollId != null && !scrollId.trim().isEmpty();
 	}
 
 }

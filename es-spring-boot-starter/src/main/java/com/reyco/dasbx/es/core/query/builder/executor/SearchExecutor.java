@@ -11,4 +11,10 @@ public interface SearchExecutor {
 	SearchResponse execute(SearchContext context);
 	
 	CompletableFuture<SearchResponse> executeAsync(SearchContext context);
+
+	SearchResponse scroll(SearchContext context);
+
+	CompletableFuture<SearchResponse> scrollAsync(SearchContext context);
+
+	boolean clearScroll(String scrollId);
 }

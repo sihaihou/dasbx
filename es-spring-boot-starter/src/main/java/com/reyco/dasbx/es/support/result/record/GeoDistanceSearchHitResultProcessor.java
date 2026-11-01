@@ -14,6 +14,9 @@ public class GeoDistanceSearchHitResultProcessor implements SearchHitResultProce
 	
 	@Override
 	public <T> void process(T entity, SearchHitResult<T> hitResult) {
+		if (entity == null || hitResult == null || hitResult.getDistance() == null) {
+		    return;
+		}
 		if (hitResult.getDistance() == null) {
             return;
         }

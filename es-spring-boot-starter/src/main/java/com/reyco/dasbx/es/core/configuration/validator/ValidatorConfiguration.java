@@ -12,6 +12,7 @@ import com.reyco.dasbx.es.core.pipeline.validator.QueryValidatorPipeline;
 import com.reyco.dasbx.es.core.validator.AggregationValidator;
 import com.reyco.dasbx.es.core.validator.PageValidator;
 import com.reyco.dasbx.es.core.validator.QueryValidator;
+import com.reyco.dasbx.es.core.validator.ScrollPageValidator;
 import com.reyco.dasbx.es.core.validator.SearchAfterValidator;
 import com.reyco.dasbx.es.core.validator.SortValidator;
 
@@ -27,6 +28,12 @@ public class ValidatorConfiguration {
 	public PageValidator pageValidator() {
 		return new PageValidator();
 	}
+
+	@Bean
+	public ScrollPageValidator scrollPageValidator() {
+		return new ScrollPageValidator();
+	}
+
 	@Bean
 	public SearchAfterValidator searchAfterValidator() {
 		return new SearchAfterValidator();

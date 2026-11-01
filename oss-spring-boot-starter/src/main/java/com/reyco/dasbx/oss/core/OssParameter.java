@@ -14,6 +14,12 @@ public interface OssParameter {
 	 */
 	String getUploadPath();
 	/**
+     * 获取客户端传过来的文件 Hash (用于前端防重/秒传校验)
+     */
+    default String getFileHash() {
+        return null;
+    }
+	/**
 	 * 获取文件名(含扩展名:后缀)
 	 * @return
 	 */

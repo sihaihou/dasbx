@@ -17,6 +17,7 @@ import java.util.function.Function;
 
 import org.springframework.util.StringUtils;
 
+import com.reyco.dasbx.es.core.exception.SearchMappingException;
 import com.reyco.dasbx.es.core.result.SearchHitResult;
 
 public class HighlightSearchHitResultProcessor implements SearchHitResultProcessor {
@@ -37,7 +38,7 @@ public class HighlightSearchHitResultProcessor implements SearchHitResultProcess
 		// 1. 缓存该类所有普通字段的 Getter 供读取原值使用（冷启动）
 		Map<String, Function<Object, Object>> allGetters = GETTER_CACHE.computeIfAbsent(clazz, c -> {
 			Map<String, Function<Object, Object>> map = new ConcurrentHashMap<>();
-			for (Field field : c.getDeclaredFields()) {
+			for (Field field : getFieldsInHierarchy(c)) {
 				Function<Object, Object> getter = createGetter(c, field.getName());
 				if (getter != null) {
 					map.put(field.getName(), getter);
@@ -49,7 +50,7 @@ public class HighlightSearchHitResultProcessor implements SearchHitResultProcess
 		// 2. 一键扫描并缓存当前类的【高亮配对元数据大盘】（冷启动）
 		List<HighlightFieldMeta> metas = META_CACHE.computeIfAbsent(clazz, c -> {
 			List<HighlightFieldMeta> list = new ArrayList<>();
-			for (Field field : c.getDeclaredFields()) {
+			for (Field field : getFieldsInHierarchy(c)) {
 				// 核心：只看打了高亮注解的属性（如 highlightUsername）
 				if (field.isAnnotationPresent(EsHighlightResult.class)) {
 					EsHighlightResult annotation = field.getAnnotation(EsHighlightResult.class);
@@ -119,14 +120,15 @@ public class HighlightSearchHitResultProcessor implements SearchHitResultProcess
 					break;
 				}
 			}
-			if (targetMethod == null)
-				return null;
+			if (targetMethod == null) {
+				  throw new SearchMappingException("Cannot find setter for " + clazz.getName() + "." + fieldName);
+			}
 			CallSite callSite = LambdaMetafactory.metafactory(MethodHandles.lookup(), "accept",
 					MethodType.methodType(BiConsumer.class),
 					MethodType.methodType(void.class, Object.class, Object.class), targetMethod, targetMethod.type());
 			return (BiConsumer<Object, Object>) callSite.getTarget().invokeExact();
 		} catch (Throwable e) {
-			return null;
+			throw new SearchMappingException("Cannot create setter for " + clazz.getName() + "." + fieldName, e);
 		}
 	}
 
@@ -149,7 +151,7 @@ public class HighlightSearchHitResultProcessor implements SearchHitResultProcess
 					targetMethod, targetMethod.type());
 			return (Function<Object, Object>) callSite.getTarget().invokeExact();
 		} catch (Throwable e) {
-			return null;
+			throw new SearchMappingException("Cannot create getter for " + clazz.getName()+ "." + fieldName, e);
 		}
 	}
 	// ================================================================
@@ -165,5 +167,21 @@ public class HighlightSearchHitResultProcessor implements SearchHitResultProcess
 			this.esKey = esKey;
 			this.highlightSetter = highlightSetter;
 		}
+	}
+	
+	
+	
+	private static List<Field> getFieldsInHierarchy(Class<?> clazz) {
+	    List<Field> fields = new ArrayList<>();
+
+	    Class<?> current = clazz;
+	    while (current != null && current != Object.class) {
+	        for (Field field : current.getDeclaredFields()) {
+	            fields.add(field);
+	        }
+	        current = current.getSuperclass();
+	    }
+
+	    return fields;
 	}
 }

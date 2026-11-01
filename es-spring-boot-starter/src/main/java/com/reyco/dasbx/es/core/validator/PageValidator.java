@@ -4,29 +4,45 @@ import com.reyco.dasbx.es.core.exception.SearchBuildException;
 import com.reyco.dasbx.es.core.query.SearchContext;
 import com.reyco.dasbx.es.core.query.SearchQuery;
 import com.reyco.dasbx.es.core.result.page.OffsetPageDefinition;
-import com.reyco.dasbx.es.core.result.page.PageDefinition;
 
 public class PageValidator implements QueryValidator {
+
+	private static final int MAX_PAGE_SIZE = 1000;
+
+	private static final long MAX_RESULT_WINDOW = 10000L;
 
 	@Override
 	public void validate(SearchContext context) {
 		SearchQuery query = context.getQuery();
-		PageDefinition page = query.getPage();
-		if (page == null || (page!=null && !(page instanceof OffsetPageDefinition))) {
+
+		if (query == null || !(query.getPage() instanceof OffsetPageDefinition)) {
 			return;
 		}
-		OffsetPageDefinition offsetPageDefinition = (OffsetPageDefinition)page;
-		Integer pageSize = offsetPageDefinition.getPageSize();
-		Integer pageNum = offsetPageDefinition.getPageNum();
-		if (pageSize <= 0 
-				|| pageNum<=0 
-				|| pageSize>1000
-				|| pageNum>1000
-				|| pageSize*pageNum>10000) {
-			throw new SearchBuildException("Offset paging parameter setting error");
+
+		OffsetPageDefinition page = (OffsetPageDefinition) query.getPage();
+
+		Integer pageNum = page.getPageNum();
+		Integer pageSize = page.getPageSize();
+
+		if (pageNum == null || pageNum <= 0) {
+			throw new SearchBuildException("Offset pageNum must be greater than zero");
+		}
+
+		if (pageSize == null || pageSize <= 0) {
+			throw new SearchBuildException("Offset pageSize must be greater than zero");
+		}
+
+		if (pageSize > MAX_PAGE_SIZE) {
+			throw new SearchBuildException("Offset pageSize must not exceed " + MAX_PAGE_SIZE);
+		}
+
+		long resultWindow = (long) pageSize * pageNum;
+
+		if (resultWindow > MAX_RESULT_WINDOW) {
+			throw new SearchBuildException("deep pagination please use search_after");
 		}
 	}
-	
+
 	@Override
 	public int getOrder() {
 		return 10;

@@ -92,6 +92,11 @@ public interface SearchBuilder<T> {
 	 * 异步搜索
 	 */
 	CompletableFuture<SearchResult<T>> searchAsync();
+
+	/**
+	 * 清理 scroll 上下文
+	 */
+	boolean clearScroll(String scrollId);
 	
 	/**
 	 * 

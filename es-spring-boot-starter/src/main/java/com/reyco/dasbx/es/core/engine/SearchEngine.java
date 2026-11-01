@@ -10,6 +10,7 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.reyco.dasbx.es.core.explain.SearchExplain;
+import com.reyco.dasbx.es.core.feature.interceptor.SearchOperationType;
 import com.reyco.dasbx.es.core.pipeline.SearchPipeline;
 import com.reyco.dasbx.es.core.profile.PipelineProfile;
 import com.reyco.dasbx.es.core.profile.SearchProfile;
@@ -19,9 +20,9 @@ import com.reyco.dasbx.es.core.query.builder.executor.SearchExecutor;
 
 public class SearchEngine {
 
-	private List<SearchPipeline> pipelines;
+	private final List<SearchPipeline> pipelines;
 
-	private SearchExecutor executor;
+	private final SearchExecutor executor;
 
 	public SearchEngine(List<SearchPipeline> pipelines, SearchExecutor executor) {
 		List<SearchPipeline> sortedPipelines = new ArrayList<>(pipelines);
@@ -35,7 +36,7 @@ public class SearchEngine {
 	 * 同步执行
 	 */
 	public SearchResponse execute(SearchContext context) {
-		processPipeline(context);
+		processPipeline(context, SearchOperationType.SEARCH);
 		return executor.execute(context);
 	}
 
@@ -43,8 +44,25 @@ public class SearchEngine {
 	 * 异步执行
 	 */
 	public CompletableFuture<SearchResponse> executeAsync(SearchContext context) {
-		processPipeline(context);
+		processPipeline(context, SearchOperationType.SEARCH);
 		return executor.executeAsync(context);
+	}
+
+	public SearchResponse scroll(SearchContext context) {
+		processPipeline(context, SearchOperationType.SCROLL);
+		return executor.scroll(context);
+	}
+
+	public CompletableFuture<SearchResponse> scrollAsync(SearchContext context) {
+		processPipeline(context, SearchOperationType.SCROLL);
+		return executor.scrollAsync(context);
+	}
+
+	/**
+	 * 清理 scroll 上下文
+	 */
+	public boolean clearScroll(String scrollId) {
+		return executor.clearScroll(scrollId);
 	}
 
 	/**
@@ -52,13 +70,20 @@ public class SearchEngine {
 	 * 
 	 * @throws Exception
 	 */
-	private void processPipeline(SearchContext context) {
-		
-		recordOriginalQuery(context);
-		
+	private void processPipeline(SearchContext context, SearchOperationType operation) {
+
+		context.setOperation(operation);
+
+		if (operation == SearchOperationType.SEARCH) {
+			recordOriginalQuery(context);
+		}
+
 		long totalStart = System.nanoTime();
-		
+
 		for (SearchPipeline pipeline : pipelines) {
+			if (!pipeline.supports(operation)) {
+				continue;
+			}
 
 			long start = System.nanoTime();
 
@@ -67,15 +92,17 @@ public class SearchEngine {
 			long end = System.nanoTime();
 			recordPipeline(context, pipeline, start, end);
 		}
-		
+
 		long totalEnd = System.nanoTime();
 
 		SearchProfile profile = context.getProfile();
 		if (profile != null) {
 			profile.setTotalTook((totalEnd - totalStart) / 1_000_000);
 		}
-		
-		recordFinalDsl(context);
+
+		if (operation == SearchOperationType.SEARCH) {
+			recordFinalDsl(context);
+		}
 	}
 
 	private void recordPipeline(SearchContext context, SearchPipeline pipeline, long start, long end) {
@@ -90,32 +117,33 @@ public class SearchEngine {
 
 		profile.addPipeline(p);
 	}
-	public void recordOriginalQuery(SearchContext context) {
-	    SearchQuery query = context.getQuery();
-	    if (query != null) {
-	    	 context.getExplain().setOriginalQuery(
-	                 JSON.toJSONString(query,SerializerFeature.PrettyFormat, SerializerFeature.SortField));
-	    }
-	}
-	private void recordFinalDsl(SearchContext context) {
-	    SearchExplain explain = context.getExplain();
-	    if (explain == null) {
-	        return;
-	    }
 
-	    if (context.getSourceBuilder() != null) {
-	        explain.setFinalDsl(prettyJson(context.getSourceBuilder().toString()));
-	    }
+	public void recordOriginalQuery(SearchContext context) {
+		SearchQuery query = context.getQuery();
+		SearchExplain explain = context.getExplain();
+		if (query != null && explain != null) {
+			explain.setOriginalQuery(
+					JSON.toJSONString(query, SerializerFeature.PrettyFormat, SerializerFeature.SortField));
+		}
 	}
+
+	private void recordFinalDsl(SearchContext context) {
+		SearchExplain explain = context.getExplain();
+		if (explain == null) {
+			return;
+		}
+
+		if (context.getSourceBuilder() != null) {
+			explain.setFinalDsl(prettyJson(context.getSourceBuilder().toString()));
+		}
+	}
+
 	public static String prettyJson(String json) {
-	    try {
-	        Object obj = JSON.parse(json);
-	        return JSON.toJSONString(
-	                obj,
-	                SerializerFeature.PrettyFormat,
-	                SerializerFeature.WriteMapNullValue);
-	    } catch (Exception e) {
-	        return json;
-	    }
+		try {
+			Object obj = JSON.parse(json);
+			return JSON.toJSONString(obj, SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue);
+		} catch (Exception e) {
+			return json;
+		}
 	}
 }

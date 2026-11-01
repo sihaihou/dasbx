@@ -3,6 +3,7 @@ package com.reyco.dasbx.es.support.result.record;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.reyco.dasbx.es.core.exception.SearchMappingException;
 import com.reyco.dasbx.es.core.result.SearchHitResult;
 
 public class RecordProcessor {
@@ -21,11 +22,14 @@ public class RecordProcessor {
 		// 1. 初始化时指定容量，完美避免 ArrayList 内部数组扩容的性能损耗
         List<T> ts = new ArrayList<>(records.size());
         records.stream().forEach(searchHitResult->{
-        	T t = searchHitResult.getSource();
+        	T source  = searchHitResult.getSource();
+        	if (source == null) {
+        	    throw new SearchMappingException("Cannot map search hit source: id=" + searchHitResult.getId());
+        	}
         	//
-			searchHitProcessorRegistry.process(t, searchHitResult);
+			searchHitProcessorRegistry.process(source, searchHitResult);
 			//
-			ts.add(t);
+			ts.add(source);
         });
 		return ts;
 	}

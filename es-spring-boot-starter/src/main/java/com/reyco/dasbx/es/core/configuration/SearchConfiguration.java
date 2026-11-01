@@ -15,7 +15,7 @@ import org.springframework.core.annotation.Order;
 import com.reyco.dasbx.es.client.ElasticsearchClient;
 import com.reyco.dasbx.es.core.engine.SearchEngine;
 import com.reyco.dasbx.es.core.feature.aggregation.parser.AggregationResultParser;
-import com.reyco.dasbx.es.core.feature.interceptor.SearchRequestInterceptorChain;
+import com.reyco.dasbx.es.core.feature.interceptor.SearchInterceptorPipeline;
 import com.reyco.dasbx.es.core.log.DefaultDslLogger;
 import com.reyco.dasbx.es.core.log.DslLogger;
 import com.reyco.dasbx.es.core.pipeline.SearchPipeline;
@@ -78,8 +78,11 @@ public class SearchConfiguration {
 	 * Executor
 	 */
 	@Bean
-	public SearchExecutor searchExecutor(RestHighLevelClient client,SearchRequestInterceptorChain chain,DslLogger logger) {
-		return new ElasticsearchSearchExecutor(client,chain, logger);
+	public SearchExecutor searchExecutor(
+			RestHighLevelClient client,
+			SearchInterceptorPipeline interceptorPipeline,
+			DslLogger logger) {
+		return new ElasticsearchSearchExecutor(client,interceptorPipeline,logger);
 	}
 	
 	/**

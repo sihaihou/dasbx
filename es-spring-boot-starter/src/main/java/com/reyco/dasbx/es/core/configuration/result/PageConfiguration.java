@@ -6,8 +6,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.reyco.dasbx.es.core.pipeline.result.PagePipeline;
+import com.reyco.dasbx.es.core.result.strategy.OffsetPageStrategy;
 import com.reyco.dasbx.es.core.result.strategy.PageStrategy;
 import com.reyco.dasbx.es.core.result.strategy.PageStrategyRegistry;
+import com.reyco.dasbx.es.core.result.strategy.ScrollPageStrategy;
+import com.reyco.dasbx.es.core.result.strategy.SearchAfterPageStrategy;
 
 @Configuration
 public class PageConfiguration {
@@ -22,4 +25,18 @@ public class PageConfiguration {
 		return new PageStrategyRegistry(pageStrategies);
 	}
 	
+	@Bean
+	public OffsetPageStrategy offsetPageStrategy() {
+		return new OffsetPageStrategy();
+	}
+	
+	@Bean
+	public ScrollPageStrategy scrollPageStrategy() {
+		return new ScrollPageStrategy();
+	}
+	
+	@Bean
+	public SearchAfterPageStrategy searchAfterPageStrategy() {
+		return new SearchAfterPageStrategy();
+	}
 }

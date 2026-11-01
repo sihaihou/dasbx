@@ -7,17 +7,24 @@ import com.reyco.dasbx.es.core.query.SearchQuery;
 
 /**
  * 路由
+ * 
  * @author reyco
  *
  */
-public class RoutingInterceptor implements SearchRequestInterceptor{
+public class RoutingInterceptor implements SearchRequestCustomizer<SearchRequest> {
+
+	@Override
+	public Class<SearchRequest> support() {
+		return SearchRequest.class;
+	}
 
 	@Override
 	public void apply(SearchContext context, SearchRequest request) {
-		SearchQuery query =context.getQuery();
-		if(query.getRouting() != null){
+		SearchQuery query = context.getQuery();
+
+		if (query != null && query.getRouting() != null) {
 			request.routing(query.getRouting());
-		}		
+		}
 	}
 
 	@Override

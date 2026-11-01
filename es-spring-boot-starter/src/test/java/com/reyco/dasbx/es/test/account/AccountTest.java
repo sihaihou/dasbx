@@ -23,11 +23,14 @@ public class AccountTest {
 	@Autowired
 	private SearchBuilderFactory factory;
 
+	@Autowired
+	private EsExecutionFactory executionFactory;
+
 	@Test
 	public void testSearch() throws Exception {
 		SysAccountInfoDto sysAccountInfoDto = new SysAccountInfoDto();
 		sysAccountInfoDto.setKeyword("18307200213");
-		EsExecutionContext esExecutionContext = EsExecutionFactory.create(sysAccountInfoDto);
+		EsExecutionContext esExecutionContext = executionFactory.create(sysAccountInfoDto);
 		SearchResult<SysAccountInfoVO> search = factory.builder(SysAccountInfoVO.class)
 				 .index(esExecutionContext.getIndex())
 				 .page(Pages.offset(1,10))

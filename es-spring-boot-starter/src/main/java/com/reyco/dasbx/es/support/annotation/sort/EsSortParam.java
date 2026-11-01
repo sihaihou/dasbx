@@ -20,9 +20,9 @@ public class EsSortParam {
 
 	
 	/** [地理位置排序] 纬度 */
-	private double latitude;
+	private Double latitude;
 	 /** [地理位置排序] 经度 */
-	private double longitude;
+	private Double longitude;
 	/** [距离排序专属]：距离单位，默认米(m)，支持 km org.elasticsearch.common.unit.DistanceUnit*/
 	private String unit = "m";
 	
@@ -62,17 +62,17 @@ public class EsSortParam {
 		this.type = type;
 		return this;
 	}
-	public double getLatitude() {
+	public Double getLatitude() {
 		return latitude;
 	}
-	public EsSortParam setLatitude(double latitude) {
+	public EsSortParam setLatitude(Double latitude) {
 		this.latitude = latitude;
 		return this;
 	}
-	public double getLongitude() {
+	public Double getLongitude() {
 		return longitude;
 	}
-	public EsSortParam setLongitude(double longitude) {
+	public EsSortParam setLongitude(Double longitude) {
 		this.longitude = longitude;
 		return this;
 	}

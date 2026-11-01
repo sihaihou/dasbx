@@ -1,5 +1,7 @@
 package com.reyco.dasbx.es.support.annotation.page;
 
+import org.elasticsearch.common.unit.TimeValue;
+
 import com.reyco.dasbx.es.core.result.page.Pages;
 import com.reyco.dasbx.es.support.annotation.execptio.SearchAnnotationException;
 import com.reyco.dasbx.es.support.annotation.metadata.AnnotationMetadata;
@@ -28,7 +30,17 @@ public class PageBinder {
 						break;
 	
 					case SCROLL:
-						context.setPage(Pages.scroll(page.getScrollId(), page.getPageSize()));
+					    String keepAlive = page.getScroll();
+					    if (keepAlive == null || keepAlive.trim().isEmpty()) {
+					        throw new SearchAnnotationException(
+					                "@EsPage scroll keepAlive must not be empty");
+					    }
+					    TimeValue keepAliveValue = TimeValue.parseTimeValue(keepAlive, "scroll keepAlive");
+					    if (keepAliveValue.millis() <= 0) {
+					        throw new SearchAnnotationException(
+					                "@EsPage scroll keepAlive must be greater than zero");
+					    }
+						context.setPage(Pages.scroll(page.getScrollId(), page.getPageSize(),page.getScroll()));
 						break;
 					}
 				}

@@ -2,6 +2,7 @@ package com.reyco.dasbx.es.support.annotation.query;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
+import java.util.Objects;
 
 import org.springframework.util.StringUtils;
 
@@ -14,10 +15,10 @@ import com.reyco.dasbx.es.support.execution.annotation.EsExecutionContext;
 
 public class QueryBinder {
 
-	private QueryStrategyRegistry registry;
+	private final QueryStrategyRegistry registry;
 
-	public QueryBinder() {
-		this.registry = new QueryStrategyRegistry();
+	public QueryBinder(QueryStrategyRegistry registry) {
+		this.registry = Objects.requireNonNull(registry, "QueryStrategyRegistry must not be null");
 	}
 
 	public void bind(Object dto, AnnotationMetadata metadata, EsExecutionContext context) {
@@ -45,21 +46,22 @@ public class QueryBinder {
 			}
 		}
 	}
+
 	private boolean isEmptyValue(Object value) {
-	    if (value == null) {
-	        return true;
-	    }
-	    if (value instanceof String) {
-	        return !StringUtils.hasText((String) value);
-	    }
-	    if (value instanceof Collection) {
-	        return ((Collection<?>) value).isEmpty();
-	    }
+		if (value == null) {
+			return true;
+		}
+		if (value instanceof String) {
+			return !StringUtils.hasText((String) value);
+		}
+		if (value instanceof Collection) {
+			return ((Collection<?>) value).isEmpty();
+		}
 
-	    if (value.getClass().isArray()) {
-	        return Array.getLength(value) == 0;
-	    }
+		if (value.getClass().isArray()) {
+			return Array.getLength(value) == 0;
+		}
 
-	    return false;
+		return false;
 	}
 }

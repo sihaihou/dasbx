@@ -99,7 +99,7 @@ public class CustomTextEncryptor implements TextEncryptor {
 	}
 
 	public static void main(String[] args) {
-		String source = "123456";
+		String source = "Reyco123456.";
 		CustomTextEncryptor dasbxTextEncryptor = new CustomTextEncryptor();
 		String decrypt = dasbxTextEncryptor.encrypt(source);
 		System.out.println(source + "\t  cipher{" + decrypt + "} \t");

@@ -2,9 +2,14 @@ package com.reyco.dasbx.es.core.validator;
 
 import org.springframework.core.Ordered;
 
+import com.reyco.dasbx.es.core.feature.interceptor.SearchOperationType;
 import com.reyco.dasbx.es.core.query.SearchContext;
 
 public interface QueryValidator extends Ordered{
+
+	default boolean supports(SearchOperationType operation) {
+		return operation == SearchOperationType.SEARCH;
+	}
 
 	void validate(SearchContext context);
 

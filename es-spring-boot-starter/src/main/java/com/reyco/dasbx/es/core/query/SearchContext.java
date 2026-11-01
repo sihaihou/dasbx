@@ -8,6 +8,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import com.reyco.dasbx.es.core.explain.SearchExplain;
+import com.reyco.dasbx.es.core.feature.interceptor.SearchOperationType;
 import com.reyco.dasbx.es.core.profile.SearchProfile;
 import com.reyco.dasbx.es.core.query.condition.Condition;
 
@@ -49,6 +50,11 @@ public class SearchContext {
 	 * 用于调试
 	 */
 	private SearchExplain explain;
+
+	/**
+	 * 当前搜索操作类型
+	 */
+	private SearchOperationType operation = SearchOperationType.SEARCH;
 
 	public SearchContext(Class<?> clazz, String index, SearchQuery query, Condition condition,SearchProfile profile,SearchExplain explain) {
 		this.clazz = clazz;
@@ -131,5 +137,13 @@ public class SearchContext {
 
 	public void setExplain(SearchExplain explain) {
 		this.explain = explain;
+	}
+
+	public SearchOperationType getOperation() {
+		return operation;
+	}
+
+	public void setOperation(SearchOperationType operation) {
+		this.operation = operation;
 	}
 }

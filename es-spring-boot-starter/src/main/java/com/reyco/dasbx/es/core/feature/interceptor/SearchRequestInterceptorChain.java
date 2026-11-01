@@ -12,8 +12,6 @@ public class SearchRequestInterceptorChain {
 
 	private List<SearchRequestInterceptor> interceptors;
 	
-	private int interceptorindex = -1;
-
 	public SearchRequestInterceptorChain(List<SearchRequestInterceptor> interceptors) {
 		super();
 		List<SearchRequestInterceptor> sortedInterceptors = new ArrayList<>(interceptors);
@@ -23,6 +21,7 @@ public class SearchRequestInterceptorChain {
 	}
 
 	public void apply(SearchContext context, SearchRequest request) {
+		int interceptorindex  = -1;
 		try {
 			for (int i = 0; i < interceptors.size(); i++) {
 				SearchRequestInterceptor interceptor = interceptors.get(i);
