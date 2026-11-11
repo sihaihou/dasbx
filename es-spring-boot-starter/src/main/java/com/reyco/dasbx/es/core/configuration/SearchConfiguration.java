@@ -36,6 +36,7 @@ import com.reyco.dasbx.es.core.result.parser.SearchHitParser;
 import com.reyco.dasbx.es.core.result.processor.GeoDistanceProcessor;
 import com.reyco.dasbx.es.core.result.processor.HighlightProcessor;
 import com.reyco.dasbx.es.core.result.processor.SearchHitProcessor;
+import com.reyco.dasbx.es.support.template.SearchTemplate;
 
 @Configuration
 @ConditionalOnProperty(name="reyco.dasbx.es.enabled",matchIfMissing=true)
@@ -44,10 +45,13 @@ public class SearchConfiguration {
 	
 	@Bean
 	@ConditionalOnMissingBean(ElasticsearchClient.class)
-	public ElasticsearchClient<?> elasticsearchClient(RestHighLevelClient restHighLevelClient) {
-		ElasticsearchClient<?> elasticsearchClient = new ElasticsearchClient();
-		elasticsearchClient.setRestHighLevelClient(restHighLevelClient);
-		return elasticsearchClient;
+	public ElasticsearchClient<?> elasticsearchClient(
+			RestHighLevelClient restHighLevelClient,
+			SearchTemplate searchTemplate) {
+
+		return new ElasticsearchClient<>(
+				restHighLevelClient,
+				searchTemplate);
 	}
 	
 	@Bean

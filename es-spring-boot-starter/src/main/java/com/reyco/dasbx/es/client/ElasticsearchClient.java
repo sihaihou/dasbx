@@ -1,529 +1,571 @@
 package com.reyco.dasbx.es.client;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteRequest;
-import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
-import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.CreateIndexRequest;
-import org.elasticsearch.client.indices.CreateIndexResponse;
-import org.elasticsearch.client.indices.GetIndexRequest;
-import org.elasticsearch.client.indices.PutMappingRequest;
-import org.elasticsearch.common.xcontent.XContentType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.util.CollectionUtils;
 
-import com.reyco.dasbx.commons.utils.convert.JsonUtils;
-import com.reyco.dasbx.commons.utils.serializable.ToString;
-import com.reyco.dasbx.es.client.ElasticSearcchErrorEvent.ProcessFailureMessage;
+import com.reyco.dasbx.es.core.query.suggest.SuggestQuery;
+import com.reyco.dasbx.es.support.result.Result;
+import com.reyco.dasbx.es.support.template.SearchTemplate;
 
 /**
- * es客户端
- * @author reyco
+ * Elasticsearch 兼容门面。
  *
- * @param <T>
+ * <p>
+ * 保留原有公开 API，内部将索引操作委托给 {@link ElasticsearchIndexClient}，将单文档和批量文档操作委托给
+ * {@link ElasticsearchDocumentClient}，搜索提示操作委托给{@link SearchTemplate}。
+ * </p>
+ *
+ * @param <E>
+ *            Elasticsearch 文档类型
  */
 public class ElasticsearchClient<E extends ElasticsearchDocument> implements ApplicationContextAware {
-	
-	protected Logger logger = LoggerFactory.getLogger(ElasticsearchClient.class);
-	
+
+	/**
+	 * 索引和 Mapping 操作组件。
+	 */
+	private ElasticsearchIndexClient indexClient;
+
+	/**
+	 * 单文档和批量文档操作组件。
+	 */
+	private ElasticsearchDocumentClient<E> documentClient;
+
+	/**
+	 * 底层 Elasticsearch 高级客户端。
+	 */
 	private RestHighLevelClient restHighLevelClient;
-	
+
+	/**
+	 * Spring 上下文，用于转发给批量失败事件发布组件。
+	 */
 	private ApplicationContext applicationContext;
-	
+
+	/**
+	 * 注解式搜索与提示词服务。
+	 */
+	private SearchTemplate searchTemplate;
+
+	/**
+	 * 兼容旧版无参构造器。
+	 */
 	public ElasticsearchClient() {
 	}
+
+	/**
+	 * 使用官方高级客户端创建兼容门面。
+	 *
+	 * @param restHighLevelClient
+	 *            Elasticsearch 高级客户端
+	 */
 	public ElasticsearchClient(RestHighLevelClient restHighLevelClient) {
-		super();
-		this.restHighLevelClient = restHighLevelClient;
+		setRestHighLevelClient(restHighLevelClient);
 	}
+
+	/**
+	 * 使用官方客户端和搜索模板创建统一门面。
+	 *
+	 * @param restHighLevelClient
+	 *            Elasticsearch 高级客户端
+	 * @param searchTemplate
+	 *            注解式搜索模板
+	 */
+	public ElasticsearchClient(
+			RestHighLevelClient restHighLevelClient,
+			SearchTemplate searchTemplate) {
+
+		setRestHighLevelClient(restHighLevelClient);
+		setSearchTemplate(searchTemplate);
+	}
+
+	/**
+	 * 设置或替换底层客户端，并重建内部组件。
+	 *
+	 * @param restHighLevelClient
+	 *            Elasticsearch 高级客户端
+	 */
 	public void setRestHighLevelClient(RestHighLevelClient restHighLevelClient) {
+
+		if (restHighLevelClient == null) {
+			throw new IllegalArgumentException("RestHighLevelClient must not be null");
+		}
+
 		this.restHighLevelClient = restHighLevelClient;
+		this.indexClient = new ElasticsearchIndexClient(restHighLevelClient);
+		this.documentClient = new ElasticsearchDocumentClient<>(restHighLevelClient);
+
+		if (applicationContext != null) {
+			this.documentClient.setApplicationContext(applicationContext);
+		}
 	}
+
+	/**
+	 * 注入 Spring 上下文并转发给文档组件。
+	 *
+	 * @param applicationContext
+	 *            Spring 上下文
+	 * @throws BeansException
+	 *             Spring 注入失败
+	 */
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+
 		this.applicationContext = applicationContext;
-	}
-	/*######################################索引相关接口########################################*/
-	/**
-	 * 创建索引
-	 * @param indexName	索引名称
-	 * @param indexDSL  构建索引DSL语句
-	 * @return
-	 * @throws IOException
-	 */
-	public Boolean createIndex(String indexName,String indexDSL) throws IOException {
-		try {
-			CreateIndexRequest createIndexRequest = new CreateIndexRequest(indexName);
-			createIndexRequest.source(indexDSL, XContentType.JSON);
-			CreateIndexResponse createIndexResponse = restHighLevelClient.indices().create(createIndexRequest, RequestOptions.DEFAULT);
-			if(createIndexResponse.isAcknowledged()) {
-				logger.info(indexName+":索引创建成功！");
-			}else {
-				logger.error(indexName+":索引创建失败！");
-			}
-			return createIndexResponse.isAcknowledged();
-		} catch (Exception e) {
-			logger.error(indexName+":索引创建失败,msg:"+e.getMessage());
+
+		if (documentClient != null) {
+			documentClient.setApplicationContext(applicationContext);
 		}
-		return false;
 	}
+
 	/**
-	 * 给索引添加字段
+	 * 设置搜索模板。
+	 *
+	 * @param searchTemplate
+	 *            注解式搜索模板
+	 */
+	public void setSearchTemplate(SearchTemplate searchTemplate) {
+		this.searchTemplate = searchTemplate;
+	}
+
+	/**
+	 * 获取索引操作组件。
+	 *
+	 * @return 索引操作组件
+	 */
+	public ElasticsearchIndexClient indexClient() {
+		ensureInitialized();
+		return indexClient;
+	}
+
+	/**
+	 * 获取文档操作组件。
+	 *
+	 * @return 文档操作组件
+	 */
+	public ElasticsearchDocumentClient<E> documentClient() {
+		ensureInitialized();
+		return documentClient;
+	}
+
+	/**
+	 * 获取搜索模板。
+	 *
+	 * @return 注解式搜索模板
+	 */
+	public SearchTemplate searchTemplate() {
+		ensureSearchInitialized();
+		return searchTemplate;
+	}
+
+	/**
+	 * 执行注解式搜索。
+	 *
+	 * @param queryDto
+	 *            查询 DTO
+	 * @param resultClass
+	 *            返回类型
+	 * @param <Q>
+	 *            查询 DTO 类型
+	 * @param <R>
+	 *            返回类型
+	 * @return 统一搜索结果
+	 */
+	public <Q, R> Result<R> search(Q queryDto, Class<R> resultClass) {
+		ensureSearchInitialized();
+		return searchTemplate.search(queryDto, resultClass);
+	}
+
+	/**
+	 * 执行搜索提示。
+	 *
+	 * @param index
+	 *            索引名称
+	 * @param keyword
+	 *            提示关键词
+	 * @return 提示词列表
+	 * @throws Exception
+	 *             搜索提示执行失败
+	 */
+	public List<String> suggest(String index, String keyword) throws Exception {
+		ensureSearchInitialized();
+		return searchTemplate.suggest(index, keyword);
+	}
+
+	/**
+	 * 执行指定数量的搜索提示。
+	 *
+	 * @param index
+	 *            索引名称
+	 * @param keyword
+	 *            提示关键词
+	 * @param size
+	 *            返回数量
+	 * @return 提示词列表
+	 * @throws Exception
+	 *             搜索提示执行失败
+	 */
+	public List<String> suggest(String index, String keyword, int size) throws Exception {
+		ensureSearchInitialized();
+		return searchTemplate.suggest(index, keyword, size);
+	}
+
+	/**
+	 * 执行指定字段的搜索提示。
+	 *
+	 * @param index
+	 *            索引名称
+	 * @param field
+	 *            字段名称
+	 * @param keyword
+	 *            提示关键词
+	 * @return 提示词列表
+	 * @throws Exception
+	 *             搜索提示执行失败
+	 */
+	public List<String> suggest(String index, String field, String keyword) throws Exception {
+		ensureSearchInitialized();
+		return searchTemplate.suggest(index, field, keyword);
+	}
+
+	/**
+	 * 执行指定字段和数量的搜索提示。
+	 *
+	 * @param index
+	 *            索引名称
+	 * @param field
+	 *            字段名称
+	 * @param size
+	 *            返回数量
+	 * @param keyword
+	 *            提示关键词
+	 * @return 提示词列表
+	 * @throws Exception
+	 *             搜索提示执行失败
+	 */
+	public List<String> suggest(String index, String field, int size, String keyword) throws Exception {
+		ensureSearchInitialized();
+		return searchTemplate.suggest(index, field, size, keyword);
+	}
+
+	/**
+	 * 使用完整提示查询执行搜索提示。
+	 *
+	 * @param index
+	 *            索引名称
+	 * @param query
+	 *            提示查询
+	 * @return 提示词列表
+	 * @throws Exception
+	 *             搜索提示执行失败
+	 */
+	public List<String> suggest(String index, SuggestQuery query) throws Exception {
+		ensureSearchInitialized();
+		return searchTemplate.suggest(index, query);
+	}
+
+	/**
+	 * 创建索引。
+	 *
 	 * @param indexName
-	 * @return
+	 *            索引名称
+	 * @param indexDsl
+	 *            JSON DSL
+	 * @return 创建成功时返回 true
 	 * @throws IOException
+	 *             Elasticsearch 通信失败
 	 */
-	public Boolean addFieldIndex(String indexName,String indexDSL) throws IOException {
-		PutMappingRequest putMappingRequest = new PutMappingRequest(indexName);
-		putMappingRequest.source(indexDSL, XContentType.JSON);
-		AcknowledgedResponse acknowledgedResponse = restHighLevelClient.indices().putMapping(putMappingRequest, RequestOptions.DEFAULT);
-		if(acknowledgedResponse.isAcknowledged()) {
-			logger.info(indexName+":添加字段成功！");
-		}else {
-			logger.error(indexName+":添加字段失败！");
-		}
-		return acknowledgedResponse.isAcknowledged();
+	public Boolean createIndex(String indexName, String indexDsl) throws IOException {
+
+		ensureInitialized();
+		return indexClient.createIndex(indexName, indexDsl);
 	}
+
 	/**
-	 * 删除索引
-	 * @param indexName 索引名称
-	 * @return
+	 * 添加或更新 Mapping。
+	 *
+	 * @param indexName
+	 *            索引名称
+	 * @param indexDsl
+	 *            Mapping JSON DSL
+	 * @return 更新成功时返回 true
 	 * @throws IOException
+	 *             Elasticsearch 通信失败
+	 */
+	public Boolean addFieldIndex(String indexName, String indexDsl) throws IOException {
+
+		ensureInitialized();
+		return indexClient.putMapping(indexName, indexDsl);
+	}
+
+	/**
+	 * 删除整个索引。
+	 *
+	 * @param indexName
+	 *            索引名称
+	 * @return 删除成功时返回 true
+	 * @throws IOException
+	 *             Elasticsearch 通信失败
 	 */
 	public Boolean deleteIndex(String indexName) throws IOException {
-		try {
-			DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
-			AcknowledgedResponse acknowledgedResponse = restHighLevelClient.indices().delete(deleteIndexRequest,RequestOptions.DEFAULT);
-			if(acknowledgedResponse.isAcknowledged()) {
-				logger.info(indexName+":删除索引成功！");
-			}else {
-				logger.error(indexName+":删除索引失败！");
-			}
-			return acknowledgedResponse.isAcknowledged();
-		} catch (Exception e) {
-			logger.error(indexName+"：删除索引失败");
-		}
-		return false;
+		ensureInitialized();
+		return indexClient.deleteIndex(indexName);
 	}
+
 	/**
-	 * 索引是否存在
+	 * 判断索引是否存在。
+	 *
 	 * @param indexName
-	 * @return
+	 *            索引名称
+	 * @return 索引存在时返回 true
 	 * @throws IOException
+	 *             Elasticsearch 通信失败
 	 */
 	public Boolean existsIndex(String indexName) throws IOException {
-		GetIndexRequest getIndexRequest = new GetIndexRequest(indexName);
-		return restHighLevelClient.indices().exists(getIndexRequest, RequestOptions.DEFAULT);
+		ensureInitialized();
+		return indexClient.existsIndex(indexName);
 	}
-	
-	
-	
-	/*######################################文档操作相关接口########################################*/
+
 	/**
-	 * 文档是否存在
+	 * 判断文档是否存在。
+	 *
 	 * @param indexName
+	 *            索引名称
 	 * @param id
-	 * @return
+	 *            文档 ID
+	 * @return 文档存在时返回 true
 	 * @throws IOException
+	 *             Elasticsearch 通信失败
 	 */
-	public Boolean existsDocument(String indexName,String id) throws IOException {
-		GetRequest getRequest = new GetRequest(indexName, id);
-		return restHighLevelClient.exists(getRequest, RequestOptions.DEFAULT);
+	public Boolean existsDocument(String indexName, String id) throws IOException {
+
+		ensureInitialized();
+		return documentClient.existsDocument(indexName, id);
 	}
+
 	/**
-	 * 查询文档
+	 * 获取文档 JSON。
+	 *
 	 * @param indexName
+	 *            索引名称
 	 * @param id
+	 *            文档 ID
+	 * @return 文档 JSON；不存在时返回 null
 	 * @throws IOException
+	 *             Elasticsearch 通信失败
 	 */
-	public String getDocument(String indexName,String id) throws IOException {
-		GetRequest getRequest = new GetRequest(indexName,id);
-		GetResponse getResponse = restHighLevelClient.get(getRequest, RequestOptions.DEFAULT);
-		String documentJson = getResponse.getSourceAsString();
-		logger.debug("查询成功：index="+indexName+",id="+id+",document="+documentJson);
-		return documentJson;
+	public String getDocument(String indexName, String id) throws IOException {
+
+		ensureInitialized();
+		return documentClient.getDocument(indexName, id);
 	}
+
 	/**
-	 * 新增文档
-	 * @param indexName		索引名称
-	 * @param document		文档对象
-	 * @return
-	 * @throws IOException
-	 */
-	public Boolean addDocument(String indexName,E e) throws IOException {
-		return addDocument(indexName, e.getPrimaryKeyId(),JsonUtils.objToJson(e));
-	}
-	/**
-	 * 新增文档
-	 * @param indexName		索引名称
-	 * @param id			文档id
-	 * @param documentJson	文档json串
-	 * @return
-	 * @throws IOException
-	 */
-	public Boolean addDocument(String indexName,String id,String documentJson) throws IOException {
-		IndexRequest indexRequest = new IndexRequest(indexName).id(id);
-		indexRequest.source(documentJson, XContentType.JSON);
-		IndexResponse indexResponse = restHighLevelClient.index(indexRequest,RequestOptions.DEFAULT);
-		ShardInfo shardInfo = indexResponse.getShardInfo();
-		if(shardInfo.getSuccessful()==1 ) {
-			logger.debug("添加成功：index="+indexName+",id="+id+",document="+documentJson+",indexResponse="+indexResponse);
-		}else {
-			logger.error("添加失败：index="+indexName+",id="+id+",document="+documentJson+",indexResponse="+indexResponse);
-		}
-		return shardInfo.getSuccessful()==1;
-	}
-	/**
-	 * 批量新增文档
-	 * @param indexName		索引名称
-	 * @param documents		文档对象列表
-	 * @return
-	 * @throws IOException
-	 * @throws InterruptedException 
-	 */
-	public int batchAddDocument(String indexName,List<E> es) throws IOException {
-		if (es == null || es.isEmpty()) {
-			return 0;
-		}
-		int size = es.size();
-		int count = 5000;
-		int frequency = size / count;
-		int remainder = size % count;
-		if (remainder > 0) {
-			++frequency;
-		}
-		logger.debug("size="+size+",count="+count+",frequency=" + frequency);
-		BulkRequest bulkRequest = null;
-		IndexRequest indexRequest = null;
-		List<E> tempDocuments = null;
-		int success = 0;
-		int fail = 0;
-		for (int i = 0; i < frequency; i++) {
-			if ((i + 1) == frequency) {
-				tempDocuments = es.subList(i * count, size);
-			} else {
-				tempDocuments = es.subList(i * count, (i + 1) * count);
-			}
-			for (ElasticsearchDocument document : tempDocuments) {
-				if(bulkRequest==null) {
-					bulkRequest = new BulkRequest();
-				}
-				indexRequest = new IndexRequest(indexName).id(document.getPrimaryKeyId());
-				indexRequest.source(JsonUtils.objToJson(document), XContentType.JSON);
-				bulkRequest.add(indexRequest);
-			}
-			logger.debug("i:"+i+"添加开始");
-			BulkResponse bulk = restHighLevelClient.bulk(bulkRequest,RequestOptions.DEFAULT);
-			ProcessResult processResult = getProcessResult(bulk);
-			success+=processResult.getSuccessQuantity();
-			fail+=processResult.getFailQuantity();
-			logger.debug("i:"+i+"添加结束,"+processResult.getSuccessQuantity()+"条处理成功,"+processResult.getFailQuantity()+"条处理失败,id:["+processResult.getFailPrimarykeys());
-		}
-		logger.debug("批量添加成功：index="+indexName+",success="+success+",fail="+fail);
-		return success;
-	}
-	/**
-	 * 更新文档 
-	 * @param indexName  索引名称
-	 * @param document document对象
-	 * @return
-	 * @throws IOException
-	 */
-	public Boolean updateDocument(String indexName,E e) throws IOException {
-		return updateDocument(indexName,e.getPrimaryKeyId(), JsonUtils.objToJson(e));
-	}
-	/**
-	 * 更新文档 
-	 * @param indexName  索引名称
-	 * @param id		 id
-	 * @param documentJson 文档json字符串 
-	 * @return
-	 * @throws IOException
-	 */
-	public Boolean updateDocument(String indexName,String id,String documentJson) throws IOException {
-		UpdateRequest updateRequest = new UpdateRequest(indexName, id);
-		updateRequest.doc(documentJson,XContentType.JSON);
-		UpdateResponse updateResponse = restHighLevelClient.update(updateRequest,RequestOptions.DEFAULT);
-		ShardInfo shardInfo = updateResponse.getShardInfo();
-		if(shardInfo.getSuccessful()==1) {
-			logger.debug("更新成功：index="+indexName+",id="+id+",document="+documentJson+",updateResponse="+updateResponse);
-		}else {
-			logger.error("更新失败：index="+indexName+",id="+id+",document="+documentJson+",updateResponse="+updateResponse);
-		}
-		return shardInfo.getSuccessful()==1;
-	}
-	/**
-	 *  批量更新文档 
-	 * @param indexName  索引名称
-	 * @param id		 id
-	 * @param documentJson 文档json字符串 
-	 * @return
-	 * @throws IOException
-	 */
-	public int batchUpdateDocument(String indexName,List<E> es) throws IOException {
-		if (es == null || es.isEmpty()) {
-			return 0;
-		}
-		int size = es.size();
-		int count = 5000;
-		int frequency = size / count;
-		int remainder = size % count;
-		if (remainder > 0) {
-			++frequency;
-		}
-		logger.debug("size="+size+",count="+count+",frequency=" + frequency);
-		BulkRequest bulkRequest = null;
-		UpdateRequest updateRequest = null;
-		List<E> tempDocuments = null;
-		int success = 0;
-		int fail = 0;
-		for (int i = 0; i < frequency; i++) {
-			if ((i + 1) == frequency) {
-				tempDocuments = es.subList(i * count, size);
-			} else {
-				tempDocuments = es.subList(i * count, (i + 1) * count);
-			}
-			for (E e : tempDocuments) {
-				if(bulkRequest==null) {
-					bulkRequest = new BulkRequest();
-				}
-				updateRequest = new UpdateRequest(indexName,e.getPrimaryKeyId());
-				updateRequest.doc(JsonUtils.objToJson(e), XContentType.JSON);
-				bulkRequest.add(updateRequest);
-			}
-			logger.debug("i:"+i+"更新开始");
-			BulkResponse bulk = restHighLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
-			ProcessResult processResult = getProcessResult(bulk);
-			success+=processResult.getSuccessQuantity();
-			fail+=processResult.getFailQuantity();
-			logger.debug("i:"+i+"更新结束,"+processResult.getSuccessQuantity()+"条处理成功,"+processResult.getFailQuantity()+"条处理失败,id:["+processResult.getFailPrimarykeys());
-		}
-		logger.debug("批量更新成功：index="+indexName+",success="+success+",fail="+fail);
-		return success;
-	}
-	/**
-	 * 删除文档
-	 * @param indexName		索引名称
-	 * @param id			文档id
-	 * @return
-	 * @throws IOException
-	 */
-	public Boolean deleteDocument(String indexName,String id) throws IOException {
-		DeleteRequest deleteRequest = new DeleteRequest(indexName,id);
-		DeleteResponse deleteResponse = restHighLevelClient.delete(deleteRequest, RequestOptions.DEFAULT);
-		ShardInfo shardInfo = deleteResponse.getShardInfo();
-		if(shardInfo.getSuccessful()==1) {
-			logger.debug("删除成功：index="+indexName+",id="+id+",deleteResponse="+deleteResponse);
-		}else {
-			logger.error("删除失败：index="+indexName+",id="+id+",deleteResponse="+deleteResponse);
-		}
-		return shardInfo.getSuccessful()==1;
-	}
-	/**
-	 * 批量删除文档
-	 * @param indexName		索引名称
-	 * @param documents     文档对象列表
-	 * @return
-	 * @throws IOException
-	 */
-	public int batchDeleteDocument(String indexName,List<E> es) throws IOException {
-		List<String> documentIds = null;
-		for (E e : es) {
-			if(documentIds==null) {
-				documentIds = new ArrayList<>();
-			}
-			documentIds.add(e.getPrimaryKeyId());
-		}
-		return batchDeleteDocumentByIds(indexName, documentIds);
-	}
-	/**
-	 * 批量删除文档
-	 * @param indexName		索引名称
-	 * @param documentIds	文档ids
-	 * @return 
-	 * @throws IOException
-	 */
-	public int batchDeleteDocumentByIds(String indexName,List<String> documentIds) throws IOException {
-		if (documentIds == null || documentIds.isEmpty()) {
-			return 0;
-		}
-		int size = documentIds.size();
-		int count = 10000;
-		int frequency = size / count;
-		int remainder = size % count;
-		if (remainder > 0) {
-			++frequency;
-		}
-		logger.info("size="+size+",count="+count+",frequency=" + frequency);
-		BulkRequest bulkRequest = null;
-		DeleteRequest deleteRequest = null;
-		List<String> tempDocumentIds = null;
-		int success = 0;
-		int fail = 0;
-		for (int i = 0; i < frequency; i++) {
-			if ((i + 1) == frequency) {
-				tempDocumentIds = documentIds.subList(i * count, size);
-			} else {
-				tempDocumentIds = documentIds.subList(i * count, (i + 1) * count);
-			}
-			for(String documentId : tempDocumentIds) {
-				if(bulkRequest==null) {
-					bulkRequest = new BulkRequest();
-				}
-				deleteRequest = new DeleteRequest(indexName,documentId);
-				bulkRequest.add(deleteRequest);
-			}
-			logger.debug("i:"+i+"删除开始");
-			BulkResponse bulk = restHighLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
-			ProcessResult processResult = getProcessResult(bulk);
-			success+=processResult.getSuccessQuantity();
-			fail+=processResult.getFailQuantity();
-			logger.debug("i:"+i+"删除结束,"+processResult.getSuccessQuantity()+"条处理成功,"+processResult.getFailQuantity()+"条处理失败,id:["+processResult.getFailPrimarykeys());
-		}
-		logger.debug("批量删除成功：index="+indexName+",success="+success+",fail="+fail);
-		return success;
-	}
-	/**
-	 * 清空索引下数据
+	 * 新增文档。
+	 *
 	 * @param indexName
-	 * @return
+	 *            索引名称
+	 * @param document
+	 *            文档对象
+	 * @return 写入成功时返回 true
 	 * @throws IOException
+	 *             Elasticsearch 通信失败
+	 */
+	public Boolean addDocument(String indexName, E document) throws IOException {
+
+		ensureInitialized();
+		return documentClient.addDocument(indexName, document);
+	}
+
+	/**
+	 * 使用 ID 和 JSON 新增文档。
+	 *
+	 * @param indexName
+	 *            索引名称
+	 * @param id
+	 *            文档 ID
+	 * @param documentJson
+	 *            文档 JSON
+	 * @return 写入成功时返回 true
+	 * @throws IOException
+	 *             Elasticsearch 通信失败
+	 */
+	public Boolean addDocument(String indexName, String id, String documentJson) throws IOException {
+
+		ensureInitialized();
+		return documentClient.addDocument(indexName, id, documentJson);
+	}
+
+	/**
+	 * 批量新增文档。
+	 *
+	 * @param indexName
+	 *            索引名称
+	 * @param documents
+	 *            文档列表
+	 * @return 成功处理数量
+	 * @throws IOException
+	 *             Elasticsearch 通信失败
+	 */
+	public int batchAddDocument(String indexName, List<E> documents) throws IOException {
+
+		ensureInitialized();
+		return documentClient.batchAddDocument(indexName, documents);
+	}
+
+	/**
+	 * 更新文档。
+	 *
+	 * @param indexName
+	 *            索引名称
+	 * @param document
+	 *            文档对象
+	 * @return 更新成功时返回 true
+	 * @throws IOException
+	 *             Elasticsearch 通信失败
+	 */
+	public Boolean updateDocument(String indexName, E document) throws IOException {
+
+		ensureInitialized();
+		return documentClient.updateDocument(indexName, document);
+	}
+
+	/**
+	 * 使用 ID 和 JSON 更新文档。
+	 *
+	 * @param indexName
+	 *            索引名称
+	 * @param id
+	 *            文档 ID
+	 * @param documentJson
+	 *            文档 JSON
+	 * @return 更新成功时返回 true
+	 * @throws IOException
+	 *             Elasticsearch 通信失败
+	 */
+	public Boolean updateDocument(String indexName, String id, String documentJson) throws IOException {
+
+		ensureInitialized();
+		return documentClient.updateDocument(indexName, id, documentJson);
+	}
+
+	/**
+	 * 批量更新文档。
+	 *
+	 * @param indexName
+	 *            索引名称
+	 * @param documents
+	 *            文档列表
+	 * @return 成功处理数量
+	 * @throws IOException
+	 *             Elasticsearch 通信失败
+	 */
+	public int batchUpdateDocument(String indexName, List<E> documents) throws IOException {
+
+		ensureInitialized();
+		return documentClient.batchUpdateDocument(indexName, documents);
+	}
+
+	/**
+	 * 删除文档。
+	 *
+	 * @param indexName
+	 *            索引名称
+	 * @param id
+	 *            文档 ID
+	 * @return 文档实际删除时返回 true
+	 * @throws IOException
+	 *             Elasticsearch 通信失败
+	 */
+	public Boolean deleteDocument(String indexName, String id) throws IOException {
+
+		ensureInitialized();
+		return documentClient.deleteDocument(indexName, id);
+	}
+
+	/**
+	 * 批量删除文档。
+	 *
+	 * @param indexName
+	 *            索引名称
+	 * @param documents
+	 *            文档列表
+	 * @return 成功处理数量
+	 * @throws IOException
+	 *             Elasticsearch 通信失败
+	 */
+	public int batchDeleteDocument(String indexName, List<E> documents) throws IOException {
+
+		ensureInitialized();
+		return documentClient.batchDeleteDocument(indexName, documents);
+	}
+
+	/**
+	 * 根据文档 ID 列表批量删除。
+	 *
+	 * @param indexName
+	 *            索引名称
+	 * @param documentIds
+	 *            文档 ID 列表
+	 * @return 成功处理数量
+	 * @throws IOException
+	 *             Elasticsearch 通信失败
+	 */
+	public int batchDeleteDocumentByIds(String indexName, List<String> documentIds) throws IOException {
+
+		ensureInitialized();
+		return documentClient.batchDeleteDocumentByIds(indexName, documentIds);
+	}
+
+	/**
+	 * 清空索引中的全部文档。
+	 *
+	 * <p>
+	 * 保留索引结构和 Mapping，使用 Delete By Query 删除全部文档。
+	 * </p>
+	 *
+	 * @param indexName
+	 *            索引名称
+	 * @return 删除请求执行成功时返回 true
+	 * @throws IOException
+	 *             Elasticsearch 通信失败
 	 */
 	public boolean clearIndex(String indexName) throws IOException {
-		DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
-		AcknowledgedResponse response = restHighLevelClient.indices().delete(deleteIndexRequest,RequestOptions.DEFAULT);
-		return response.isAcknowledged();
+		return deleteAllDocuments(indexName);
 	}
-	
-	
+
 	/**
-	 * 获取RestHighLevelClient客户端
-	 * @return
-	 */
-	public RestHighLevelClient restHighLevelClient() {
-		return restHighLevelClient;
-	}
-	
-	
-	
-	
-	/**
-	 * 获取处理结果
-	 * @param bulkResponse
-	 * @return
-	 */
-	private ProcessResult getProcessResult(BulkResponse bulkResponse) {
-		BulkItemResponse[] items = bulkResponse.getItems();
-		Integer total = items.length;
-		List<String> successPrimarykeys = new ArrayList<>();
-		List<String> failPrimarykeys = new ArrayList<>();
-		if(bulkResponse.hasFailures()) {
-			List<ProcessFailureMessage> processFailureMessages = new ArrayList<>();
-			for(BulkItemResponse bulkItemResponse : items) {
-				if(bulkItemResponse.isFailed()) {
-					ProcessFailureMessage parseFailureMessage = parseFailureMessage(bulkItemResponse);
-					processFailureMessages.add(parseFailureMessage);
-					failPrimarykeys.add(bulkItemResponse.getId());
-				}else {
-					successPrimarykeys.add(bulkItemResponse.getId());
-				}
-			}
-			publishFailureMessage(processFailureMessages);
-		}
-		ProcessResult processResult = new ProcessResult();
-		processResult.setSuccessQuantity(total-failPrimarykeys.size());
-		processResult.setSuccessPrimarykeys(successPrimarykeys);
-		processResult.setFailQuantity(failPrimarykeys.size());
-		processResult.setFailPrimarykeys(failPrimarykeys);
-		return processResult;
-	}
-	/**
-	 * 解析失败信息
-	 * @param bulkItemResponse
-	 * @return
-	 */
-	private ProcessFailureMessage parseFailureMessage(BulkItemResponse bulkItemResponse) {
-		ProcessFailureMessage processFailureMessage = null;
-		if(bulkItemResponse.isFailed()) {
-			String index = bulkItemResponse.getIndex();
-			String id = bulkItemResponse.getId();
-			String failureMessage = bulkItemResponse.getFailureMessage();
-			String type = bulkItemResponse.getOpType().name();
-			processFailureMessage = new ProcessFailureMessage();
-			processFailureMessage.setIndex(index);
-			processFailureMessage.setType(type);
-			processFailureMessage.setPrimarykey(id);
-			processFailureMessage.setFailureMessage(failureMessage);
-		}
-		return processFailureMessage;
-	}
-	/**
-	 * 发布失败信息
-	 * @param processFailureMessages
-	 */
-	private void publishFailureMessage(List<ProcessFailureMessage> processFailureMessages) {
-		if(!CollectionUtils.isEmpty(processFailureMessages)) {
-			ElasticSearcchErrorEvent errorEvent = new ElasticSearcchErrorEvent(this, processFailureMessages);
-			applicationContext.publishEvent(errorEvent);
-		}
-	}
-	/**
-	 * 处理结果
-	 * @author reyco
+	 * 清空索引中的全部文档。
 	 *
+	 * @param indexName
+	 *            索引名称
+	 * @return 删除请求执行成功时返回 true
+	 * @throws IOException
+	 *             Elasticsearch 通信失败
 	 */
-	public static class ProcessResult extends ToString{
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 7849344423058511696L;
-		private Integer successQuantity;
-		private List<String> successPrimarykeys;
-		private Integer failQuantity;
-		private List<String> failPrimarykeys;
-		public Integer getSuccessQuantity() {
-			return successQuantity;
+	public boolean deleteAllDocuments(String indexName) throws IOException {
+		ensureInitialized();
+		return documentClient.deleteAllDocuments(indexName);
+	}
+
+	/**
+	 * 确认内部组件已经初始化。
+	 */
+	private void ensureInitialized() {
+		if (indexClient == null || documentClient == null) {
+			throw new IllegalStateException("RestHighLevelClient has not been configured");
 		}
-		public void setSuccessQuantity(Integer successQuantity) {
-			this.successQuantity = successQuantity;
-		}
-		public List<String> getSuccessPrimarykeys() {
-			return successPrimarykeys;
-		}
-		public void setSuccessPrimarykeys(List<String> successPrimarykeys) {
-			this.successPrimarykeys = successPrimarykeys;
-		}
-		public Integer getFailQuantity() {
-			return failQuantity;
-		}
-		public void setFailQuantity(Integer failQuantity) {
-			this.failQuantity = failQuantity;
-		}
-		public List<String> getFailPrimarykeys() {
-			return failPrimarykeys;
-		}
-		public void setFailPrimarykeys(List<String> failPrimarykeys) {
-			this.failPrimarykeys = failPrimarykeys;
+	}
+
+	/**
+	 * 确认搜索模板已经初始化。
+	 */
+	private void ensureSearchInitialized() {
+		if (searchTemplate == null) {
+			throw new IllegalStateException("SearchTemplate has not been configured");
 		}
 	}
 }

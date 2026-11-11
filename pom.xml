@@ -406,6 +406,11 @@
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
+				<artifactId>desensitize-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
 				<artifactId>desensitize-spring-boot-starter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -463,6 +468,7 @@
 		<module>open-service</module>
 		<module>portal-service</module>
 		<module>common-service</module>
+		<module>desensitize-core</module>
 		<module>desensitize-spring-boot-starter</module>
 		<module>redis-spring-cloud-starter</module>
 		<module>rabbitmq-spring-boot-starter</module>

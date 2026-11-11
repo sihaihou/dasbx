@@ -40,7 +40,7 @@ public class UserVO {
     @Desensitize(type = DesensitizeType.IdCardDesensitizeType.class)
     private String idCard;
 
-    // 自定义下标脱敏：保留前3位，后4位
+    // 自定义下标脱敏：保留前3位，后4位，中间部分*号表示
     @Desensitize(type = DesensitizeType.DefaultIndexDesensitizeType.class, start = 3, end = 4)
     private String address;
     
