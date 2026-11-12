@@ -22,6 +22,8 @@
     - desensitize-spring-boot-starter: 脱敏
     - rabbitmq-spring-boot-starter: rabbitmq
     - redis-spring-cloud-starter: redis
+    - rate-limit-spring-cloud-starter: 限流
+    - lua-spring-cloud-starter: lua脚本
       
   - 相关服务：
     - common-service： 基础服务
