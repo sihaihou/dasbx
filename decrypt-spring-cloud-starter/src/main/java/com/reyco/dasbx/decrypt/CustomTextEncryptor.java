@@ -87,10 +87,6 @@ public class CustomTextEncryptor implements TextEncryptor {
 	            default:
 	                throw new IllegalArgumentException("Unsupported algorithmName: " + algorithmName);
 	        }
-	        
-	        if (logger.isDebugEnabled()) {
-	            logger.debug("解密成功: {} -> {}", encryptedText, result);
-	        }
 	        return result;
 	    } catch (Exception e) {
 	        logger.error("解密异常 [{}]: {}", algorithmName, e.getMessage());

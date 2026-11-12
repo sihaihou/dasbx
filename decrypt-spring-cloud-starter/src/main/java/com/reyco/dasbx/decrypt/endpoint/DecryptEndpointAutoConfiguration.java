@@ -1,7 +1,6 @@
 package com.reyco.dasbx.decrypt.endpoint;
 
-import javax.xml.ws.Endpoint;
-
+import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;

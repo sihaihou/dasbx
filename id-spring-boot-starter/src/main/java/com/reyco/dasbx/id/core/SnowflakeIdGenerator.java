@@ -21,8 +21,8 @@ public class SnowflakeIdGenerator implements IdGenerator, InitializingBean {
 		this.snowFlakeProperties = snowFlakeProperties;
 	}
 	
-	public static String nextIdStr(String prefix) {
-		return prefix+nextIdStr(prefix);
+	public String nextIdStr(String prefix) {
+		return prefix+nextIdStr();
 	}
 	
 	@Override

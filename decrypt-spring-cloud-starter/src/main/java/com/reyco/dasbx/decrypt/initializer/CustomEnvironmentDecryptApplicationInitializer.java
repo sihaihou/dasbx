@@ -163,12 +163,13 @@ public class CustomEnvironmentDecryptApplicationInitializer implements Applicati
 	private String decrypt(String key, String value) {
 		try {
 			value = unwrapEncryptedValue(value);
+			if (logger.isDebugEnabled()) {
+	            logger.debug("Config decrypted: key={}", key);
+	        }
 			return value;
 		}
 		catch (Exception e) {
-			String message = "Cannot decrypt: key=" + key;
-			logger.warn(message, e);
-			return "";
+			throw new IllegalStateException("Cannot decrypt: key=" + key, e);
 		}
 	}
 	/** 

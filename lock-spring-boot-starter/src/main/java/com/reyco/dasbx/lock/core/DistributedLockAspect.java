@@ -11,7 +11,9 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
 import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -19,6 +21,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import com.reyco.dasbx.lock.annotation.Lock;
 
 @Aspect
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class DistributedLockAspect {
 	
 	private static SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
@@ -42,19 +45,37 @@ public class DistributedLockAspect {
 	public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
 		MethodSignature signature = (MethodSignature) joinPoint.getSignature();
 		Lock lock = AnnotatedElementUtils.getMergedAnnotation(signature.getMethod(), Lock.class);
-		if(lock!=null) {
-			String lockKey = getKey(joinPoint);
-			String lockValue = UUID.randomUUID().toString().replace("-", "");
-			try {
-				distributedLock.lock(lockKey, lockValue, lock.expireTime());
-				return joinPoint.proceed();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}finally {
-				distributedLock.unLock(lockKey, lockValue);
-			}
+		if (lock == null) {
+	        return joinPoint.proceed();
+	    }
+		String lockKey = getKey(joinPoint);
+		String lockValue = UUID.randomUUID().toString().replace("-", "");
+		
+		boolean acquired = false;
+	    Throwable businessFailure = null;
+	    
+		try {
+			distributedLock.lock(lockKey, lockValue, lock.expireTime());
+			acquired = true;
+			
+			return joinPoint.proceed();
+		} catch (Throwable e) {
+			businessFailure = e;
+	        throw e;
+		}finally {
+			if (acquired) {
+	            try {
+	                distributedLock.unLock(lockKey, lockValue);
+	            } catch (Throwable unlockFailure) {
+	                if (businessFailure != null) {
+	                    // 保留原业务异常，解锁异常作为其附加异常
+	                    businessFailure.addSuppressed(unlockFailure);
+	                } else {
+	                    throw unlockFailure;
+	                }
+	            }
+	        }
 		}
-		return joinPoint.proceed();
 	}
 	/**
 	 * 获取Key

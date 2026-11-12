@@ -3,6 +3,7 @@ package com.reyco.dasbx.lock.core;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,11 +21,11 @@ public class RedisDistributedLock implements DistributedLock {
 
 	protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	public final static String SET_LUA_SCRIPT = "if redis.call('setnx', KEYS[1],ARGV[1]) == 1 then return redis.call('EXPIRE',KEYS[1],ARGV[2]) else return 0 end";// lua脚本，用来获取分布式锁
+	public final static String SET_LUA_SCRIPT = "if redis.call('setnx', KEYS[1],ARGV[1]) == 1 then return redis.call('PEXPIRE',KEYS[1],ARGV[2]) else return 0 end";// lua脚本，用来获取分布式锁
 
 	public final static String DEL_LUA_SCRIPT = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del',KEYS[1]) else return 0 end";// lua脚本，用来释放分布式锁
 
-	public final static String RENEWAL_LUA_SCRIPT = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('EXPIRE',KEYS[1],ARGV[2]) else return 0 end";// lua脚本，用来续约过期时间
+	public final static String RENEWAL_LUA_SCRIPT = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('PEXPIRE',KEYS[1],ARGV[2]) else return 0 end";// lua脚本，用来续约过期时间
 
 	// 使用调度线程池管理所有看门狗任务
 	private ScheduledExecutorService watchDogExecutor;
@@ -34,7 +35,7 @@ public class RedisDistributedLock implements DistributedLock {
 	private ThreadLocal<LockInfo> lockInfoThreadLocal = new ThreadLocal<>();
 
 	// 管理活跃的看门狗任务
-	private final ConcurrentHashMap<String, ScheduledFuture<?>> watchDogTasks = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<LockOwner, ScheduledFuture<?>> watchDogTasks = new ConcurrentHashMap<>();
 	/**
 	 * 锁的key
 	 */
@@ -47,6 +48,10 @@ public class RedisDistributedLock implements DistributedLock {
 	 * 锁的超时时间,默认3000
 	 */
 	private static final Integer DISTRIBUTED_LOCK_EXPIRE = 3000;
+	/**
+	 * 锁的最小时间,默认100
+	 */
+	private static final int MIN_EXPIRE_TIME = 100;
 
 	private StringRedisTemplate redisTemplate;
 
@@ -78,30 +83,34 @@ public class RedisDistributedLock implements DistributedLock {
 		String lockKey = DISTRIBUTED_LOCK_KEY + DISTRIBUTED_LOCK_DEFAULT;
 		String lockValue = UUID.randomUUID().toString().replace("-", "");
 		LockInfo lockInfo = new LockInfo(lockKey, lockValue, DISTRIBUTED_LOCK_EXPIRE);
-		lockInfoThreadLocal.set(lockInfo);
 		List<String> keys = Collections.singletonList(lockKey);
 		Integer expireTime = lockInfo.getExpireTime();
-		String valueExpireTime = String.valueOf(expireTime / 1000);
 
 		DefaultRedisScript<Long> script = new DefaultRedisScript<>(SET_LUA_SCRIPT, Long.class);
 
 		// 带退避策略的获取锁
 		long maxWaitTime = expireTime * 3L; // 最大等待时间
-		long startTime = System.currentTimeMillis();
-		long retryInterval = 10; // 初始重试间隔
-
-		while (System.currentTimeMillis() - startTime < maxWaitTime) {
-			Long result = redisTemplate.execute(script, keys, lockValue, valueExpireTime);
+		long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(maxWaitTime);
+		long retryNanos = TimeUnit.MILLISECONDS.toNanos(10);
+		long maxRetryNanos = TimeUnit.MILLISECONDS.toNanos(100);
+		
+		while (deadline - System.nanoTime() > 0) {
+			Long result = redisTemplate.execute(script, keys, lockValue, String.valueOf(expireTime));
 			if (result != null && result == 1) {
 				logger.debug("加锁成功,【key: {}】,【value: {}】,【expireTime：{}】", lockKey, lockValue, expireTime);
 				// 获取锁成功，启动看门狗
 				startWatchDog(lockKey, lockValue, expireTime);
+				lockInfoThreadLocal.set(lockInfo);
 				return;
 			}
 			// 指数退避
 			try {
-				Thread.sleep(retryInterval);
-				retryInterval = Math.min(retryInterval * 2, 100); // 最大100ms
+				long remaining =  deadline - System.nanoTime();
+				if(remaining<=0) {
+					break;
+				}
+				TimeUnit.NANOSECONDS.sleep(Math.min(retryNanos, remaining));
+				retryNanos = Math.min(retryNanos * 2, maxRetryNanos);
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new RuntimeException("Interrupted while acquiring lock", e);
@@ -114,15 +123,19 @@ public class RedisDistributedLock implements DistributedLock {
 	@Override
 	public void unlock() {
 		LockInfo lockInfo = lockInfoThreadLocal.get();
+		if(lockInfo==null) {
+			return;
+		}
+		LockOwner lockOwner= new LockOwner(lockInfo.getLockKey(), lockInfo.getLockValue());
 		// 先停止看门狗
-		stopWatchDog(lockInfo.getLockKey());
+		stopWatchDog(lockOwner);
 
 		List<String> keys = new ArrayList<>();
 		keys.add(lockInfo.getLockKey());
 
 		DefaultRedisScript<Long> script = new DefaultRedisScript<>(DEL_LUA_SCRIPT, Long.class);
 		try {
-			Long result = redisTemplate.execute(script, keys, lockInfo.getLockValue());
+			Long result = redisTemplate.execute(script, keys, String.valueOf(lockInfo.getLockValue()));
 			if (result != null && result == 1) {
 				logger.debug("解锁成功,【key:{}】,【value:{}】", lockInfo.getLockKey(), lockInfo.getLockValue());
 			}
@@ -147,18 +160,21 @@ public class RedisDistributedLock implements DistributedLock {
 	 */
 	@Override
 	public void lock(String lockKey, String lockValue, int expireTime) {
+		if (expireTime < MIN_EXPIRE_TIME) {
+	        throw new IllegalArgumentException("expireTime must be at least " + MIN_EXPIRE_TIME + "ms, but was " + expireTime + "ms");
+	    }
 		List<String> keys = Collections.singletonList(lockKey);
-		String valueExpireTime = String.valueOf(expireTime / 1000);
 
 		DefaultRedisScript<Long> script = new DefaultRedisScript<>(SET_LUA_SCRIPT, Long.class);
 
 		// 带退避策略的获取锁
 		long maxWaitTime = expireTime * 3L; // 最大等待时间
-		long startTime = System.currentTimeMillis();
-		long retryInterval = 10; // 初始重试间隔
-
-		while (System.currentTimeMillis() - startTime < maxWaitTime) {
-			Long result = redisTemplate.execute(script, keys, lockValue, valueExpireTime);
+		long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(maxWaitTime);
+		long retryNanos = TimeUnit.MILLISECONDS.toNanos(10);
+		long maxRetryNanos = TimeUnit.MILLISECONDS.toNanos(100);
+		
+		while (deadline - System.nanoTime() > 0) {
+			Long result = redisTemplate.execute(script, keys, lockValue, String.valueOf(expireTime));
 			if (result != null && result == 1) {
 				logger.debug("加锁成功,【key: {}】,【value: {}】,【expireTime：{}】", lockKey, lockValue, expireTime);
 				// 获取锁成功，启动看门狗
@@ -167,8 +183,12 @@ public class RedisDistributedLock implements DistributedLock {
 			}
 			// 指数退避
 			try {
-				Thread.sleep(retryInterval);
-				retryInterval = Math.min(retryInterval * 2, 100); // 最大100ms
+				long remaining =  deadline - System.nanoTime();
+				if(remaining<=0) {
+					break;
+				}
+				TimeUnit.NANOSECONDS.sleep(Math.min(retryNanos, remaining));
+				retryNanos = Math.min(retryNanos * 2, maxRetryNanos);
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new RuntimeException("Interrupted while acquiring lock", e);
@@ -185,8 +205,9 @@ public class RedisDistributedLock implements DistributedLock {
 	 */
 	@Override
 	public void unLock(String lockKey, String lockValue) {
+		LockOwner lockOwner= new LockOwner(lockKey, lockValue);
 		// 先停止看门狗
-		stopWatchDog(lockKey);
+		stopWatchDog(lockOwner);
 		// 然后释放锁
 		List<String> keys = Collections.singletonList(lockKey);
 		DefaultRedisScript<Long> script = new DefaultRedisScript<>(DEL_LUA_SCRIPT, Long.class);
@@ -224,23 +245,33 @@ public class RedisDistributedLock implements DistributedLock {
 		return tryLock(lockKey, lockValue, DISTRIBUTED_LOCK_EXPIRE, time, unit);
 	}
 
-	private boolean tryLock(String lockKey, String lockValue, int expireTime, long time, TimeUnit unit)
-			throws InterruptedException {
-
+	private boolean tryLock(String lockKey, String lockValue, int expireTime, long time, TimeUnit unit) throws InterruptedException {
+		if (expireTime < MIN_EXPIRE_TIME) {
+	        throw new IllegalArgumentException("expireTime must be at least " + MIN_EXPIRE_TIME + "ms, but was " + expireTime + "ms");
+	    }
 		List<String> keys = Collections.singletonList(lockKey);
-		String valueExpireTime = String.valueOf(expireTime / 1000);
 		DefaultRedisScript<Long> script = new DefaultRedisScript<>(SET_LUA_SCRIPT, Long.class);
 
-		long maxWaitTime = unit.toMillis(time);
-		long startTime = System.currentTimeMillis();
-		long retryInterval = 10;
-
-		while (System.currentTimeMillis() - startTime < maxWaitTime) {
+		long waitNanos = unit.toNanos(Math.max(0L, time));
+		long deadline = System.nanoTime() + waitNanos;
+		long retryNanos = TimeUnit.MILLISECONDS.toNanos(10);
+		long maxRetryNanos = TimeUnit.MILLISECONDS.toNanos(100);
+		boolean firstAttempt = true;
+		
+		while(true) {
 			if (Thread.currentThread().isInterrupted()) {
 				throw new InterruptedException("Thread interrupted while trying to acquire lock");
 			}
-
-			Long result = redisTemplate.execute(script, keys, lockValue, valueExpireTime);
+			// 第一次必须立即尝试；后续重试前先检查是否超时
+			if (!firstAttempt) {
+		        if (deadline - System.nanoTime() <= 0) {
+		            return false;
+		        }
+		    }
+		    firstAttempt = false;
+		    
+		    // 尝试加锁
+			Long result = redisTemplate.execute(script, keys, lockValue, String.valueOf(expireTime));
 			if (result != null && result == 1) {
 				logger.debug("TryLock成功, key: {}, value: {}, expireTime: {}", lockKey, lockValue, expireTime);
 				startWatchDog(lockKey, lockValue, expireTime);
@@ -249,17 +280,17 @@ public class RedisDistributedLock implements DistributedLock {
 				lockInfoThreadLocal.set(new LockInfo(lockKey, lockValue, expireTime));
 				return true;
 			}
-
-			if (time == 0) { // 立即返回
-				return false;
+			
+			// 是否超时
+			long remaining = deadline - System.nanoTime();
+			if (remaining <= 0) {
+			    return false;
 			}
 
 			// 指数退避
-			Thread.sleep(retryInterval);
-			retryInterval = Math.min(retryInterval * 2, 100);
+			TimeUnit.NANOSECONDS.sleep(Math.min(retryNanos, remaining));
+			retryNanos = Math.min(retryNanos * 2, maxRetryNanos);
 		}
-
-		return false;
 	}
 
 	@Override
@@ -275,35 +306,35 @@ public class RedisDistributedLock implements DistributedLock {
 	 * @param expireTime
 	 */
 	private void startWatchDog(String lockKey, String lockValue, int expireTime) {
-		watchDogTasks.compute(lockKey, (key, existingFuture) -> {
+		LockOwner lockOwner = new LockOwner(lockKey, lockValue);
+		watchDogTasks.compute(lockOwner, (key, existingFuture) -> {
 			if (existingFuture != null) {
 				existingFuture.cancel(false);
 			}
-			return watchDogExecutor.scheduleAtFixedRate(() -> {
+			return watchDogExecutor.scheduleWithFixedDelay(() -> {
 				try {
 					// 检查锁是否还是自己的
 					String currentValue = redisTemplate.opsForValue().get(lockKey);
 					if (!lockValue.equals(currentValue)) {
 						// 锁已经被释放或过期，停止续期
-						stopWatchDog(lockKey);
+						stopWatchDog(lockOwner);
 						return;
 					}
 					// 续期
 					List<String> keys = Collections.singletonList(lockKey);
-					String valueExpireTime = String.valueOf(expireTime / 1000);
 					DefaultRedisScript<Long> script = new DefaultRedisScript<>(RENEWAL_LUA_SCRIPT, Long.class);
-					Long result = redisTemplate.execute(script, keys, lockValue, valueExpireTime);
+					Long result = redisTemplate.execute(script, keys, lockValue, String.valueOf(expireTime));
 					if (result != null && result == 1) {
 						logger.debug("续约成功, key: {}, value: {}, expireTime: {}", lockKey, lockValue, expireTime);
 					} else {
 						logger.warn("续约失败, key: {}, value: {}", lockKey, lockValue);
-						stopWatchDog(lockKey);
+						stopWatchDog(lockOwner);
 					}
 				} catch (RedisConnectionFailureException e) {
 					logger.warn("Redis连接异常，跳过本次续期", e);
 				} catch (Exception e) {
 					logger.error("看门狗执行异常", e);
-					stopWatchDog(lockKey);
+					stopWatchDog(lockOwner);
 				}
 			}, expireTime / 3, expireTime / 3, TimeUnit.MILLISECONDS);
 		});
@@ -312,15 +343,40 @@ public class RedisDistributedLock implements DistributedLock {
 	/**
 	 * 停止看门狗
 	 * 
-	 * @param lockKey
+	 * @param LockOwner
 	 */
-	private void stopWatchDog(String lockKey) {
-		ScheduledFuture<?> future = watchDogTasks.remove(lockKey);
+	private void stopWatchDog(LockOwner lockOwner) {
+		ScheduledFuture<?> future = watchDogTasks.remove(lockOwner);
 		if (future != null) {
 			future.cancel(false);
 		}
 	}
+	private static final class LockOwner {
+	    private final String lockKey;
+	    private final String lockValue;
 
+	    private LockOwner(String lockKey, String lockValue) {
+	        this.lockKey = lockKey;
+	        this.lockValue = lockValue;
+	    }
+	    @Override
+	    public boolean equals(Object obj) {
+	        if (this == obj) {
+	            return true;
+	        }
+	        if (!(obj instanceof LockOwner)) {
+	            return false;
+	        }
+	        LockOwner other = (LockOwner) obj;
+	        return Objects.equals(lockKey, other.lockKey)
+	                && Objects.equals(lockValue, other.lockValue);
+	    }
+
+	    @Override
+	    public int hashCode() {
+	        return Objects.hash(lockKey, lockValue);
+	    }
+	}
 	/**
 	 * 锁信息
 	 * 
@@ -338,7 +394,7 @@ public class RedisDistributedLock implements DistributedLock {
 			this.lockValue = lockValue;
 			this.expireTime = expireTime;
 		}
-
+		
 		public String getLockKey() {
 			return lockKey;
 		}

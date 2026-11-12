@@ -41,7 +41,7 @@ public @interface Lock {
 	 */
 	String prefix() default "distributedLock:";
 	/**
-	 * 过期时间/毫秒
+	 * 过期时间/毫秒,最小100ms
 	 * @return
 	 */
 	int expireTime() default 3000;
