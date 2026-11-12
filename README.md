@@ -6,6 +6,7 @@
     - commons-model：公共的Model类
     - commons-config：公共的配置类
     - sync: 同步
+    - desensitize-core: 脱敏核心包 
       
   - 各种自定义starter包：
     - id-spring-boot-starter：全局唯一Id生成器starter
