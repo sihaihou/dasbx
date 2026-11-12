@@ -6,7 +6,6 @@
     - commons-model：公共的Model类
     - commons-config：公共的配置类
     - sync: 同步
-    - desensitize-core: 脱敏核心包 
       
   - 各种自定义starter包：
     - id-spring-boot-starter：全局唯一Id生成器starter
@@ -22,8 +21,6 @@
     - desensitize-spring-boot-starter: 脱敏
     - rabbitmq-spring-boot-starter: rabbitmq
     - redis-spring-cloud-starter: redis
-    - rate-limiter-spring-cloud-starter: 限流
-    - lua-spring-cloud-starter: lua脚本
       
   - 相关服务：
     - common-service： 基础服务

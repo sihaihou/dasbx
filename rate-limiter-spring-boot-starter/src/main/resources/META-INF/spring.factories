@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.reyco.dasbx.rate.limit.autoconfiguration.RateLimitConfiguration
+com.reyco.dasbx.rate.limit.autoconfiguration.RateLimitConfiguration,\
+com.reyco.dasbx.rate.limit.endpoint.RateLimitEndpointAutoConfiguration
