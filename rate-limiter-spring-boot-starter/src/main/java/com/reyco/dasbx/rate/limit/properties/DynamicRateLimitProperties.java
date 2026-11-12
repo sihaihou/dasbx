@@ -11,7 +11,7 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 @ConfigurationProperties(prefix = DynamicRateLimitProperties.RATE_LIMIT)
 public class DynamicRateLimitProperties {
 	
-	public final static String RATE_LIMIT = "reyco.dasbx.rate-limiter";
+	public final static String RATE_LIMIT = "reyco.dasbx.rate.limit";
 	/**
      * 默认配置
      */

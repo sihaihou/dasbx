@@ -1,6 +1,7 @@
 package com.reyco.dasbx.rate.limit.autoconfiguration;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +23,7 @@ import com.reyco.dasbx.rate.limit.properties.DynamicRateLimitProperties;
 public class RateLimitConfiguration {
 	
 	@Bean
+	@ConditionalOnMissingBean
 	public TokenBucketRateLimitAspect tokenBucketRateLimitAspect(LuaScriptTemplate luaScriptTemplate) {
 		TokenBucketRateLimitAspect tokenBucketRateLimitAspect = new TokenBucketRateLimitAspect();
 		tokenBucketRateLimitAspect.setLuaScriptTemplate(luaScriptTemplate);
@@ -29,6 +31,7 @@ public class RateLimitConfiguration {
 	}
 	
 	@Bean
+	@ConditionalOnMissingBean
 	public SlidingWindowRateLimitAspect slidingWindowRateLimitAspect(LuaScriptTemplate luaScriptTemplate) {
 		SlidingWindowRateLimitAspect slidingWindowRateLimitAspect = new SlidingWindowRateLimitAspect();
 		slidingWindowRateLimitAspect.setLuaScriptTemplate(luaScriptTemplate);
@@ -36,18 +39,22 @@ public class RateLimitConfiguration {
 	}
 	
 	@Bean
+	@ConditionalOnMissingBean
 	public RateLimitExceptionStrategy rateLimitExceptionStrategy() {
 		RateLimitExceptionStrategy rateLimitExceptionStrategy = new RateLimitExceptionStrategy();
 		return rateLimitExceptionStrategy;
 	}
 	
 	@Bean
+	@ConditionalOnMissingBean
 	public DynamicRateLimitService dynamicRateLimitService(DynamicRateLimitProperties dynamicRateLimitProperties) {
 		DynamicRateLimitService dynamicRateLimitService = new DynamicRateLimitService();
 		dynamicRateLimitService.setDynamicRateLimitProperties(dynamicRateLimitProperties);
 		return dynamicRateLimitService;
 	}
+
 	@Bean
+	@ConditionalOnMissingBean
 	public DynamicRateLimitAspect dynamicRateLimitAspect(LuaScriptTemplate luaScriptTemplate,DynamicRateLimitService dynamicRateLimitService) {
 		DynamicRateLimitAspect dynamicRateLimitAspect = new DynamicRateLimitAspect();
 		dynamicRateLimitAspect.setLuaScriptTemplate(luaScriptTemplate);

@@ -1,6 +1,7 @@
 package com.reyco.dasbx.rate.limit.core;
 
 import java.util.StringJoiner;
+import java.util.concurrent.TimeUnit;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -54,5 +55,64 @@ public class AbstractRateLimitAspect {
 		EvaluationContext evaluationContext = new MethodBasedEvaluationContext(joinPoint.getTarget(),
 				signature.getMethod(), joinPoint.getArgs(), parameterNameDiscoverer);
 		return expression.getValue(evaluationContext, String.class);
+	}
+
+	/**
+	 * 验证时间单位
+	 * @param unit
+	 */
+	protected void validateTimeUnit(TimeUnit unit) {
+		if (unit == null) {
+		    throw new IllegalArgumentException("限流时间单位不能为空");
+		}
+		switch (unit) {
+		case MILLISECONDS:
+		case SECONDS:
+		case MINUTES:
+		case HOURS:
+		case DAYS:
+			return;
+		case MICROSECONDS:
+		case NANOSECONDS:
+			throw new IllegalArgumentException("不支持 " + unit + " 级别限流，请使用 MILLISECONDS、SECONDS、MINUTES、HOURS 或 DAYS");
+		default:
+			throw new IllegalArgumentException("不支持的时间单位: " + unit);
+		}
+	}
+	/**
+	 * 格式化时间窗口显示
+	 */
+	protected String formatWindow(int window, TimeUnit unit) {
+		long remainingMillis = unit.toMillis(window);
+
+	    long days = remainingMillis / 86_400_000L;
+	    remainingMillis %= 86_400_000L;
+
+	    long hours = remainingMillis / 3_600_000L;
+	    remainingMillis %= 3_600_000L;
+
+	    long minutes = remainingMillis / 60_000L;
+	    remainingMillis %= 60_000L;
+
+	    long seconds = remainingMillis / 1_000L;
+	    long milliseconds = remainingMillis % 1_000L;
+
+	    StringBuilder result = new StringBuilder();
+	    if (days > 0) {
+	        result.append(days).append("天");
+	    }
+	    if (hours > 0) {
+	        result.append(hours).append("小时");
+	    }
+	    if (minutes > 0) {
+	        result.append(minutes).append("分钟");
+	    }
+	    if (seconds > 0) {
+	        result.append(seconds).append("秒");
+	    }
+	    if (milliseconds > 0) {
+	        result.append(milliseconds).append("毫秒");
+	    }
+	    return result.toString();
 	}
 }

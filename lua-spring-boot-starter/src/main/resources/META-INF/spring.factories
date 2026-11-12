@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.reyco.dasbx.lua.autoconfiguration.LuaConfiguration
+com.reyco.dasbx.lua.autoconfiguration.LuaConfiguration,\
+com.reyco.dasbx.lua.endpoint.LuaEndpointAutoConfiguration

@@ -28,11 +28,11 @@ public @interface SlidingWindowRateLimit {
      */
     String prefix() default "rate:limit:sliding:window:";
     /**
-     * 时间窗口大小（秒）
+     * 时间窗口大小（默认秒）
      */
     int window() default 1;
     /**
-	 *  时间窗口单位（支持SECONDS、MINUTES、HOURS 或 DAYS）
+	 *  时间窗口单位（支持MILLISECONDS、SECONDS、MINUTES、HOURS 或 DAYS）
 	 * @return
 	 */
     TimeUnit unit() default TimeUnit.SECONDS;
