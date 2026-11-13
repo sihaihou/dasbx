@@ -8,14 +8,14 @@ public class TrimProperties {
 	
 	public final static String REMOVESPACE_PREFIX = "reyco.dasbx.trim";
 	
-	private String urlPatterns = "/*";
+	private String[] urlPatterns = {"/*"};
 	
 	private int order = Ordered.LOWEST_PRECEDENCE - 2;
 	
-	public String getUrlPatterns() {
+	public String[] getUrlPatterns() {
 		return urlPatterns;
 	}
-	public void setUrlPatterns(String urlPatterns) {
+	public void setUrlPatterns(String[] urlPatterns) {
 		this.urlPatterns = urlPatterns;
 	}
 	public int getOrder() {

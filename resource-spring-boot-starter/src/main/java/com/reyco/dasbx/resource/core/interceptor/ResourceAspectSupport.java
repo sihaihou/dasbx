@@ -1,39 +1,50 @@
 package com.reyco.dasbx.resource.core.interceptor;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
-import java.util.HashMap;
+import java.security.Principal;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.StringJoiner;
-import java.util.StringTokenizer;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.Executor;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.reyco.dasbx.commons.constant.MethodType;
 import com.reyco.dasbx.commons.utils.KeyValueMergeUtils;
 import com.reyco.dasbx.commons.utils.UnwrapUtils;
 import com.reyco.dasbx.commons.utils.convert.JsonUtils;
 import com.reyco.dasbx.commons.utils.net.RequestUtils;
 import com.reyco.dasbx.resource.core.handler.ResourceHandler;
 import com.reyco.dasbx.resource.core.model.DefaultResourceDefinition;
+import com.reyco.dasbx.resource.core.support.ResourceParameterMasker;
 import com.reyco.dasbx.trim.requset.RemoveSpaceHttpServletRequestWrapper;
 
 public abstract class ResourceAspectSupport implements InitializingBean{
 	
 	protected Logger logger = LoggerFactory.getLogger(getClass());
+	
+	private final ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
 	
 	private ResourceAttributeSource resourceAttributeSource;
 	
@@ -43,15 +54,16 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 	
 	private String applicationName;
 	
-	protected ThreadPoolExecutor executor;
+	protected Executor executor;
 
 	private Boolean annotation = false;
 	
+	private ResourceParameterMasker parameterMasker;
 	
-	public ThreadPoolExecutor getExecutor() {
+	public Executor getExecutor() {
 		return executor;
 	}
-	public void setExecutor(ThreadPoolExecutor executor) {
+	public void setExecutor(Executor executor) {
 		this.executor = executor;
 	}
 	public ResourceAttributeSource getResourceAttributeSource() {
@@ -82,17 +94,29 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 		return annotation;
 	}
 	public void setAnnotation(Boolean annotation) {
-		this.annotation = annotation;
+		 this.annotation = Boolean.TRUE.equals(annotation);
 	}
+	public ResourceParameterMasker getParameterMasker() {
+	    return parameterMasker;
+	}
+	public void setParameterMasker(ResourceParameterMasker parameterMasker) {
+	    this.parameterMasker = parameterMasker;
+	}
+	
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (annotation && getResourceAttributeSource() == null) {
-			throw new IllegalStateException("Either 'resourceAttributeSource' or 'resourceAttributes' is required: "
-					+ "If there are no router methods, then don't use a router aspect.");
+			throw new IllegalStateException("resourceAttributeSource is required when annotation mode is enabled.");
+		}
+		if (parameterMasker == null) {
+		    throw new IllegalStateException("ResourceParameterMasker is required");
 		}
 	}
 	private ResourceAttribute getResourceAttribute(ResourceAttributeSource resourceAttributeSource, Method method,
 			Class<?> targetClass) {
+		if (resourceAttributeSource == null || method == null || targetClass == null) {
+	        return null;
+	    }
 		return resourceAttributeSource.getResourceAttribute(method, targetClass);
 	}
 	@Nullable
@@ -100,27 +124,51 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 			final InvocationCallback invocation) throws Throwable {
 		long startTime = System.currentTimeMillis();
 		Throwable throwable = null;
+		
+		
 		Object retVal = null;
 		try {
 			retVal = invocation.proceedWithInvocation();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			throwable = e;
-			throw throwable;
+			throw e;
 		} finally {
+			
+			long endTime = System.currentTimeMillis();
+			
+			String token = null;
 			try {
-				long endTime = System.currentTimeMillis();
-				String token = parseToken(method, targetClass);
-				Map<String, Object> parameters = parseParameter(method, targetClass, args);
-				if (executor == null) {
-					handlerDefaultResourceDefinition(method,targetClass,args,startTime,endTime,throwable,token,parameters);
-				} else {
-					executor.execute(new ResourceHandlerThread(method,targetClass,args,startTime,endTime,throwable,token,parameters));
-				}
-			} catch (Exception e) {
-				logger.warn("系统日志出错！exception:{}", e);
-				e.printStackTrace();
-			}
+	            token = parseToken(method, targetClass);
+	        } catch (Throwable e) {
+	            logger.warn("采集 Token 失败: {}", e.getMessage());
+	        }
+			
+			Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+			try {
+	            Map<String, Object> parsed = parseParameter(method, targetClass, args);
+	            if (parsed != null) {
+	                parameters = parsed;
+	            }
+	        } catch (Throwable e) {
+	            logger.warn("采集请求参数失败，使用空参数继续记录日志: {}", e.getMessage());
+	        }
+			
+			final String currentToken = token;
+	        final Map<String, Object> currentParameters = parameters;
+	        try {
+	            if (executor == null) {
+	                handlerDefaultResourceDefinition(method, targetClass, args,
+	                        startTime, endTime, throwable, currentToken, currentParameters);
+	            } else {
+	                executor.execute(new ResourceHandlerThread(method, targetClass, args,
+	                        startTime, endTime, throwable, currentToken, currentParameters));
+	            }
+	        } catch (Throwable e) {
+	            logger.warn("提交资源日志任务失败，改为同步处理: {}", e.getMessage());
+	            handlerDefaultResourceDefinition(method, targetClass, args,startTime, endTime, throwable, currentToken, currentParameters);
+	        }
 		}
+		
 		return retVal;
 	}
 	/**
@@ -131,35 +179,62 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 	 * @param args
 	 */
 	protected void handlerDefaultResourceDefinition(Method method,Class<?> targetClass,Object[] args,long startTime,long endTime,Throwable throwable,String token,Map<String, Object> parameters) {
+		DefaultResourceDefinition resourceDefinition = new DefaultResourceDefinition();
+		resourceDefinition.setStartTime(startTime);
+		resourceDefinition.setEndTime(endTime);
+		resourceDefinition.setSuccess(throwable == null);
+		resourceDefinition.setApplication(applicationName);
+		
+		String message;
+		if(throwable!=null && StringUtils.isNotBlank(message=throwable.getMessage())) {
+			String desensitize = parameterMasker.maskText(message);
+			resourceDefinition.setExceptionInfo(desensitize);
+		}
+		
 		try {
-			DefaultResourceDefinition resourceDefinition = new DefaultResourceDefinition();
-			resourceDefinition.setStartTime(startTime);
-			resourceDefinition.setEndTime(endTime);
-			resourceDefinition.setSuccess(throwable == null ? true : false);
-			String message;
-			if(throwable!=null && StringUtils.isNotBlank(message=throwable.getMessage())) {
-				resourceDefinition.setExceptionInfo(message.length()>1000?message.substring(0, 1000):message);
-			}
-			resourceDefinition.setToken(token);
 			String methodName = getMethodName(method, targetClass);
+	        resourceDefinition.setMethod(methodName);
+	    } catch (Throwable e) {
+	        logger.warn("解析资源方法失败: {}", e.getMessage());
+	        resourceDefinition.setMethod(method == null ? "" : method.getName());
+	    }
+		
+		try {
 			String description = parseDescription(method, targetClass,parameters);
+	        resourceDefinition.setDescription(description);
+	    } catch (Throwable e) {
+	        logger.warn("解析资源描述失败: {}", e.getMessage());
+	        resourceDefinition.setDescription("");
+	    }
+		
+		try {
 			String resourceName = parseResource(method, targetClass,parameters);
+	        resourceDefinition.setResource(resourceName);
+	    } catch (Throwable e) {
+	        logger.warn("解析资源路径失败: {}", e.getMessage());
+	        resourceDefinition.setResource("");
+	    }
+		
+		try {
 			Boolean isController = isController(method, targetClass);
-			resourceDefinition.setApplication(applicationName);
-			resourceDefinition.setResource(resourceName);
-			resourceDefinition.setDescription(description);
-			resourceDefinition.setIsController(isController);
-			resourceDefinition.setParameters(parameters);
-			resourceDefinition.setMethod(methodName);
-			try {
-				resourceHandler.handler(resourceDefinition);
-			} catch (Exception e) {
-				logger.warn("处理系统日志出错！exception:{}", e);
-				e.printStackTrace();
-			}
-		} catch (Exception e) {
-			logger.warn("搜集系统日志出错！exception:{}", e);
-			e.printStackTrace();
+	        resourceDefinition.setIsController(isController);
+	    } catch (Throwable e) {
+	        resourceDefinition.setIsController(false);
+	    }
+		
+		Map<String, Object> maskedParameters = parameterMasker.maskParameters(parameters);
+		resourceDefinition.setToken(parameterMasker.maskToken(token));
+		resourceDefinition.setParameters(maskedParameters);
+		
+		if (resourceHandler == null) {
+	        logger.warn("ResourceHandler 未配置，资源日志未处理");
+	        return;
+	    }
+		
+		try {
+			resourceHandler.handler(resourceDefinition);
+		} catch (Throwable e) {
+			logger.warn("处理系统日志出错！exception:{}", e);
 		}
 	}
 	/**
@@ -201,35 +276,115 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 	private Map<String, Object> parseParameter(Method method,Class<?> targetClass, Object[] args) {
 		if(isController(method, targetClass)) {
 			HttpServletRequest request = RequestUtils.getHttpServletRequest();
-			Map<String,Object> map = new HashMap<>();
-			String parameterForQuery = request.getQueryString();
-			if(StringUtils.isNotBlank(parameterForQuery)) {
-				StringTokenizer stKeyValue = new StringTokenizer(parameterForQuery, "&");
-				while(stKeyValue.hasMoreTokens()) {
-					String keyValue = stKeyValue.nextToken();
-					String[] temp = keyValue.split("=");
-					if(temp.length==2 && StringUtils.isNotBlank(temp[0]) && StringUtils.isNotBlank(temp[1])) {
-						map.put(temp[0], temp[1]);
-					}
-				}
-			}
-			if(!request.getMethod().equalsIgnoreCase(MethodType.GET.getMethod())
-					&& !request.getMethod().equalsIgnoreCase(MethodType.OPTIONS.getMethod())
-					&& !request.getMethod().equalsIgnoreCase(MethodType.HEAD.getMethod())) {
-				RemoveSpaceHttpServletRequestWrapper remove = (RemoveSpaceHttpServletRequestWrapper) request;
-				String body = remove.getBody();
-				if(StringUtils.isNotBlank(body)) {
-					Map<String, Object> parameters = JsonUtils.jsonToMap(body);
-					map.putAll(parameters);
-				}
-			}
-			if(map!=null && map.size()>0) {
-				return map;
-			}
+			if (request != null) {
+	            Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+
+	            // getParameterMap 已经完成 URL 解码，并保留重复参数。
+	            addRequestParameters(parameters, request.getParameterMap());
+
+	            // JSON 请求体放在后面，同名字段保持原有的“请求体覆盖查询参数”规则。
+	            addJsonBodyParameters(parameters, request);
+
+	            if (!parameters.isEmpty()) {
+	                return parameters;
+	            }
+	        }
 		}
-		LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
-		String[] parameterNames = localVariableTableParameterNameDiscoverer.getParameterNames(method);
-		return KeyValueMergeUtils.merge(parameterNames, args);
+		// GET请求
+		return parseMethodParameters(method, args);
+	}
+	/**
+	 * 添加 Servlet 请求参数。
+	 */
+	private void addRequestParameters(Map<String, Object> target, Map<String, String[]> requestParameters) {
+	    if (target == null || requestParameters == null || requestParameters.isEmpty()) {
+	        return;
+	    }
+
+	    for (Map.Entry<String, String[]> entry : requestParameters.entrySet()) {
+	        String name = entry.getKey();
+	        if (StringUtils.isBlank(name)) {
+	            continue;
+	        }
+
+	        String[] values = entry.getValue();
+	        if (values == null || values.length == 0) {
+	            target.put(name, "");
+	        } else if (values.length == 1) {
+	            target.put(name, values[0]);
+	        } else {
+	            // 保留重复参数，例如 tags=a&tags=b。
+	            target.put(name, Arrays.asList(values));
+	        }
+	    }
+	}
+	/**
+	 * 读取 JSON 请求体参数。
+	 * trim 功能关闭或请求没有被包装时直接跳过，不再做强制类型转换。
+	 */
+	private void addJsonBodyParameters(Map<String, Object> target, HttpServletRequest request) {
+	    if (!(request instanceof RemoveSpaceHttpServletRequestWrapper)) {
+	        return;
+	    }
+
+	    String body = ((RemoveSpaceHttpServletRequestWrapper) request).getBody();
+	    if (StringUtils.isBlank(body)) {
+	        return;
+	    }
+
+	    try {
+	        Map<String, Object> bodyParameters = JsonUtils.jsonToMap(body);
+	        if (bodyParameters != null && !bodyParameters.isEmpty()) {
+	            target.putAll(bodyParameters);
+	        }
+	    } catch (RuntimeException e) {
+	        // 请求体不是 JSON 对象或 JSON 格式非法时，不影响其他参数采集。
+	        logger.debug("解析请求体参数失败，回退到方法参数: {}", e.getMessage());
+	    }
+	}
+	/**
+	 * 将从方法参数中采集的数据作为兜底。
+	 */
+	private Map<String, Object> parseMethodParameters(Method method, Object[] args) {
+		Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+	    if (args == null || args.length == 0) {
+	        return parameters;
+	    }
+	    String[] parameterNames = parameterNameDiscoverer.getParameterNames(method);
+	    if (parameterNames == null || parameterNames.length != args.length) {
+	        return parameters;
+	    }
+	    for (int i = 0; i < args.length; i++) {
+	        Object value = args[i];
+	        if (value == null || isFrameworkArgument(value)) {
+	            continue;
+	        }
+
+	        Object converted = KeyValueMergeUtils.values(value);
+	        if (converted != null) {
+	            parameters.put(parameterNames[i], converted);
+	        }
+	    }
+	    return parameters;
+	}
+	private boolean isFrameworkArgument(Object value) {
+	    if (value instanceof ServletRequest
+	            || value instanceof ServletResponse
+	            || value instanceof MultipartFile
+	            || value instanceof Principal
+	            || value instanceof InputStream
+	            || value instanceof OutputStream
+	            || value instanceof Reader
+	            || value instanceof Writer) {
+	        return true;
+	    }
+
+	    String className = value.getClass().getName();
+	    return className.startsWith("org.springframework.")
+	            || className.startsWith("javax.servlet.")
+	            || className.startsWith("jakarta.servlet.")
+	            || className.startsWith("org.apache.catalina.")
+	            || className.startsWith("org.apache.coyote.");
 	}
 	/**
 	 * 获取描述
@@ -330,14 +485,27 @@ public abstract class ResourceAspectSupport implements InitializingBean{
 		if (!isController(method, targetClass)) {
 			return null;
 		}
+		
 		HttpServletRequest request = RequestUtils.getHttpServletRequest();
+		if (request == null || enableResourceAttributes == null) {
+	        return null;
+	    }
+		
 		String[] tokenNames = enableResourceAttributes.getStringArray("tokenNames");
-		for (int i = 0; i < tokenNames.length; i++) {
-			String token = RequestUtils.getTokenByHeaderAndCookie(request, tokenNames[i]);
+		if (tokenNames == null || tokenNames.length == 0) {
+	        return null;
+	    }
+
+		for (String tokenName : tokenNames) {
+			if (StringUtils.isBlank(tokenName)) {
+	            continue;
+	        }
+			String token = RequestUtils.getTokenByHeaderAndCookie(request, tokenName);
 			if (StringUtils.isNotBlank(token)) {
 				return token;
 			}
 		}
+		
 		return null;
 	}
 	/**

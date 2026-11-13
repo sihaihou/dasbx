@@ -4,12 +4,12 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
@@ -19,36 +19,49 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.util.StreamUtils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 
 public class RemoveSpaceHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
-	private Map<String, String[]> params = new HashMap<String, String[]>();
+	private Map<String, String[]> params;
+	private byte[] cachedJsonInputStream;
 	private String body;
 	private String trimBody;
 
 	public RemoveSpaceHttpServletRequestWrapper(HttpServletRequest request) {
 		super(request);
-		this.params.putAll(request.getParameterMap());
-		this.removeSpaceParameterValues();
+		this.params = copyAndTrimParameters(request.getParameterMap());
 	}
 
-	/**
-	 * 将params的值去除空格后重写回去
-	 */
-	private void removeSpaceParameterValues() {
-		Set<String> set = params.keySet();
-		Iterator<String> it = set.iterator();
-		while (it.hasNext()) {
-			String key = it.next();
-			String[] values = params.get(key);
-			values[0] = values[0].trim();
-			params.put(key, values);
+	private Map<String, String[]> copyAndTrimParameters(Map<String, String[]> source) {
+		Map<String, String[]> result = new LinkedHashMap<String, String[]>();
+
+		if (source == null || source.isEmpty()) {
+			return result;
 		}
+
+		for (Map.Entry<String, String[]> entry : source.entrySet()) {
+			String[] sourceValues = entry.getValue();
+			if (sourceValues == null) {
+				result.put(entry.getKey(), null);
+				continue;
+			}
+
+			// 必须复制数组，不能修改原始请求中的参数数组。
+			String[] values = sourceValues.clone();
+			for (int i = 0; i < values.length; i++) {
+				if (values[i] != null) {
+					values[i] = values[i].trim();
+				}
+			}
+			result.put(entry.getKey(), values);
+		}
+
+		return result;
 	}
 
 	@Override
@@ -62,149 +75,212 @@ public class RemoveSpaceHttpServletRequestWrapper extends HttpServletRequestWrap
 
 	@Override
 	public String[] getParameterValues(String name) {
-		return params.get(name);
+		 String[] values = params.get(name);
+	     return values == null ? null : values.clone();
 	}
+	
+	@Override
+    public Map<String, String[]> getParameterMap() {
+        Map<String, String[]> result = new LinkedHashMap<String, String[]>();
+
+        for (Map.Entry<String, String[]> entry : params.entrySet()) {
+            String[] values = entry.getValue();
+            result.put(entry.getKey(),values == null ? null : values.clone());
+        }
+
+        return Collections.unmodifiableMap(result);
+    }
 
 	/**
 	 * 重写getInputStream方法 post类型的请求参数必须通过流才能获取到值
 	 */
 	@Override
 	public ServletInputStream getInputStream() throws IOException {
-		String header = super.getHeader(HttpHeaders.CONTENT_TYPE);
+		// 已经处理过一次时直接返回缓存，避免 InputStream 被重复读取后为空。
+		if (cachedJsonInputStream != null) {
+			return toServletInputStream(cachedJsonInputStream);
+		}
+
 		// 非json类型，直接返回
-		if (StringUtils.isBlank(header) || !header.equalsIgnoreCase(MediaType.APPLICATION_JSON_VALUE)) {
+		String contentType = super.getHeader(HttpHeaders.CONTENT_TYPE);
+		if (!isJsonContentType(contentType)) {
+			// 文件上传等非 JSON 请求继续使用原始流，避免整体加载进内存。
 			return super.getInputStream();
 		}
-		// 为空，直接返回
-		String json = new BufferedReader(new InputStreamReader(super.getInputStream())).lines().parallel().collect(Collectors.joining("\n"));
-		if (StringUtils.isEmpty(json)) {
-			return super.getInputStream();
+
+		// 获取源字符集
+		Charset charset = resolveCharset(contentType);
+		byte[] requestBody = StreamUtils.copyToByteArray(super.getInputStream());
+		this.body = new String(requestBody, charset);
+
+		if (StringUtils.isEmpty(this.body)) {
+			this.trimBody = this.body;
+			this.cachedJsonInputStream = requestBody;
+			return toServletInputStream(this.cachedJsonInputStream);
 		}
-		this.body = json;
-		// json去空格
-		Object jsonObject = jsonStrTrim(json);
-		String jsonTrim = JSON.toJSONString(jsonObject);
-		this.trimBody = jsonTrim;
-		// 写回流中
-		ByteArrayInputStream bis = new ByteArrayInputStream(jsonTrim.getBytes("utf-8"));
+		
+		String jsonSource = this.body;
+        if (jsonSource.startsWith("\uFEFF")) {
+            jsonSource = jsonSource.substring(1);
+        }
+        
+        try {
+            Object json = JSON.parse(jsonSource);
+            Object trimmedJson = trimJsonValue(json);
+
+            this.trimBody = JSON.toJSONString(trimmedJson);
+            this.cachedJsonInputStream = this.trimBody.getBytes(charset);
+        } catch (RuntimeException e) {
+            // 非法 JSON 保持原始内容，避免改变下游请求语义。
+            this.trimBody = this.body;
+            this.cachedJsonInputStream = requestBody;
+        }
+
+		return toServletInputStream(this.cachedJsonInputStream);
+	}
+	 @Override
+    public BufferedReader getReader() throws IOException {
+        String contentType = super.getHeader(HttpHeaders.CONTENT_TYPE);
+
+        if (!isJsonContentType(contentType)) {
+            return super.getReader();
+        }
+
+        return new BufferedReader(new InputStreamReader(getInputStream(),resolveCharset(contentType)));
+    }
+
+	private ServletInputStream toServletInputStream(final byte[] bodyBytes) {
+		final ByteArrayInputStream inputStream = new ByteArrayInputStream(bodyBytes);
 		return new ServletInputStream() {
 			@Override
 			public int read() throws IOException {
-				return bis.read();
+				return inputStream.read();
 			}
+
+			@Override
+			public int read(byte[] bytes, int offset, int length) throws IOException {
+				return inputStream.read(bytes, offset, length);
+			}
+
 			@Override
 			public void setReadListener(ReadListener listener) {
-
 			}
+
 			@Override
 			public boolean isReady() {
 				return true;
 			}
+
 			@Override
 			public boolean isFinished() {
-				return true;
+				return inputStream.available() == 0;
 			}
 		};
 	}
+
 	/**
-	 * json字符串去空格
-	 * @param jsonStr
-	 * @return
-	 * @throws org.json.JSONException 
-	 * @throws JSONException 
+	 * 支持 application/json、application/json;charset=UTF-8 以及
+	 * application/problem+json 等 JSON 子类型。
 	 */
-	private Object jsonStrTrim(String jsonStr){
-		if (StringUtils.isEmpty(jsonStr)) {
-			return "";
+	private boolean isJsonContentType(String contentType) {
+		if (StringUtils.isBlank(contentType)) {
+			return false;
 		}
 		try {
-			Object json = JSON.parse(jsonStr);
-			if(json instanceof JSONArray) {
-				return jsonArrayTrim((JSONArray)json);
-			}
-			if(json instanceof JSONObject) {
-				return jsonObjectTrim((JSONObject)json);
-			}
-		} catch (Exception e) {
-			
+			MediaType mediaType = MediaType.parseMediaType(contentType);
+			String subtype = mediaType.getSubtype().toLowerCase(Locale.ROOT);
+			return MediaType.APPLICATION_JSON.isCompatibleWith(mediaType) || subtype.endsWith("+json");
+		} catch (IllegalArgumentException e) {
+			return false;
 		}
-		return jsonStr.trim();
 	}
+
 	/**
-	 * json对象去空格
-	 * @param jsonObject
-	 * @return
+	 * 优先使用 Content-Type 中的字符集，其次使用请求字符集，最后使用 UTF-8。
 	 */
-	private JSONObject jsonObjectTrim(JSONObject jsonObject) {
-		Set<Entry<String, Object>> entrySet = jsonObject.entrySet();
-		entrySet.forEach(entry-> {
-			Object value = entry.getValue();
-			if(value==null) {
-				return;
+	private Charset resolveCharset(String contentType) {
+		try {
+			Charset charset = MediaType.parseMediaType(contentType).getCharset();
+			if (charset != null) {
+				return charset;
 			}
-			if (value instanceof JSONArray) {
-				jsonObject.put(entry.getKey(), jsonArrayTrim((JSONArray) value));
-				return;
-			}
-			if (value instanceof JSONObject) {
-				jsonObject.put(entry.getKey(), jsonObjectTrim((JSONObject) value));
-				return;
-			}
-			if (value instanceof String) {
-				String resultValue = (String) value;
-				if (!StringUtils.isEmpty(resultValue)) {
-					resultValue = resultValue.trim();
-					jsonObject.put(entry.getKey(), resultValue);
-				}
-				return;
-			}
-		});
-		return jsonObject;
-	}
-	/**
-	 * json数组对象去空格
-	 * @param jsonArray
-	 * @return
-	 * @throws JSONException 
-	 */
-	private JSONArray jsonArrayTrim(JSONArray jsonArray){
-		if(jsonArray!=null && jsonArray.size()>0) {
-			Object tempObject = null;
-			for (int i=0;i<jsonArray.size();i++) {
-				tempObject = jsonArray.get(i);
-				if (tempObject instanceof JSONArray) {
-					tempObject = jsonArrayTrim((JSONArray) tempObject);
-					jsonArray.set(i, tempObject);
-					continue;
-				}
-				if(tempObject instanceof JSONObject) {
-					JSONObject jsonObject = jsonObjectTrim((JSONObject)tempObject);
-					jsonArray.set(i, jsonObject);
-					continue;
-				}
-				if(tempObject instanceof String) {
-					Object jsonStrTrim = jsonStrTrim((String)tempObject);
-					jsonArray.set(i, jsonStrTrim);
-				}
+		} catch (IllegalArgumentException e) {
+			// 继续使用请求字符集或默认 UTF-8。
+		}
+
+		String encoding = super.getCharacterEncoding();
+		if (StringUtils.isNotBlank(encoding)) {
+			try {
+				return Charset.forName(encoding);
+			} catch (IllegalArgumentException e) {
+				// 非法字符集使用 UTF-8。
 			}
 		}
-		return jsonArray;
+
+		return StandardCharsets.UTF_8;
 	}
+	/**
+     * 只去除字符串值的前后空格，不改变数字、布尔值和 null。
+     */
+    private Object trimJsonValue(Object value) {
+        if (value instanceof String) {
+            return ((String) value).trim();
+        }
+
+        if (value instanceof JSONObject) {
+            return trimJsonObject((JSONObject) value);
+        }
+
+        if (value instanceof JSONArray) {
+            return trimJsonArray((JSONArray) value);
+        }
+
+        return value;
+    }
+    private JSONObject trimJsonObject(JSONObject source) {
+        JSONObject result = new JSONObject();
+
+        for (Map.Entry<String, Object> entry : source.entrySet()) {
+            result.put(entry.getKey(),trimJsonValue(entry.getValue()));
+        }
+
+        return result;
+    }
+    private JSONArray trimJsonArray(JSONArray source) {
+        JSONArray result = new JSONArray(source.size());
+
+        for (int i = 0; i < source.size(); i++) {
+            /*
+             * 注意：数组中的字符串只做 trim。
+             * 不能再次调用 JSON.parse，否则字符串形式的 JSON 文本
+             * 会被错误转换成对象或数组。
+             */
+            result.add(trimJsonValue(source.get(i)));
+        }
+
+        return result;
+    }
+
 	public Map<String, String[]> getParams() {
 		return params;
 	}
+
 	public void setParams(Map<String, String[]> params) {
 		this.params = params;
 	}
+
 	public String getBody() {
 		return body;
 	}
+
 	public void setBody(String body) {
 		this.body = body;
 	}
+
 	public String getTrimBody() {
 		return trimBody;
 	}
+
 	public void setTrimBody(String trimBody) {
 		this.trimBody = trimBody;
 	}

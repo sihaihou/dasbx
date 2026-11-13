@@ -21,6 +21,11 @@ public class RemoveSpaceParamsFilter implements Filter{
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
 			throws IOException, ServletException {
+		if (!(servletRequest instanceof HttpServletRequest)) {
+            chain.doFilter(servletRequest, servletResponse);
+            return;
+        }
+		
 		RemoveSpaceHttpServletRequestWrapper request = new RemoveSpaceHttpServletRequestWrapper((HttpServletRequest)servletRequest);
 		chain.doFilter(request, servletResponse);
 	}

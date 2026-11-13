@@ -1,8 +1,8 @@
 package com.reyco.dasbx.trim.autoConfiguration;
 
-import java.util.logging.Filter;
 
 import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
